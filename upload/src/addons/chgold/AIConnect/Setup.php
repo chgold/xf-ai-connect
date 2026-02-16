@@ -73,11 +73,18 @@ class Setup extends AbstractSetup
         ];
 
         foreach ($options as $key => $value) {
+            $serialized = serialize($value);
             \XF::db()->insert('xf_option', [
                 'option_id' => $key,
-                'option_value' => serialize($value),
+                'option_value' => $serialized,
+                'default_value' => $serialized,
                 'edit_format' => 'textbox',
+                'edit_format_params' => '',
                 'data_type' => is_int($value) ? 'integer' : 'string',
+                'sub_options' => '',
+                'validation_class' => '',
+                'validation_method' => '',
+                'addon_id' => 'chgold/AIConnect'
             ], false, 'option_value = VALUES(option_value)');
         }
     }
