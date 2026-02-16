@@ -1,0 +1,15 @@
+{
+    "name": "chgold/xenforo-ai-connect",
+    "description": "AI Connect for XenForo - WebMCP Protocol Bridge",
+    "type": "library",
+    "license": "GPL-3.0-or-later",
+    "require": {
+        "php": ">=7.2.0",
+        "firebase/php-jwt": "^6.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "chgold\\AIConnect\\": "src/addons/chgold/AIConnect/"
+        }
+    }
+}
