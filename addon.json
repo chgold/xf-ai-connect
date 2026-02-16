@@ -1,4 +1,5 @@
 {
+    "addon_id": "chgold/AIConnect",
     "legacy_addon_id": "",
     "title": "AI Connect for XenForo",
     "description": "WebMCP Protocol Bridge - Connect AI agents to your XenForo forum",
