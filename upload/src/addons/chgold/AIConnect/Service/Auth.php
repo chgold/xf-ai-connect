@@ -13,8 +13,8 @@ class Auth extends AbstractService
      */
     public function generateAccessToken($userId, $scopes = ['read', 'write'])
     {
-        $secret = \XF::options()->aiConnectJwtSecret;
-        $expiry = \XF::options()->aiConnectTokenExpiry;
+        $secret = Settings::get('jwt_secret');
+        $expiry = (int) Settings::get('token_expiry', 3600);
         
         $payload = [
             'iss' => \XF::options()->boardUrl,
@@ -33,7 +33,7 @@ class Auth extends AbstractService
     public function validateAccessToken($token)
     {
         try {
-            $secret = \XF::options()->aiConnectJwtSecret;
+            $secret = Settings::get('jwt_secret');
             $decoded = JWT::decode($token, new Key($secret, 'HS256'));
             
             return [
@@ -130,7 +130,7 @@ class Auth extends AbstractService
             'success' => true,
             'access_token' => $accessToken,
             'token_type' => 'Bearer',
-            'expires_in' => \XF::options()->aiConnectTokenExpiry,
+            'expires_in' => (int) Settings::get('token_expiry', 3600),
             'user_id' => $user->user_id,
             'username' => $user->username,
         ];

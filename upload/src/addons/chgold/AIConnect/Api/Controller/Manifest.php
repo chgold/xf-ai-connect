@@ -17,7 +17,13 @@ class Manifest extends AbstractController
         return $this->apiResult($manifest);
     }
 
-    protected function assertRequiredApiInput($keys)
+    public function allowUnauthenticatedRequest($action)
+    {
+        // Manifest endpoint is public - no authentication required
+        return true;
+    }
+
+    public function assertRequiredApiInput($keys)
     {
         return [];
     }

@@ -55,7 +55,7 @@ class Tools extends AbstractController
         return ['xenforo', $fullName];
     }
 
-    protected function assertRequiredApiInput($keys)
+    public function assertRequiredApiInput($keys)
     {
         return [];
     }

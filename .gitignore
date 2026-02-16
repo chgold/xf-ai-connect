@@ -22,5 +22,8 @@ _data/
 _output/
 _releases/
 
+# Build files
+hashes.txt
+
 # Logs
 *.log

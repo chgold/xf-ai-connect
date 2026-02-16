@@ -57,35 +57,32 @@ class Setup extends AbstractSetup
             $table->addColumn('reason', 'text')->nullable();
             $table->addPrimaryKey('user_id');
         });
+
+        // Settings table
+        $schemaManager->createTable('xf_ai_connect_settings', function(Create $table) {
+            $table->addColumn('setting_key', 'varchar', 50);
+            $table->addColumn('setting_value', 'text');
+            $table->addPrimaryKey('setting_key');
+        });
     }
 
-    /**
-     * Create default options
-     */
     public function installStep2()
     {
-        $options = [
-            'aiConnectEnabled' => 1,
-            'aiConnectJwtSecret' => bin2hex(random_bytes(32)),
-            'aiConnectRateLimitPerMinute' => 50,
-            'aiConnectRateLimitPerHour' => 1000,
-            'aiConnectTokenExpiry' => 3600, // 1 hour
+        $db = \XF::db();
+        
+        $defaults = [
+            'enabled' => '1',
+            'jwt_secret' => bin2hex(random_bytes(32)),
+            'rate_limit_per_minute' => '50',
+            'rate_limit_per_hour' => '1000',
+            'token_expiry' => '3600',
         ];
 
-        foreach ($options as $key => $value) {
-            $serialized = serialize($value);
-            \XF::db()->insert('xf_option', [
-                'option_id' => $key,
-                'option_value' => $serialized,
-                'default_value' => $serialized,
-                'edit_format' => 'textbox',
-                'edit_format_params' => '',
-                'data_type' => is_int($value) ? 'integer' : 'string',
-                'sub_options' => '',
-                'validation_class' => '',
-                'validation_method' => '',
-                'addon_id' => 'chgold/AIConnect'
-            ], false, 'option_value = VALUES(option_value)');
+        foreach ($defaults as $key => $value) {
+            $db->insert('xf_ai_connect_settings', [
+                'setting_key' => $key,
+                'setting_value' => $value
+            ], false, 'setting_value = VALUES(setting_value)');
         }
     }
 
@@ -99,13 +96,6 @@ class Setup extends AbstractSetup
         $schemaManager->dropTable('xf_ai_connect_api_keys');
         $schemaManager->dropTable('xf_ai_connect_rate_limits');
         $schemaManager->dropTable('xf_ai_connect_blocked_users');
-    }
-
-    /**
-     * Remove options on uninstall
-     */
-    public function uninstallStep2()
-    {
-        \XF::db()->delete('xf_option', "option_id LIKE 'aiConnect%'");
+        $schemaManager->dropTable('xf_ai_connect_settings');
     }
 }
