@@ -25,7 +25,7 @@ class Setup extends AbstractSetup
         $schemaManager->createTable('xf_ai_connect_api_keys', function(Create $table) {
             $table->addColumn('api_key_id', 'int')->autoIncrement();
             $table->addColumn('user_id', 'int');
-            $table->addColumn('api_key', 'varchar', 64)->unique();
+            $table->addColumn('api_key', 'varchar', 64);
             $table->addColumn('name', 'varchar', 100);
             $table->addColumn('scopes', 'mediumblob');
             $table->addColumn('is_active', 'tinyint')->setDefault(1);
@@ -34,7 +34,7 @@ class Setup extends AbstractSetup
             $table->addColumn('expires_date', 'int')->setDefault(0);
             $table->addPrimaryKey('api_key_id');
             $table->addKey('user_id');
-            $table->addKey('api_key');
+            $table->addUniqueKey('api_key');
         });
 
         // Rate Limits table
@@ -51,10 +51,11 @@ class Setup extends AbstractSetup
 
         // Blocked Users table
         $schemaManager->createTable('xf_ai_connect_blocked_users', function(Create $table) {
-            $table->addColumn('user_id', 'int')->primaryKey();
+            $table->addColumn('user_id', 'int');
             $table->addColumn('blocked_date', 'int');
             $table->addColumn('blocked_by_user_id', 'int');
             $table->addColumn('reason', 'text')->nullable();
+            $table->addPrimaryKey('user_id');
         });
     }
 

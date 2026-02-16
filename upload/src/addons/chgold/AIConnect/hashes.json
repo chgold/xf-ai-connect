@@ -13,7 +13,7 @@
     "Service/Auth.php": "56eecfe6031fde1ad5ec0c75270d58b732fd0b1d9b24b5364dcb37c81474a70f",
     "Service/Manifest.php": "b648a21ceec63caaef1f981e704b040a136710e3322e73feb5babe786d629a30",
     "Service/RateLimiter.php": "8164a441f9f082ea9fd27d0affd00d589e1f40853c80480b63221492becbac95",
-    "Setup.php": "78d5638a8b0b672a2268d05b04ca292dcf914efd0df3661a66ac70f99fc95771",
+    "Setup.php": "5421395970116144c9ae42a1bd6a114c67c648d56dd171a507325af548a6ce8e",
     "addon.json": "23c076ebf0c64157238d16f661eb679d538bed0374bb6a6622c25096cad4f6f2",
     "composer.json": "0bc30a1e95ba2fdaa11e9e2b313fabc4886657745a6b88833bc5896653eacd69"
 }
