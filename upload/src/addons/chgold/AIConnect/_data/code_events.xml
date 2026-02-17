@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<code_events>
+    <event event_id="ai_connect_modules_init" addon_id="chgold/AIConnect" description="Fired after the core module is loaded. Allows other addons to register additional modules. Arguments: &amp;$modules (array), $manifestService" />
+</code_events>

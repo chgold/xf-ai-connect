@@ -7,7 +7,7 @@ use XF\Mvc\ParameterBag;
 
 class Tools extends AbstractController
 {
-    protected $coreModule;
+    protected $modules = [];
 
     protected function preDispatchController($action, ParameterBag $params)
     {
@@ -36,7 +36,11 @@ class Tools extends AbstractController
         \XF::setVisitor($user);
         
         $manifestService = \XF::service('chgold\AIConnect:Manifest');
-        $this->coreModule = new \chgold\AIConnect\Module\CoreModule($manifestService);
+        $coreModule = new \chgold\AIConnect\Module\CoreModule($manifestService);
+        $this->modules[$coreModule->getModuleName()] = $coreModule;
+
+        // Allow PRO and other addons to register additional modules
+        \XF::fire('ai_connect_modules_init', [&$this->modules, $manifestService], 'chgold/AIConnect');
     }
 
     public function actionPost(ParameterBag $params)
@@ -55,13 +59,13 @@ class Tools extends AbstractController
             return $this->error('Tool name is required', 400);
         }
 
-        list($module, $tool) = $this->parseToolName($toolName);
+        list($moduleName, $tool) = $this->parseToolName($toolName);
 
-        if ($module !== 'xenforo') {
-            return $this->error('Invalid module: ' . $module, 404);
+        if (!isset($this->modules[$moduleName])) {
+            return $this->error('Invalid module: ' . $moduleName, 404);
         }
 
-        $result = $this->coreModule->executeTool($tool, $input);
+        $result = $this->modules[$moduleName]->executeTool($tool, $input);
 
         if (isset($result['success']) && $result['success'] === false) {
             return $this->error(
