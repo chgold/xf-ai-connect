@@ -102,14 +102,13 @@ class Auth extends AbstractService
         /** @var \XF\Service\User\Login $loginService */
         $loginService = $this->service('XF:User\Login', $username, \XF::app()->request()->getIp());
         
-        if (!$loginService->validate($password, $error)) {
+        $user = $loginService->validate($password, $error);
+        if (!$user) {
             return [
                 'success' => false,
                 'error' => $error ?? 'Invalid credentials',
             ];
         }
-
-        $user = $loginService->getUser();
         
         // Check if user is blocked
         $blocked = \XF::db()->fetchOne(
