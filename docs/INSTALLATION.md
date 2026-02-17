@@ -52,11 +52,16 @@
 - This means the files were modified after installation
 - Reinstall the addon to fix
 
+### "Class 'Firebase\JWT\JWT' not found" error
+The `vendor/` directory is missing from the addon. This happens if the addon was installed manually without the bundled vendor files. Re-install using the release zip from GitHub, or run `composer install --no-dev` inside the addon directory (`src/addons/chgold/AIConnect/`).
+
 ## Requirements
 
 - XenForo 2.2.0+
 - PHP 7.2.0+
 - MySQL 5.5+
+
+PHP dependencies (`firebase/php-jwt`) are bundled inside the addon and loaded automatically by XenForo. No Composer required.
 
 ## Support
 

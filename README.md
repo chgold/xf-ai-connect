@@ -27,6 +27,8 @@ A WebMCP Protocol Bridge that allows AI agents to interact with XenForo forums t
 - **PHP** 7.2.0 or higher
 - **MySQL** 5.5 or higher
 
+> PHP dependencies (`firebase/php-jwt`) are bundled inside the addon. No manual Composer step required.
+
 ---
 
 ## 📦 Installation
