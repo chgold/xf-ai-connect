@@ -19,6 +19,8 @@ class Setup extends AbstractSetup
      */
     public function installStep1()
     {
+        $this->installComposerDependencies();
+
         $schemaManager = $this->schemaManager();
 
         // API Keys table
@@ -86,9 +88,35 @@ class Setup extends AbstractSetup
         }
     }
 
-    /**
-     * Drop tables on uninstall
-     */
+    protected function installComposerDependencies()
+    {
+        $addonDir = __DIR__;
+        $vendorAutoload = $addonDir . '/vendor/autoload.php';
+
+        if (file_exists($vendorAutoload)) {
+            return;
+        }
+
+        $composerJson = $addonDir . '/composer.json';
+        if (!file_exists($composerJson)) {
+            return;
+        }
+
+        $composerCmd = trim(shell_exec('which composer 2>/dev/null') ?: '');
+        if (!$composerCmd) {
+            $composerCmd = trim(shell_exec('which composer.phar 2>/dev/null') ?: '');
+        }
+
+        if (!$composerCmd) {
+            return;
+        }
+
+        $oldDir = getcwd();
+        chdir($addonDir);
+        shell_exec($composerCmd . ' install --no-dev --optimize-autoloader 2>&1');
+        chdir($oldDir);
+    }
+
     public function uninstallStep1()
     {
         $schemaManager = $this->schemaManager();
