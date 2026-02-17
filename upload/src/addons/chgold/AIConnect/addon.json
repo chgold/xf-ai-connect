@@ -3,8 +3,8 @@
     "legacy_addon_id": "",
     "title": "AI Connect for XenForo",
     "description": "WebMCP Protocol Bridge - Connect AI agents to your XenForo forum",
-    "version_id": 1000000,
-    "version_string": "1.0.0",
+    "version_id": 1000200,
+    "version_string": "1.0.2",
     "dev": "chgold",
     "dev_url": "https://github.com/chgold/xenforo-ai-connect",
     "faq_url": "",
@@ -14,5 +14,6 @@
         "php": ["7.2.0", "PHP 7.2.0+"],
         "XF": ["2020000", "XenForo 2.2.0+"]
     },
+    "composer_autoload": "vendor/composer",
     "icon": ""
 }
