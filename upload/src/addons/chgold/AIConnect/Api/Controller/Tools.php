@@ -13,33 +13,13 @@ class Tools extends AbstractController
     {
         parent::preDispatchController($action, $params);
         
-        $authHeader = $this->request()->getServer('HTTP_AUTHORIZATION');
-        if (!$authHeader || !preg_match('/^Bearer\s+(.+)$/i', $authHeader, $matches)) {
-            throw $this->exception($this->error('Missing or invalid Authorization header', 401));
-        }
-        
-        $token = $matches[1];
-        $authService = \XF::service('chgold\AIConnect:Auth');
-        $validation = $authService->validateAccessToken($token);
-        
-        if (!$validation['valid']) {
-            throw $this->exception($this->error('Invalid or expired token: ' . ($validation['error'] ?? 'Unknown error'), 401));
-        }
-        
-        $userId = $validation['user_id'];
-        $user = \XF::em()->find('XF:User', $userId);
-        
-        if (!$user) {
-            throw $this->exception($this->error('User not found', 404));
-        }
-        
-        \XF::setVisitor($user);
-        
         $manifestService = \XF::service('chgold\AIConnect:Manifest');
         $coreModule = new \chgold\AIConnect\Module\CoreModule($manifestService);
+        $translationModule = new \chgold\AIConnect\Module\TranslationModule($manifestService);
+        
         $this->modules[$coreModule->getModuleName()] = $coreModule;
+        $this->modules[$translationModule->getModuleName()] = $translationModule;
 
-        // Allow PRO and other addons to register additional modules
         \XF::fire('ai_connect_modules_init', [&$this->modules, $manifestService], 'chgold/AIConnect');
     }
 

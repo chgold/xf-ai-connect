@@ -41,10 +41,13 @@ class Manifest extends AbstractService
     {
         $baseUrl = \XF::options()->boardUrl;
         
+        $addon = \XF::em()->find('XF:AddOn', 'chgold/AIConnect');
+        $version = $addon ? $addon->version_string : '1.1.2';
+        
         $manifest = [
             'schema_version' => '1.0',
             'name' => 'xenforo-ai-connect',
-            'version' => '1.0.0',
+            'version' => $version,
             'description' => 'WebMCP bridge for XenForo - manage forum content and users',
             'api_version' => 'v1',
             'capabilities' => [
@@ -57,14 +60,23 @@ class Manifest extends AbstractService
                 'description' => 'XenForo AI Connect API',
             ],
             'auth' => [
-                'type' => 'bearer',
-                'login_url' => $baseUrl . '/api/ai-connect/auth/login',
-                'description' => 'Direct authentication with XenForo username and password',
-                'method' => 'POST',
-                'body' => [
-                    'username' => 'XenForo username',
-                    'password' => 'XenForo password',
+                'type' => 'oauth2',
+                'flow' => 'authorization_code',
+                'authorization_url' => $baseUrl . '/oauth.php',
+                'token_url' => $baseUrl . '/api/aiconnect-oauth',
+                'pkce' => [
+                    'required' => true,
+                    'method' => 'S256'
                 ],
+                'redirect_uri' => 'urn:ietf:wg:oauth:2.0:oob',
+                'scopes' => [
+                    'read' => 'Read forum content and your profile',
+                    'write' => 'Create and modify content',
+                    'delete' => 'Delete content',
+                    'admin' => 'Administrative access'
+                ],
+                'grant_types' => ['authorization_code', 'refresh_token'],
+                'token_type' => 'Bearer'
             ],
             'usage' => [
                 'tools_endpoint' => $baseUrl . '/api/ai-connect/v1/tools/{tool_name}',

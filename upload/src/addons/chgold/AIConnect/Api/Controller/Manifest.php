@@ -11,13 +11,23 @@ class Manifest extends AbstractController
         $manifestService = \XF::service('chgold\AIConnect:Manifest');
 
         $coreModule = new \chgold\AIConnect\Module\CoreModule($manifestService);
-        $modules = [$coreModule->getModuleName() => $coreModule];
+        $translationModule = new \chgold\AIConnect\Module\TranslationModule($manifestService);
+        
+        $modules = [
+            $coreModule->getModuleName() => $coreModule,
+            $translationModule->getModuleName() => $translationModule,
+        ];
 
         \XF::fire('ai_connect_modules_init', [&$modules, $manifestService], 'chgold/AIConnect');
 
         $manifest = $manifestService->generate();
 
         return $this->apiResult($manifest);
+    }
+
+    public function actionGetIndex()
+    {
+        return $this->actionGet();
     }
 
     public function allowUnauthenticatedRequest($action)

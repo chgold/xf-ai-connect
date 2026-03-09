@@ -1,11 +1,10 @@
 {
     "name": "chgold/xenforo-ai-connect",
-    "description": "AI Connect for XenForo - WebMCP Protocol Bridge",
+    "description": "AI Connect for XenForo - WebMCP Protocol Bridge with OAuth 2.0",
     "type": "library",
     "license": "GPL-3.0-or-later",
     "require": {
-        "php": ">=7.2.0",
-        "firebase/php-jwt": "^6.0"
+        "php": ">=7.2.0"
     },
     "autoload": {
         "psr-4": {

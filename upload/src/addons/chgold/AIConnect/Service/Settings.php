@@ -44,10 +44,8 @@ class Settings
     {
         $defaults = [
             'enabled' => '1',
-            'jwt_secret' => bin2hex(random_bytes(32)),
             'rate_limit_per_minute' => '50',
             'rate_limit_per_hour' => '1000',
-            'token_expiry' => '3600',
         ];
 
         foreach ($defaults as $key => $value) {
