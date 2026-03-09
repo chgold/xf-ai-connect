@@ -9,25 +9,16 @@ class Auth extends AbstractController
 {
     public function actionPostLogin()
     {
-        $username = $this->filter('username', 'str');
-        $password = $this->filter('password', 'str');
-
-        if (empty($username) || empty($password)) {
-            return $this->error('Username and password are required', 400);
-        }
-
-        $authService = \XF::service('chgold\AIConnect:Auth');
-        $result = $authService->authenticateUser($username, $password);
-
-        if (!$result['success']) {
-            return $this->error($result['error'] ?? 'Authentication failed', 401);
-        }
-
-        return $this->apiSuccess($result);
+        return $this->error('DEPRECATED: Password authentication is deprecated. Use OAuth 2.0 flow instead. Visit /oauth/authorize to begin OAuth flow.', 410);
     }
 
     public function actionPostRefresh()
     {
-        return $this->error('Refresh not implemented - tokens are long-lived', 501);
+        return $this->error('DEPRECATED: Use OAuth 2.0 refresh_token flow via /api/aiconnect-oauth/token', 410);
+    }
+
+    public function allowUnauthenticatedRequest($action)
+    {
+        return true;
     }
 }
