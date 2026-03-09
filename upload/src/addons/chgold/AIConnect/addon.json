@@ -2,16 +2,16 @@
     "legacy_addon_id": "",
     "title": "AI Connect for XenForo",
     "description": "WebMCP Protocol Bridge with OAuth 2.0 - Connect AI agents to your XenForo forum",
-    "version_id": 1010600,
-    "version_string": "1.1.6",
+    "version_id": 1010700,
+    "version_string": "1.1.7",
     "dev": "chgold",
-    "dev_url": "https://github.com/chgold/xenforo-ai-connect",
+    "dev_url": "https://ai-connect.gold-t.co.il/",
     "faq_url": "",
-    "support_url": "",
+    "support_url": "https://ai-connect.gold-t.co.il/",
     "extra_urls": [],
     "require": {
         "php": ["7.2.0", "PHP 7.2.0+"],
         "XF": ["2020000", "XenForo 2.2.0+"]
     },
-    "icon": ""
+    "icon": "icon.png"
 }
