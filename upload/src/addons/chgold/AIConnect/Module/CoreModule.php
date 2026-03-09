@@ -101,15 +101,24 @@ class CoreModule extends ModuleBase
             $finder->where('node_id', $params['forum_id']);
         }
 
+        $limit = $params['limit'] ?? 10;
+
         $finder->where('discussion_state', 'visible')
+            ->with('Forum')
             ->order('post_date', 'DESC')
-            ->limit($params['limit'] ?? 10);
+            ->limit($limit * 2);
 
         $threads = $finder->fetch();
         $result = [];
 
         foreach ($threads as $thread) {
+            if (!$thread->canView()) {
+                continue;
+            }
             $result[] = $this->formatThread($thread);
+            if (count($result) >= $limit) {
+                break;
+            }
         }
 
         return $this->success($result);
@@ -117,13 +126,13 @@ class CoreModule extends ModuleBase
 
     public function execute_getThread($params)
     {
-        $thread = \XF::em()->find('XF:Thread', $params['thread_id']);
+        $thread = \XF::em()->find('XF:Thread', $params['thread_id'], ['Forum']);
 
         if (!$thread) {
             return $this->error('not_found', 'Thread not found');
         }
 
-        if ($thread->discussion_state !== 'visible') {
+        if (!$thread->canView()) {
             return $this->error('not_accessible', 'Thread is not accessible');
         }
 
@@ -142,15 +151,24 @@ class CoreModule extends ModuleBase
             $finder->where('thread_id', $params['thread_id']);
         }
 
+        $limit = $params['limit'] ?? 10;
+
         $finder->where('message_state', 'visible')
+            ->with(['Thread', 'Thread.Forum'])
             ->order('post_date', 'DESC')
-            ->limit($params['limit'] ?? 10);
+            ->limit($limit * 2);
 
         $posts = $finder->fetch();
         $result = [];
 
         foreach ($posts as $post) {
+            if (!$post->canView()) {
+                continue;
+            }
             $result[] = $this->formatPost($post);
+            if (count($result) >= $limit) {
+                break;
+            }
         }
 
         return $this->success($result);
@@ -158,13 +176,13 @@ class CoreModule extends ModuleBase
 
     public function execute_getPost($params)
     {
-        $post = \XF::em()->find('XF:Post', $params['post_id']);
+        $post = \XF::em()->find('XF:Post', $params['post_id'], ['Thread', 'Thread.Forum']);
 
         if (!$post) {
             return $this->error('not_found', 'Post not found');
         }
 
-        if ($post->message_state !== 'visible') {
+        if (!$post->canView()) {
             return $this->error('not_accessible', 'Post is not accessible');
         }
 
