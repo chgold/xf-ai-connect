@@ -1,6 +1,6 @@
 # XenForo AI Connect
 
-[![Version](https://img.shields.io/badge/version-1.1.8-blue.svg)](releases/)
+[![Version](https://img.shields.io/badge/version-1.1.9-blue.svg)](https://github.com/chgold/xf-ai-connect/releases/latest)
 [![XenForo](https://img.shields.io/badge/XenForo-2.2.0+-orange.svg)](https://xenforo.com)
 [![License](https://img.shields.io/badge/license-GPL--3.0-green.svg)](upload/src/addons/chgold/AIConnect/LICENSE-GPL.txt)
 
@@ -19,8 +19,8 @@ A WebMCP Protocol Bridge that allows AI agents (ChatGPT, Claude, Gemini, Copilot
 | Search threads and posts | ✅ | ✅ |
 | Read thread and post content | ✅ | ✅ |
 | Get current user info | ✅ | ✅ |
+| Translate content (30+ languages) | ✅ | ✅ |
 | OAuth 2.0 + PKCE | ✅ | ✅ |
-| Translation tools | ✅ | ✅ |
 | XenForo permission enforcement | ✅ | ✅ |
 | Browse and list forums | — | ✅ |
 | Create threads | — | ✅ |
@@ -39,7 +39,6 @@ A WebMCP Protocol Bridge that allows AI agents (ChatGPT, Claude, Gemini, Copilot
 - **Pre-configured AI Clients** — ChatGPT, Claude, Gemini, Copilot, Grok, DeepSeek, Perplexity, Meta AI
 - **XenForo Permission Enforcement** — AI agents respect the same permission rules as human users
 - **Rate Limiting** — Configurable per-user rate limits
-- **Translation Module** — Translate content between 30+ languages via Google Translate
 - **Modular Architecture** — Extend with custom modules using a clean event-driven API
 
 ---
@@ -58,7 +57,7 @@ A WebMCP Protocol Bridge that allows AI agents (ChatGPT, Claude, Gemini, Copilot
 
 ### Quick Install
 
-1. **Download** the latest release from [Releases](releases/)
+1. **Download** the latest release from [Releases](https://github.com/chgold/xf-ai-connect/releases/latest)
 
 2. **Extract** the `upload/` directory into your XenForo root
 
@@ -68,15 +67,7 @@ A WebMCP Protocol Bridge that allows AI agents (ChatGPT, Claude, Gemini, Copilot
    ```
    Or via Admin CP → Add-ons → Install add-on
 
-4. **Copy `oauth.php`** to your XenForo root directory (if not already there)
-
-5. **Add to `.htaccess`** (Apache only — required for Bearer token auth):
-   ```apache
-   RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
-   ```
-   Add this before the existing RewriteRule lines.
-
-6. **Verify**:
+4. **Verify**:
    ```bash
    curl https://your-forum.com/api/aiconnect-manifest
    ```
@@ -251,7 +242,6 @@ php cmd.php xf-addon:build-release chgold/AIConnect
 
 - **[WebMCP Protocol](https://webmcp.org)** — The open protocol specification for AI-to-web integration
 - **[XenForo](https://xenforo.com)** — The forum platform this addon extends
-- **[Firebase PHP-JWT](https://github.com/firebase/php-jwt)** — JWT token handling library
 
 ---
 
