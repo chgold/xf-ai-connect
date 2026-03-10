@@ -116,7 +116,7 @@ class OAuth extends AbstractController
         if (!$visitor->user_id) {
             return $this->redirect(
                 $this->buildLink('login', null, [
-                    'redirect' => $this->request->getFullRequestUri()
+                    '_xfRedirect' => $this->request->getFullRequestUri()
                 ])
             );
         }

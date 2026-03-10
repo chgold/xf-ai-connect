@@ -1,2 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
-<code_events/>
+<code_events>
+  <event event_id="ai_connect_modules_init"><![CDATA[<p>Fired when AI Connect initializes modules. Allows addons to register additional tool modules.</p>
+
+<p>Callback signature:</p>
+<blockquote><code>public static function aiConnectModulesInit(<em>array</em> &amp;$modules, <em>\chgold\AIConnect\Service\Manifest</em> $manifestService)</code></blockquote>
+
+<p>Arguments:</p>
+<ol>
+	<li><code><em>array</em> &amp;$modules</code> - Array of registered modules, keyed by module ID. Add your module instance here.</li>
+	<li><code><em>\chgold\AIConnect\Service\Manifest</em> $manifestService</code> - The manifest service instance.</li>
+</ol>
+
+<p>Example:</p>
+<pre>public static function aiConnectModulesInit(array &amp;$modules, \chgold\AIConnect\Service\Manifest $manifestService)
+{
+	$modules['my-module'] = new \MyAddon\Module\MyModule($manifestService);
+}</pre>]]></event>
+</code_events>

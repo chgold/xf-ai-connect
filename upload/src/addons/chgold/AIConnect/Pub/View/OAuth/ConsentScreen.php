@@ -25,7 +25,7 @@ class ConsentScreen extends View
             'admin' => 'Administrative access'
         ];
         
-        $csrfToken = \XF::visitor()->csrf_token_page;
+        $csrfToken = htmlspecialchars(\XF::app()['csrf.token']);
         $forumTitle = \XF::options()->boardTitle;
         
         $html = <<<HTML
@@ -150,7 +150,7 @@ class ConsentScreen extends View
     </style>
 </head>
 <body>
-    <div class="consent-container">
+    <div class="consent-container" style="margin: auto;">
         <div class="consent-header">
             <h1>Authorization Request</h1>
             <p>{$forumTitle}</p>

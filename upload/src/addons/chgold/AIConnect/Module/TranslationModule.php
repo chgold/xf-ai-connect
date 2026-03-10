@@ -55,25 +55,21 @@ class TranslationModule extends ModuleBase
         ]);
 
         try {
-            $ch = curl_init($url);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 10);
-            curl_setopt($ch, CURLOPT_USERAGENT, 'XenForo-AIConnect/1.0');
-            
-            $response = curl_exec($ch);
-            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            $error = curl_error($ch);
-            curl_close($ch);
+            $client = \XF::app()->http()->client();
+            $response = $client->get($url, [
+                'timeout' => 10,
+                'headers' => [
+                    'User-Agent' => 'XenForo-AIConnect/1.0',
+                ],
+            ]);
 
-            if ($error) {
-                return $this->error('http_error', 'Failed to connect to translation service: ' . $error);
-            }
+            $httpCode = $response->getStatusCode();
 
             if ($httpCode !== 200) {
                 return $this->error('api_error', 'Translation service returned HTTP ' . $httpCode);
             }
 
-            $data = json_decode($response, true);
+            $data = json_decode($response->getBody()->getContents(), true);
 
             if (!$data || !isset($data['responseData'])) {
                 return $this->error('invalid_response', 'Invalid response from translation service');
