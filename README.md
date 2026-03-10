@@ -192,37 +192,7 @@ List all supported language codes.
 { "name": "translation.getSupportedLanguages", "arguments": {} }
 ```
 
-### Pro Module — `xenforo-pro.*` (Pro)
-
-#### getForumList
-Get list of all accessible forums/nodes.
-```json
-{ "name": "xenforo-pro.getForumList", "arguments": {} }
-```
-
-#### createThread
-Create a new thread in a forum.
-```json
-{ "name": "xenforo-pro.createThread", "arguments": { "forum_id": 5, "title": "Thread title", "message": "Thread body content" } }
-```
-
-#### replyToThread
-Post a reply to an existing thread.
-```json
-{ "name": "xenforo-pro.replyToThread", "arguments": { "thread_id": 123, "message": "Reply content" } }
-```
-
-#### editPost
-Edit an existing post.
-```json
-{ "name": "xenforo-pro.editPost", "arguments": { "post_id": 456, "message": "Updated content" } }
-```
-
-#### sendConversation
-Send a private conversation to a user.
-```json
-{ "name": "xenforo-pro.sendConversation", "arguments": { "username": "JohnDoe", "title": "Subject", "message": "Message content" } }
-```
+> **Pro Edition** adds 5 additional tools for content creation and management. See [ai-connect.gold-t.co.il](https://ai-connect.gold-t.co.il) for details.
 
 ---
 
