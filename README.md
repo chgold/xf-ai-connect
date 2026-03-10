@@ -1,6 +1,6 @@
 # XenForo AI Connect
 
-[![Version](https://img.shields.io/badge/version-1.1.6-blue.svg)](releases/)
+[![Version](https://img.shields.io/badge/version-1.1.8-blue.svg)](releases/)
 [![XenForo](https://img.shields.io/badge/XenForo-2.2.0+-orange.svg)](https://xenforo.com)
 [![License](https://img.shields.io/badge/license-GPL--3.0-green.svg)](upload/src/addons/chgold/AIConnect/LICENSE-GPL.txt)
 
@@ -8,18 +8,25 @@
 
 A WebMCP Protocol Bridge that allows AI agents (ChatGPT, Claude, Gemini, Copilot, etc.) to interact with XenForo forums through standardized API endpoints using OAuth 2.0 with PKCE for secure authentication.
 
+**Website**: [ai-connect.gold-t.co.il](https://ai-connect.gold-t.co.il)
+
 ---
 
 ## Editions
 
 | Feature | Free | Pro |
 |---------|------|-----|
-| Core tools (search, read) | ✅ | ✅ |
+| Search threads and posts | ✅ | ✅ |
+| Read thread and post content | ✅ | ✅ |
+| Get current user info | ✅ | ✅ |
 | OAuth 2.0 + PKCE | ✅ | ✅ |
 | Translation tools | ✅ | ✅ |
-| Write tools (create thread, reply) | — | ✅ |
-| Admin tools (manage users, moderate) | — | ✅ |
-| Custom modules & hooks | — | ✅ |
+| XenForo permission enforcement | ✅ | ✅ |
+| Browse and list forums | — | ✅ |
+| Create threads | — | ✅ |
+| Reply to threads | — | ✅ |
+| Edit posts | — | ✅ |
+| Send private conversations | — | ✅ |
 | Priority support | — | ✅ |
 
 ---
@@ -28,11 +35,12 @@ A WebMCP Protocol Bridge that allows AI agents (ChatGPT, Claude, Gemini, Copilot
 
 - **WebMCP Protocol Compliant** — Standard manifest and tool execution endpoints
 - **OAuth 2.0 + PKCE** — Secure authentication flow, no passwords stored
-- **7 Built-in Tools** — Search threads, read posts, translate content, and more
+- **12 Built-in Tools** — 7 free (search, read, translate) + 5 pro (create, reply, edit, message, browse)
 - **Pre-configured AI Clients** — ChatGPT, Claude, Gemini, Copilot, Grok, DeepSeek, Perplexity, Meta AI
+- **XenForo Permission Enforcement** — AI agents respect the same permission rules as human users
 - **Rate Limiting** — Configurable per-user rate limits
-- **Translation Module** — Translate content between 30+ languages
-- **Public Discovery** — Manifest endpoint for automatic AI agent configuration
+- **Translation Module** — Translate content between 30+ languages via Google Translate
+- **Modular Architecture** — Extend with custom modules using a clean event-driven API
 
 ---
 
@@ -71,6 +79,15 @@ A WebMCP Protocol Bridge that allows AI agents (ChatGPT, Claude, Gemini, Copilot
 6. **Verify**:
    ```bash
    curl https://your-forum.com/api/aiconnect-manifest
+   ```
+
+### Pro Edition
+
+1. Install the free AI Connect addon first (required dependency)
+2. Extract the Pro addon `upload/` directory into your XenForo root
+3. Install:
+   ```bash
+   php cmd.php xf:addon-install chgold/AIConnectPro
    ```
 
 ---
@@ -129,7 +146,7 @@ The addon ships with OAuth clients for major AI platforms:
 
 ## Available Tools
 
-### Core Module (`xenforo.*`)
+### Core Module — `xenforo.*` (Free)
 
 #### searchThreads
 Search forum threads with filters.
@@ -161,7 +178,7 @@ Get the authenticated user's information.
 { "name": "xenforo.getCurrentUser", "arguments": {} }
 ```
 
-### Translation Module (`translation.*`)
+### Translation Module — `translation.*` (Free)
 
 #### translate
 Translate text between languages.
@@ -173,6 +190,38 @@ Translate text between languages.
 List all supported language codes.
 ```json
 { "name": "translation.getSupportedLanguages", "arguments": {} }
+```
+
+### Pro Module — `xenforo-pro.*` (Pro)
+
+#### getForumList
+Get list of all accessible forums/nodes.
+```json
+{ "name": "xenforo-pro.getForumList", "arguments": {} }
+```
+
+#### createThread
+Create a new thread in a forum.
+```json
+{ "name": "xenforo-pro.createThread", "arguments": { "forum_id": 5, "title": "Thread title", "message": "Thread body content" } }
+```
+
+#### replyToThread
+Post a reply to an existing thread.
+```json
+{ "name": "xenforo-pro.replyToThread", "arguments": { "thread_id": 123, "message": "Reply content" } }
+```
+
+#### editPost
+Edit an existing post.
+```json
+{ "name": "xenforo-pro.editPost", "arguments": { "post_id": 456, "message": "Updated content" } }
+```
+
+#### sendConversation
+Send a private conversation to a user.
+```json
+{ "name": "xenforo-pro.sendConversation", "arguments": { "username": "JohnDoe", "title": "Subject", "message": "Message content" } }
 ```
 
 ---
@@ -220,7 +269,8 @@ php cmd.php xf-addon:build-release chgold/AIConnect
 ## Security
 
 - OAuth 2.0 with PKCE — no client secrets, no stored passwords
-- Access tokens expire after 1 hour (configurable)
+- XenForo permission enforcement — AI agents see only what the user can see
+- Access tokens expire after 1 hour
 - Refresh tokens expire after 30 days
 - Rate limiting prevents abuse
 - Token revocation support
@@ -229,9 +279,9 @@ php cmd.php xf-addon:build-release chgold/AIConnect
 
 ## Credits
 
-- **[WebMCP Protocol](https://webmcp.org)** — The open protocol specification that makes AI-to-web integration possible. AI Connect implements the WebMCP standard for XenForo.
-- **[XenForo](https://xenforo.com)** — The forum platform this addon extends.
-- **[Firebase PHP-JWT](https://github.com/firebase/php-jwt)** — JWT token handling library.
+- **[WebMCP Protocol](https://webmcp.org)** — The open protocol specification for AI-to-web integration
+- **[XenForo](https://xenforo.com)** — The forum platform this addon extends
+- **[Firebase PHP-JWT](https://github.com/firebase/php-jwt)** — JWT token handling library
 
 ---
 
@@ -243,9 +293,10 @@ This project is licensed under the GPL-3.0 License — see [LICENSE-GPL.txt](upl
 
 ## Support
 
+- **Website**: [ai-connect.gold-t.co.il](https://ai-connect.gold-t.co.il)
+- **Email**: [support@gold-t.co.il](mailto:support@gold-t.co.il)
 - **Issues**: [GitHub Issues](https://github.com/chgold/xf-ai-connect/issues)
-- **Pro Edition**: Contact for licensing and priority support
 
 ---
 
-**XenForo AI Connect** | **WebMCP Protocol** | **Free & Pro Editions Available**
+**Gold Technology** | [ai-connect.gold-t.co.il](https://ai-connect.gold-t.co.il)
