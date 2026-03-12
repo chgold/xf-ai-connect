@@ -24,6 +24,7 @@ _releases/
 
 # Build files
 hashes.txt
+hashes.json
 
 # Logs
 *.log
