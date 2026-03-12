@@ -13,7 +13,7 @@ class RateLimiter extends AbstractService
     {
         $perMinute = (int) Settings::get('rate_limit_per_minute', 50);
         $perHour = (int) Settings::get('rate_limit_per_hour', 1000);
-        
+
         // Check per-minute limit
         $minuteCheck = $this->checkWindow($identifier, 'minute', 60, $perMinute);
         if ($minuteCheck['limited']) {

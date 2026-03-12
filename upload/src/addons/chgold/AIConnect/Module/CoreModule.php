@@ -89,6 +89,7 @@ class CoreModule extends ModuleBase
         ]);
     }
 
+    // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps -- Called dynamically via dispatch: 'execute_' . $name in ModuleBase
     public function execute_searchThreads($params)
     {
         $finder = \XF::finder('XF:Thread');
@@ -124,6 +125,7 @@ class CoreModule extends ModuleBase
         return $this->success($result);
     }
 
+    // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps -- Called dynamically via dispatch: 'execute_' . $name in ModuleBase
     public function execute_getThread($params)
     {
         $thread = \XF::em()->find('XF:Thread', $params['thread_id'], ['Forum']);
@@ -139,6 +141,7 @@ class CoreModule extends ModuleBase
         return $this->success($this->formatThread($thread));
     }
 
+    // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps -- Called dynamically via dispatch: 'execute_' . $name in ModuleBase
     public function execute_searchPosts($params)
     {
         $finder = \XF::finder('XF:Post');
@@ -174,6 +177,7 @@ class CoreModule extends ModuleBase
         return $this->success($result);
     }
 
+    // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps -- Called dynamically via dispatch: 'execute_' . $name in ModuleBase
     public function execute_getPost($params)
     {
         $post = \XF::em()->find('XF:Post', $params['post_id'], ['Thread', 'Thread.Forum']);
@@ -189,6 +193,7 @@ class CoreModule extends ModuleBase
         return $this->success($this->formatPost($post));
     }
 
+    // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps -- Called dynamically via dispatch: 'execute_' . $name in ModuleBase
     public function execute_getCurrentUser($params)
     {
         $visitor = \XF::visitor();

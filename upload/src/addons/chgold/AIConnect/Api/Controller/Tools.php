@@ -12,11 +12,11 @@ class Tools extends AbstractController
     protected function preDispatchController($action, ParameterBag $params)
     {
         parent::preDispatchController($action, $params);
-        
+
         $manifestService = \XF::service('chgold\AIConnect:Manifest');
         $coreModule = new \chgold\AIConnect\Module\CoreModule($manifestService);
         $translationModule = new \chgold\AIConnect\Module\TranslationModule($manifestService);
-        
+
         $this->modules[$coreModule->getModuleName()] = $coreModule;
         $this->modules[$translationModule->getModuleName()] = $translationModule;
 
@@ -27,11 +27,11 @@ class Tools extends AbstractController
     {
         $rawInput = $this->request()->getInputRaw();
         $requestData = json_decode($rawInput, true);
-        
+
         if (json_last_error() !== JSON_ERROR_NONE) {
             return $this->error('Invalid JSON input', 400);
         }
-        
+
         $toolName = $requestData['name'] ?? $params->tool_name;
         $input = $requestData['arguments'] ?? [];
 
@@ -60,11 +60,11 @@ class Tools extends AbstractController
     protected function parseToolName($fullName)
     {
         $parts = explode('.', $fullName, 2);
-        
+
         if (count($parts) === 2) {
             return $parts;
         }
-        
+
         return ['xenforo', $fullName];
     }
 

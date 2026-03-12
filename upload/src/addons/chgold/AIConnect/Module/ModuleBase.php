@@ -48,7 +48,7 @@ abstract class ModuleBase
         }
 
         $tool = $this->tools[$toolName];
-        
+
         $validated = $this->validateParams($params, $tool['input_schema']);
         if (isset($validated['error'])) {
             return $validated;
@@ -83,7 +83,7 @@ abstract class ModuleBase
 
             if (isset($params[$key])) {
                 $value = $params[$key];
-                
+
                 if (isset($prop['type'])) {
                     $typeValid = $this->validateType($value, $prop['type']);
                     if (!$typeValid) {

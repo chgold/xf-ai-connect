@@ -5,7 +5,7 @@ namespace chgold\AIConnect\Module;
 class TranslationModule extends ModuleBase
 {
     protected $moduleName = 'translation';
-    
+
     private const MYMEMORY_API = 'https://api.mymemory.translated.net/get';
 
     protected function registerTools()
@@ -41,6 +41,7 @@ class TranslationModule extends ModuleBase
         ]);
     }
 
+    // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps -- Called dynamically via dispatch: 'execute_' . $name in ModuleBase
     public function execute_translate($params)
     {
         $text = $params['text'];
@@ -88,12 +89,12 @@ class TranslationModule extends ModuleBase
                 'target_lang' => $targetLang,
                 'match' => $responseData['match'] ?? 0,
             ]);
-
         } catch (\Exception $e) {
             return $this->error('exception', 'Translation error: ' . $e->getMessage());
         }
     }
 
+    // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps -- Called dynamically via dispatch: 'execute_' . $name in ModuleBase
     public function execute_getSupportedLanguages($params)
     {
         $languages = [

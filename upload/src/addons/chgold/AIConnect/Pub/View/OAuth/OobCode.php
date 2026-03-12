@@ -10,7 +10,7 @@ class OobCode extends View
     {
         $code = $this->params['code'];
         $forumTitle = \XF::options()->boardTitle;
-        
+
         $html = <<<HTML
 <!DOCTYPE html>
 <html lang="en">

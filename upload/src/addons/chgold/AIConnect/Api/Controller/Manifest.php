@@ -12,7 +12,7 @@ class Manifest extends AbstractController
 
         $coreModule = new \chgold\AIConnect\Module\CoreModule($manifestService);
         $translationModule = new \chgold\AIConnect\Module\TranslationModule($manifestService);
-        
+
         $modules = [
             $coreModule->getModuleName() => $coreModule,
             $translationModule->getModuleName() => $translationModule,

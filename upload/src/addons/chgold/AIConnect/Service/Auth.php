@@ -7,7 +7,7 @@ use XF\Service\AbstractService;
 /**
  * DEPRECATED: This class is no longer used.
  * OAuth 2.0 authentication is now handled by OAuthServer service.
- * 
+ *
  * Kept for backward compatibility only.
  */
 class Auth extends AbstractService

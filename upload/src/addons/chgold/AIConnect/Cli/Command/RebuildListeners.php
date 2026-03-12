@@ -18,11 +18,11 @@ class RebuildListeners extends Command
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $output->writeln('Rebuilding AI Connect listeners...');
-        
+
         \XF::app()->simpleCache()->delete('codeEventListeners');
-        
+
         $output->writeln('<info>Done!</info>');
-        
+
         return 0;
     }
 }

@@ -40,10 +40,10 @@ class Manifest extends AbstractService
     public function generate()
     {
         $baseUrl = \XF::options()->boardUrl;
-        
+
         $addon = \XF::em()->find('XF:AddOn', 'chgold/AIConnect');
         $version = $addon ? $addon->version_string : '1.1.2';
-        
+
         $manifest = [
             'schema_version' => '1.0',
             'name' => 'xenforo-ai-connect',

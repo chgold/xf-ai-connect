@@ -30,13 +30,13 @@ class Settings
     protected static function loadSettings()
     {
         self::$cache = [];
-        
+
         $settings = \XF::db()->fetchPairs(
             'SELECT setting_key, setting_value FROM xf_ai_connect_settings'
         );
 
         self::$cache = $settings ?: [];
-        
+
         self::applyDefaults();
     }
 

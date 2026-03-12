@@ -17,17 +17,17 @@ class ConsentScreen extends View
         $state = $this->params['state'];
         $codeChallenge = $this->params['codeChallenge'];
         $codeChallengeMethod = $this->params['codeChallengeMethod'];
-        
+
         $scopeLabels = [
             'read' => 'Read forum content and your profile',
             'write' => 'Create and modify content',
             'delete' => 'Delete content',
             'admin' => 'Administrative access'
         ];
-        
+
         $csrfToken = htmlspecialchars(\XF::app()['csrf.token']);
         $forumTitle = \XF::options()->boardTitle;
-        
+
         $html = <<<HTML
 <!DOCTYPE html>
 <html lang="en">

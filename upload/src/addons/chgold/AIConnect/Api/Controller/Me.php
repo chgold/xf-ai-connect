@@ -9,11 +9,11 @@ class Me extends AbstractController
     public function actionGet()
     {
         $visitor = \XF::visitor();
-        
+
         if (!$visitor->user_id) {
             return $this->error('Not authenticated', 401);
         }
-        
+
         return $this->apiSuccess([
             'user_id' => $visitor->user_id,
             'username' => $visitor->username,
@@ -27,12 +27,12 @@ class Me extends AbstractController
             'register_date' => $visitor->register_date
         ]);
     }
-    
+
     public function allowUnauthenticatedRequest($action)
     {
         return false;
     }
-    
+
     public function assertRequiredApiInput($keys)
     {
         return [];

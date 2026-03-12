@@ -18,12 +18,12 @@ class RebuildRoutes extends Command
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $output->writeln('Rebuilding AI Connect routes...');
-        
+
         \XF::app()->simpleCache()->delete('routesPublic');
         \XF::app()->simpleCache()->delete('routesApi');
-        
+
         $output->writeln('<info>Done!</info>');
-        
+
         return 0;
     }
 }

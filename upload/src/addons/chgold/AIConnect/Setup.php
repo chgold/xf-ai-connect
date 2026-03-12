@@ -22,7 +22,7 @@ class Setup extends AbstractSetup
         $schemaManager = $this->schemaManager();
 
         // API Keys table
-        $schemaManager->createTable('xf_ai_connect_api_keys', function(Create $table) {
+        $schemaManager->createTable('xf_ai_connect_api_keys', function (Create $table) {
             $table->checkExists(true);
             $table->addColumn('api_key_id', 'int')->autoIncrement();
             $table->addColumn('user_id', 'int');
@@ -39,7 +39,7 @@ class Setup extends AbstractSetup
         });
 
         // Rate Limits table
-        $schemaManager->createTable('xf_ai_connect_rate_limits', function(Create $table) {
+        $schemaManager->createTable('xf_ai_connect_rate_limits', function (Create $table) {
             $table->checkExists(true);
             $table->addColumn('rate_limit_id', 'int')->autoIncrement();
             $table->addColumn('identifier', 'varchar', 100);
@@ -52,7 +52,7 @@ class Setup extends AbstractSetup
         });
 
         // Blocked Users table
-        $schemaManager->createTable('xf_ai_connect_blocked_users', function(Create $table) {
+        $schemaManager->createTable('xf_ai_connect_blocked_users', function (Create $table) {
             $table->checkExists(true);
             $table->addColumn('user_id', 'int');
             $table->addColumn('blocked_date', 'int');
@@ -62,7 +62,7 @@ class Setup extends AbstractSetup
         });
 
         // Settings table
-        $schemaManager->createTable('xf_ai_connect_settings', function(Create $table) {
+        $schemaManager->createTable('xf_ai_connect_settings', function (Create $table) {
             $table->checkExists(true);
             $table->addColumn('setting_key', 'varchar', 50);
             $table->addColumn('setting_value', 'text');
@@ -70,7 +70,7 @@ class Setup extends AbstractSetup
         });
 
         // OAuth Clients table
-        $schemaManager->createTable('xf_ai_connect_oauth_clients', function(Create $table) {
+        $schemaManager->createTable('xf_ai_connect_oauth_clients', function (Create $table) {
             $table->checkExists(true);
             $table->addColumn('client_id', 'varchar', 80);
             $table->addColumn('client_name', 'varchar', 255);
@@ -83,7 +83,7 @@ class Setup extends AbstractSetup
         });
 
         // OAuth Authorization Codes table
-        $schemaManager->createTable('xf_ai_connect_oauth_codes', function(Create $table) {
+        $schemaManager->createTable('xf_ai_connect_oauth_codes', function (Create $table) {
             $table->checkExists(true);
             $table->addColumn('code_id', 'int')->autoIncrement();
             $table->addColumn('code', 'varchar', 128);
@@ -103,7 +103,7 @@ class Setup extends AbstractSetup
         });
 
         // OAuth Access Tokens table
-        $schemaManager->createTable('xf_ai_connect_oauth_tokens', function(Create $table) {
+        $schemaManager->createTable('xf_ai_connect_oauth_tokens', function (Create $table) {
             $table->checkExists(true);
             $table->addColumn('token_id', 'int')->autoIncrement();
             $table->addColumn('access_token', 'varchar', 255);
@@ -126,7 +126,7 @@ class Setup extends AbstractSetup
     public function installStep2()
     {
         $db = \XF::db();
-        
+
         $defaults = [
             'enabled' => '1',
             'rate_limit_per_minute' => '50',
@@ -229,7 +229,7 @@ class Setup extends AbstractSetup
                 'SELECT client_id FROM xf_ai_connect_oauth_clients WHERE client_id = ?',
                 $client['client_id']
             );
-            
+
             if (!$exists) {
                 $db->insert('xf_ai_connect_oauth_clients', $client);
             }
@@ -250,12 +250,11 @@ class Setup extends AbstractSetup
     {
         // Simply rebuild the caches - XenForo should have already imported XML data
         // during the install/upgrade process
-        \XF::runOnce('aiconnect_rebuild', function()
-        {
+        \XF::runOnce('aiconnect_rebuild', function () {
             // Rebuild code event listeners cache
             $listenerRepo = \XF::repository('XF:CodeEventListener');
             $listenerRepo->rebuildListenerCache();
-            
+
             // Rebuild routes cache
             $routeRepo = \XF::repository('XF:Route');
             $routeRepo->rebuildRouteCache('public');
@@ -279,29 +278,27 @@ class Setup extends AbstractSetup
             'xf_ai_connect_oauth_clients',
         ];
 
-        foreach ($tables as $table)
-        {
+        foreach ($tables as $table) {
             // Drop main table
             $schemaManager->dropTable($table);
 
             // Drop any leftover conflict tables
             $conflicts = $db->fetchAllColumn("SHOW TABLES LIKE '{$table}__conflict%'");
-            foreach ($conflicts as $conflictTable)
-            {
+            foreach ($conflicts as $conflictTable) {
                 $db->query("DROP TABLE IF EXISTS `{$conflictTable}`");
             }
         }
     }
-    
+
     public function uninstallStep2()
     {
         // Explicitly delete code event listeners
         $db = \XF::db();
         $db->delete('xf_code_event_listener', 'addon_id = ?', 'chgold/AIConnect');
-        
+
         // Explicitly delete routes
         $db->delete('xf_route', 'addon_id = ?', 'chgold/AIConnect');
-        
+
         // Rebuild caches after deletion
         \XF::repository('XF:CodeEventListener')->rebuildListenerCache();
         \XF::repository('XF:Route')->rebuildRouteCache('public');
