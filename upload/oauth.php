@@ -116,7 +116,7 @@ if ($request->isPost()) {
         );
 
         if ($redirectUri === 'urn:ietf:wg:oauth:2.0:oob') {
-            echo $app->templater()->renderTemplate('aiconnect_oauth_oob_code', [
+            echo $app->templater()->renderTemplate('public:aiconnect_oauth_oob_code', [
                 'code' => $code,
                 'forumTitle' => \XF::options()->boardTitle,
             ]);
@@ -148,7 +148,7 @@ foreach ($scopes as $scopeName) {
     $scopeLabels[$scopeName] = \XF::phrase('aiconnect_scope_' . $scopeName)->render();
 }
 
-echo $app->templater()->renderTemplate('aiconnect_oauth_consent', [
+echo $app->templater()->renderTemplate('public:aiconnect_oauth_consent', [
     'client'              => $client,
     'clientId'            => $clientId,
     'redirectUri'         => $redirectUri,
