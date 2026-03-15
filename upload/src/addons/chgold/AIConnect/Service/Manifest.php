@@ -64,10 +64,8 @@ class Manifest extends AbstractService
                 'flow' => 'authorization_code',
                 'authorization_url' => $baseUrl . '/oauth.php',
                 'token_url' => $baseUrl . '/api/aiconnect-oauth',
-                'pkce' => [
-                    'required' => true,
-                    'method' => 'S256'
-                ],
+                'pkce_required' => true,
+                'code_challenge_method' => 'S256',
                 'redirect_uri' => 'urn:ietf:wg:oauth:2.0:oob',
                 'scopes' => [
                     'read' => 'Read forum content and your profile',

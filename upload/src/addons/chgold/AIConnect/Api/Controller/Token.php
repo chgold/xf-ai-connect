@@ -113,7 +113,6 @@ class Token extends AbstractController
 
     public function allowUnauthenticatedRequest($action)
     {
-        error_log('[AIConnect Token] allowUnauthenticatedRequest called for action: ' . $action);
         return true;
     }
 

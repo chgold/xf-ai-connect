@@ -25,6 +25,13 @@ class Tools extends AbstractController
 
     public function actionPost(ParameterBag $params)
     {
+        $visitor = \XF::visitor();
+        $rateLimiter = \XF::service('chgold\AIConnect:RateLimiter');
+        $identifier = 'user_' . $visitor->user_id;
+        if ($rateLimiter->isRateLimited($identifier)) {
+            return $this->error('Rate limit exceeded. Please slow down your requests.', 429);
+        }
+
         $rawInput = $this->request()->getInputRaw();
         $requestData = json_decode($rawInput, true);
 

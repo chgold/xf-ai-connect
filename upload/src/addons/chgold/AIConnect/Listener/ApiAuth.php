@@ -6,10 +6,11 @@ class ApiAuth
 {
     public static function validateApiRequest(\XF\Http\Request $request, &$result, &$error, &$code)
     {
-        // Allow public endpoints without API key or Bearer token
         $requestUri = $request->getRequestUri();
+
         $publicEndpoints = [
             '/api/aiconnect-manifest',
+            '/api/ai-connect/manifest',
             '/api/aiconnect-oauth/token',
             '/api/aiconnect-oauth/revoke',
         ];
@@ -20,7 +21,26 @@ class ApiAuth
             }
         }
 
+        $protectedEndpoints = [
+            '/api/aiconnect-tools',
+            '/api/ai-connect/v1/tools',
+        ];
+        $isOurEndpoint = false;
+        foreach ($protectedEndpoints as $endpoint) {
+            if (strpos($requestUri, $endpoint) !== false) {
+                $isOurEndpoint = true;
+                break;
+            }
+        }
+
         $authHeader = $request->getServer('HTTP_AUTHORIZATION');
+
+        if ($isOurEndpoint && (!$authHeader || strpos($authHeader, 'Bearer ') !== 0)) {
+            $error = 'api_error.bearer_token_required';
+            $code = 401;
+            $result = false;
+            return;
+        }
 
         if (!$authHeader || strpos($authHeader, 'Bearer ') !== 0) {
             return;

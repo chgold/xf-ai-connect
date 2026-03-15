@@ -30,6 +30,11 @@ class Manifest extends AbstractController
         return $this->actionGet();
     }
 
+    public function actionGetManifest()
+    {
+        return $this->actionGet();
+    }
+
     public function allowUnauthenticatedRequest($action)
     {
         return true;
