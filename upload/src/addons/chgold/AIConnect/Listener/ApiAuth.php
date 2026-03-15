@@ -6,6 +6,20 @@ class ApiAuth
 {
     public static function validateApiRequest(\XF\Http\Request $request, &$result, &$error, &$code)
     {
+        // Allow public endpoints without API key or Bearer token
+        $requestUri = $request->getRequestUri();
+        $publicEndpoints = [
+            '/api/aiconnect-manifest',
+            '/api/aiconnect-oauth/token',
+            '/api/aiconnect-oauth/revoke',
+        ];
+        foreach ($publicEndpoints as $endpoint) {
+            if (strpos($requestUri, $endpoint) !== false) {
+                $result = \XF::repository('XF:User')->getGuestUser();
+                return;
+            }
+        }
+
         $authHeader = $request->getServer('HTTP_AUTHORIZATION');
 
         if (!$authHeader || strpos($authHeader, 'Bearer ') !== 0) {

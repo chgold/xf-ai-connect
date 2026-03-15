@@ -19,7 +19,9 @@ class RebuildListeners extends Command
     {
         $output->writeln('Rebuilding AI Connect listeners...');
 
-        \XF::app()->simpleCache()->delete('codeEventListeners');
+        /** @var \XF\Repository\CodeEventListenerRepository $listenerRepo */
+        $listenerRepo = \XF::repository('XF:CodeEventListener');
+        $listenerRepo->rebuildListenerCache();
 
         $output->writeln('<info>Done!</info>');
 

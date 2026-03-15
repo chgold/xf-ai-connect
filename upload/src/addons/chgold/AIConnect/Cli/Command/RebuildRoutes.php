@@ -19,8 +19,9 @@ class RebuildRoutes extends Command
     {
         $output->writeln('Rebuilding AI Connect routes...');
 
-        \XF::app()->simpleCache()->delete('routesPublic');
-        \XF::app()->simpleCache()->delete('routesApi');
+        /** @var \XF\Repository\RouteRepository $routeRepo */
+        $routeRepo = \XF::repository('XF:Route');
+        $routeRepo->rebuildRouteCaches();
 
         $output->writeln('<info>Done!</info>');
 

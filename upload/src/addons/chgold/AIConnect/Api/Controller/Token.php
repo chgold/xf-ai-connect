@@ -96,7 +96,8 @@ class Token extends AbstractController
 
     public function actionPostRevoke()
     {
-        $token = $this->filter('token', 'str');
+        $input = $this->getInputFromRequest();
+        $token = $input['token'] ?? '';
 
         if (empty($token)) {
             return $this->error('invalid_request', 400);
