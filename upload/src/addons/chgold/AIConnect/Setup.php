@@ -238,24 +238,66 @@ class Setup extends AbstractSetup
 
     public function postInstall(array &$stateChanges)
     {
+        $this->setupNavigation();
         $this->rebuildAddOnData();
     }
 
     public function postUpgrade($previousVersion, array &$stateChanges)
     {
+        $this->setupNavigation();
         $this->rebuildAddOnData();
+    }
+
+    /**
+     * Creates the public navigation entry for AI Connect.
+     * XenForo does not export/import public navigation via addon data files,
+     * so we create it programmatically here.
+     */
+    protected function setupNavigation()
+    {
+        $db = \XF::db();
+
+        $dataExpr = "[\n\t\t'title' => 'AI Connect',\n\t\t'href' => \$__templater->func('link', array('ai-connect', ), false),\n\t\t'attributes' => [],\n\t]";
+        $condExpr  = "\n\t\$xf->options->aiconnect_nav_top";
+
+        $existing = $db->fetchOne('SELECT navigation_id FROM xf_navigation WHERE navigation_id = ?', ['ai_connect']);
+
+        if ($existing) {
+            $db->update('xf_navigation', [
+                'display_order'      => 700,
+                'navigation_type_id' => 'basic',
+                'enabled'            => 1,
+                'data_expression'    => $dataExpr,
+                'condition_expression' => $condExpr,
+            ], 'navigation_id = ?', ['ai_connect']);
+        } else {
+            $db->insert('xf_navigation', [
+                'navigation_id'        => 'ai_connect',
+                'parent_navigation_id' => '',
+                'display_order'        => 700,
+                'navigation_type_id'   => 'basic',
+                'type_config'          => '',
+                'condition_expression' => $condExpr,
+                'condition_setup'      => '',
+                'data_expression'      => $dataExpr,
+                'data_setup'           => '',
+                'global_setup'         => '',
+                'enabled'              => 1,
+                'is_customized'        => 0,
+                'default_value'        => '',
+                'addon_id'             => 'chgold/AIConnect',
+            ]);
+        }
+
+        \XF::repository('XF:Navigation')->rebuildNavigationCache();
     }
 
     protected function rebuildAddOnData()
     {
-        // Simply rebuild the caches - XenForo should have already imported XML data
-        // during the install/upgrade process
         \XF::runOnce('aiconnect_rebuild', function () {
-            // Rebuild code event listeners cache
             $listenerRepo = \XF::repository('XF:CodeEventListener');
             $listenerRepo->rebuildListenerCache();
 
-            // Rebuild routes cache
             $routeRepo = \XF::repository('XF:Route');
             $routeRepo->rebuildRouteCache('public');
             $routeRepo->rebuildRouteCache('admin');
@@ -298,6 +340,10 @@ class Setup extends AbstractSetup
 
         // Explicitly delete routes
         $db->delete('xf_route', 'addon_id = ?', 'chgold/AIConnect');
+
+        // Remove navigation entry
+        $db->delete('xf_navigation', 'navigation_id = ?', 'ai_connect');
+        \XF::repository('XF:Navigation')->rebuildNavigationCache();
 
         // Rebuild caches after deletion
         \XF::repository('XF:CodeEventListener')->rebuildListenerCache();
