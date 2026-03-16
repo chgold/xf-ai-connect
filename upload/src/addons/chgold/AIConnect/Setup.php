@@ -150,6 +150,7 @@ class Setup extends AbstractSetup
         $time = \XF::$time;
 
         $clients = [
+            // Primary registrations
             [
                 'client_id' => 'claude-ai',
                 'client_name' => 'Claude AI (Anthropic)',
@@ -221,8 +222,32 @@ class Setup extends AbstractSetup
                 'allowed_scopes' => json_encode(['read', 'write']),
                 'created_date' => $time,
                 'updated_date' => $time
-            ]
+            ],
+            // Common AI agent client_id variants (aliases)
         ];
+
+        $oob = json_encode(['urn:ietf:wg:oauth:2.0:oob']);
+        $rw  = json_encode(['read', 'write']);
+        $aliases = [
+            ['gemini_client', 'Gemini (Google)'],
+            ['claude',        'Claude AI (Anthropic)'],
+            ['claude_client', 'Claude AI (Anthropic)'],
+            ['chatgpt_client','ChatGPT (OpenAI)'],
+            ['openai',        'ChatGPT (OpenAI)'],
+            ['google',        'Gemini (Google)'],
+        ];
+        foreach ($aliases as [$id, $name]) {
+            $clients[] = [
+                'client_id'      => $id,
+                'client_name'    => $name,
+                'client_type'    => 'public',
+                'redirect_uris'  => $oob,
+                'allowed_scopes' => $rw,
+                'created_date'   => $time,
+                'updated_date'   => $time,
+            ];
+        }
+        $clients = array_merge([], $clients); // re-index
 
         foreach ($clients as $client) {
             $exists = $db->fetchOne(

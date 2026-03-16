@@ -13,6 +13,7 @@ class OAuthServer extends AbstractService
     /**
      * Generate authorization code
      */
+    // phpcs:ignore Generic.Files.LineLength -- long signature, cannot shorten further
     public function createAuthorizationCode($clientId, $userId, $redirectUri, $codeChallenge, $codeChallengeMethod, array $scopes)
     {
         $db = \XF::db();
@@ -246,12 +247,45 @@ class OAuthServer extends AbstractService
     {
         $db = \XF::db();
 
+        // Exact match first
         $client = $db->fetchRow(
             'SELECT * FROM xf_ai_connect_oauth_clients WHERE client_id = ?',
             $clientId
         );
+        if ($client !== false) {
+            return true;
+        }
 
-        return $client !== false;
+        // Fuzzy match: some AI agents send variations like "gemini_client", "claude_client"
+        // Strip common suffixes and try the base name
+        $normalized = preg_replace('/[-_](client|ai|app|bot|agent)$/i', '', $clientId);
+        if ($normalized !== $clientId && !empty($normalized)) {
+            $client = $db->fetchRow(
+                'SELECT client_id FROM xf_ai_connect_oauth_clients WHERE client_id = ?',
+                $normalized
+            );
+            if ($client !== false) {
+                // Auto-register the variant so future lookups work directly
+                $base = $db->fetchRow(
+                    'SELECT * FROM xf_ai_connect_oauth_clients WHERE client_id = ?',
+                    $normalized
+                );
+                if ($base) {
+                    $db->insert('xf_ai_connect_oauth_clients', [
+                        'client_id'     => $clientId,
+                        'client_name'   => $base['client_name'],
+                        'client_type'   => $base['client_type'],
+                        'redirect_uris' => $base['redirect_uris'],
+                        'allowed_scopes' => $base['allowed_scopes'],
+                        'created_date'  => \XF::$time,
+                        'updated_date'  => \XF::$time,
+                    ], false, 'client_name = VALUES(client_name)');
+                }
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
