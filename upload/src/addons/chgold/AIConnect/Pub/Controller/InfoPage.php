@@ -10,16 +10,11 @@ class InfoPage extends AbstractController
     public function actionIndex(ParameterBag $params)
     {
         $options    = \XF::options();
-        $request    = $this->request();
-        $scheme     = $request->getServer('HTTPS') === 'on' ? 'https' : 'http';
-        $host       = $request->getServer('HTTP_HOST') ?: $request->getServer('SERVER_NAME');
-        $port       = $request->getServer('SERVER_PORT');
-        if (($scheme === 'http' && $port == 80) || ($scheme === 'https' && $port == 443) || !$port) {
-            $baseUrl = $scheme . '://' . $host;
-        } else {
-            $baseUrl = $scheme . '://' . $host . ':' . $port;
-        }
-        $baseUrl    = rtrim($baseUrl, '/');
+        $request = $this->request();
+        $scheme  = $request->getServer('HTTPS') === 'on' ? 'https' : 'http';
+        // HTTP_HOST already contains host:port when a non-standard port is used
+        $host    = $request->getServer('HTTP_HOST') ?: $request->getServer('SERVER_NAME');
+        $baseUrl = rtrim($scheme . '://' . $host, '/');
         $forumTitle = $options->boardTitle ?? \XF::phrase('untitled');
 
         $manifestUrl       = $baseUrl . '/api/ai-connect/manifest';
