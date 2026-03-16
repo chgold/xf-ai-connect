@@ -283,7 +283,7 @@ class Setup extends AbstractSetup
         $db = \XF::db();
 
         $dataExpr = "[\n\t\t'title' => 'AI Connect',\n\t\t'href' => \$__templater->func('link', array('ai-connect', ), false),\n\t\t'attributes' => [],\n\t]";
-        $condExpr  = "\n\t\$xf->options->aiconnect_nav_top";
+        $condExpr  = "\n\t\$__vars['xf']['options']['aiconnect_nav_top']";
 
         $existing = $db->fetchOne('SELECT navigation_id FROM xf_navigation WHERE navigation_id = ?', ['ai_connect']);
 
