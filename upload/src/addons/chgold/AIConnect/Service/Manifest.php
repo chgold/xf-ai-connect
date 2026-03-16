@@ -90,6 +90,14 @@ class Manifest extends AbstractService
             $manifest['tools'] = $this->getTools();
         }
 
+        // Expose registered OAuth clients so AI agents know which client_id to use
+        $clients = \XF::db()->fetchPairs(
+            'SELECT client_id, client_name FROM xf_ai_connect_oauth_clients ORDER BY client_name'
+        );
+        if (!empty($clients)) {
+            $manifest['auth']['registered_clients'] = $clients;
+        }
+
         return $manifest;
     }
 
