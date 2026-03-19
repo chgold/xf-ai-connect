@@ -94,6 +94,31 @@ class Token extends AbstractController
         return $this->apiSuccess($token);
     }
 
+    // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+    public function actionGetAuthorize()
+    {
+        // MCP clients construct authorization URL as token_url + /authorize
+        // Forward all OAuth params to the actual consent page (oauth.php)
+        $req = $this->request();
+
+        // Default client_id to 'claude' — MCP clients often omit it in the authorize request
+        $params = array_filter([
+            'response_type'         => $req->filter('response_type', 'str') ?: 'code',
+            'client_id'             => $req->filter('client_id', 'str') ?: 'claude',
+            'redirect_uri'          => $req->filter('redirect_uri', 'str'),
+            'scope'                 => $req->filter('scope', 'str'),
+            'state'                 => $req->filter('state', 'str'),
+            'code_challenge'        => $req->filter('code_challenge', 'str'),
+            'code_challenge_method' => $req->filter('code_challenge_method', 'str'),
+        ]);
+
+        $scheme = $req->getServer('HTTPS') === 'on' ? 'https' : 'http';
+        $host   = $req->getServer('HTTP_HOST') ?: $req->getServer('SERVER_NAME');
+        $base   = $scheme . '://' . $host;
+
+        return $this->redirect($base . '/oauth.php?' . http_build_query($params), '', 'temporary');
+    }
+
     public function actionPostRevoke()
     {
         $input = $this->getInputFromRequest();

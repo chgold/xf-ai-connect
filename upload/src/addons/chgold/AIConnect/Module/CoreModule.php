@@ -21,6 +21,18 @@ class CoreModule extends ModuleBase
                         'type' => 'integer',
                         'description' => 'Forum ID to filter by',
                     ],
+                    'since' => [
+                        'type' => 'string',
+                        'description' => 'Time filter: presets ("today","yesterday","1hour","1week","1month"), dynamic ("3d","6h","2w","1y","2years"), ISO date "YYYY-MM-DD", or "all" for all history. Unknown values return all data.',
+                    ],
+                    'date_from' => [
+                        'type' => 'integer',
+                        'description' => 'Start of date range: Unix timestamp or "YYYY-MM-DD" string',
+                    ],
+                    'date_to' => [
+                        'type' => 'integer',
+                        'description' => 'End of date range: Unix timestamp or "YYYY-MM-DD" string',
+                    ],
                     'limit' => [
                         'type' => 'integer',
                         'description' => 'Maximum number of threads',
@@ -57,6 +69,18 @@ class CoreModule extends ModuleBase
                         'type' => 'integer',
                         'description' => 'Thread ID to filter by',
                     ],
+                    'since' => [
+                        'type' => 'string',
+                        'description' => 'Time filter: presets ("today","yesterday","1hour","1week","1month"), dynamic ("3d","6h","2w","1y","2years"), ISO date "YYYY-MM-DD", or "all" for all history. Unknown values return all data.',
+                    ],
+                    'date_from' => [
+                        'type' => 'integer',
+                        'description' => 'Start of date range: Unix timestamp or "YYYY-MM-DD" string',
+                    ],
+                    'date_to' => [
+                        'type' => 'integer',
+                        'description' => 'End of date range: Unix timestamp or "YYYY-MM-DD" string',
+                    ],
                     'limit' => [
                         'type' => 'integer',
                         'description' => 'Maximum number of posts',
@@ -89,6 +113,86 @@ class CoreModule extends ModuleBase
         ]);
     }
 
+    protected function resolveDateFrom($params)
+    {
+        if (!empty($params['date_from'])) {
+            return $this->parseTimestamp($params['date_from']);
+        }
+        if (!empty($params['since'])) {
+            return $this->parseSince($params['since']);
+        }
+        return null;
+    }
+
+    protected function parseTimestamp($value)
+    {
+        if (is_numeric($value)) {
+            return (int) $value;
+        }
+        // ISO date "YYYY-MM-DD"
+        if (preg_match('/^\d{4}-\d{2}-\d{2}$/', (string) $value)) {
+            $ts = strtotime($value . ' 00:00:00');
+            return $ts !== false ? $ts : (int) $value;
+        }
+        // ISO datetime "YYYY-MM-DD HH:MM"
+        if (preg_match('/^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}/', (string) $value)) {
+            $ts = strtotime($value);
+            return $ts !== false ? $ts : (int) $value;
+        }
+        return (int) $value;
+    }
+
+    protected function parseSince($since)
+    {
+        $now = time();
+        switch ($since) {
+            case 'today':
+                return mktime(0, 0, 0);
+            case 'yesterday':
+                return mktime(0, 0, 0) - 86400;
+            case '1hour':
+                return $now - 3600;
+            case '1week':
+                return $now - 604800;
+            case '1month':
+                return $now - 2592000;
+            case 'all':
+            case 'everything':
+            case 'all-time':
+            case 'alltime':
+                return 0; // Unix epoch = all history
+        }
+        // Dynamic patterns: "3d", "6h", "2w", "1m", "1y", "3days", "6hours", "2years" etc.
+        if (preg_match('/^(\d+)\s*(d|h|w|m|y|day|hour|week|month|year)s?$/i', $since, $matches)) {
+            $n    = (int) $matches[1];
+            $unit = strtolower($matches[2][0]);
+            switch ($unit) {
+                case 'd':
+                    return $now - ($n * 86400);
+                case 'h':
+                    return $now - ($n * 3600);
+                case 'w':
+                    return $now - ($n * 604800);
+                case 'm':
+                    return $now - ($n * 2592000);
+                case 'y':
+                    return $now - ($n * 31536000);
+            }
+        }
+        // ISO date "YYYY-MM-DD"
+        if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $since)) {
+            $ts = strtotime($since . ' 00:00:00');
+            return $ts !== false ? $ts : null;
+        }
+        // ISO datetime
+        if (preg_match('/^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}/', $since)) {
+            $ts = strtotime($since);
+            return $ts !== false ? $ts : null;
+        }
+        // Unknown value → return null = no date filter (return all history)
+        return null;
+    }
+
     // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps -- Called dynamically via dispatch: 'execute_' . $name in ModuleBase
     public function execute_searchThreads($params)
     {
@@ -100,6 +204,14 @@ class CoreModule extends ModuleBase
 
         if (!empty($params['forum_id'])) {
             $finder->where('node_id', $params['forum_id']);
+        }
+
+        $dateFrom = $this->resolveDateFrom($params);
+        if ($dateFrom !== null) {
+            $finder->where('post_date', '>=', $dateFrom);
+        }
+        if (!empty($params['date_to'])) {
+            $finder->where('post_date', '<=', $this->parseTimestamp($params['date_to']));
         }
 
         $limit = $params['limit'] ?? 10;
@@ -128,7 +240,7 @@ class CoreModule extends ModuleBase
     // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps -- Called dynamically via dispatch: 'execute_' . $name in ModuleBase
     public function execute_getThread($params)
     {
-        $thread = \XF::em()->find('XF:Thread', $params['thread_id'], ['Forum']);
+        $thread = \XF::em()->find('XF:Thread', $params['thread_id'], ['Forum', 'FirstPost']);
 
         if (!$thread) {
             return $this->error('not_found', 'Thread not found');
@@ -152,6 +264,14 @@ class CoreModule extends ModuleBase
 
         if (!empty($params['thread_id'])) {
             $finder->where('thread_id', $params['thread_id']);
+        }
+
+        $dateFrom = $this->resolveDateFrom($params);
+        if ($dateFrom !== null) {
+            $finder->where('post_date', '>=', $dateFrom);
+        }
+        if (!empty($params['date_to'])) {
+            $finder->where('post_date', '<=', $this->parseTimestamp($params['date_to']));
         }
 
         $limit = $params['limit'] ?? 10;
@@ -227,7 +347,9 @@ class CoreModule extends ModuleBase
             'view_count' => $thread->view_count,
             'last_post_date' => date('c', $thread->last_post_date),
             'prefix_id' => $thread->prefix_id,
-            'discussion_state' => $thread->discussion_state,
+            'discussion_state'   => $thread->discussion_state,
+            'first_post_id'      => $thread->first_post_id,
+            'first_post_message' => $thread->FirstPost ? $thread->FirstPost->message : null,
             'url' => \XF::app()->router('public')->buildLink('canonical:threads', $thread),
         ];
     }
