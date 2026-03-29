@@ -21,17 +21,25 @@ class CoreModule extends ModuleBase
                         'type' => 'integer',
                         'description' => 'Forum ID to filter by',
                     ],
+                    'user_id' => [
+                        'type' => 'integer',
+                        'description' => 'Filter by author user ID (optional)',
+                    ],
+                    'username' => [
+                        'type' => 'string',
+                        'description' => 'Filter by author username, case-insensitive (optional)',
+                    ],
                     'since' => [
                         'type' => 'string',
-                        'description' => 'Time filter: presets ("today","yesterday","1hour","1week","1month"), dynamic ("3d","6h","2w","1y","2years"), ISO date "YYYY-MM-DD", or "all" for all history. Unknown values return all data.',
+                        'description' => 'Time filter. Presets: today, yesterday, 1hour, 1week, 1month. Any relative duration as <N><unit> where unit=h/d/w/m/y (e.g. 3w, 21d, 6h, 3months, 2years — any number + any unit works). Exact date YYYY-MM-DD. Or "all" for full history. Unknown values fall back to all history.',
                     ],
                     'date_from' => [
-                        'type' => 'integer',
-                        'description' => 'Start of date range: Unix timestamp or "YYYY-MM-DD" string',
+                        'type' => 'string',
+                        'description' => 'Start date: ISO format YYYY-MM-DD (e.g. "2026-03-08") or Unix timestamp as string. Optional.',
                     ],
                     'date_to' => [
-                        'type' => 'integer',
-                        'description' => 'End of date range: Unix timestamp or "YYYY-MM-DD" string',
+                        'type' => 'string',
+                        'description' => 'End date: ISO format YYYY-MM-DD (e.g. "2026-03-29") or Unix timestamp as string. Optional.',
                     ],
                     'limit' => [
                         'type' => 'integer',
@@ -69,17 +77,25 @@ class CoreModule extends ModuleBase
                         'type' => 'integer',
                         'description' => 'Thread ID to filter by',
                     ],
+                    'user_id' => [
+                        'type' => 'integer',
+                        'description' => 'Filter by author user ID (optional)',
+                    ],
+                    'username' => [
+                        'type' => 'string',
+                        'description' => 'Filter by author username, case-insensitive (optional)',
+                    ],
                     'since' => [
                         'type' => 'string',
-                        'description' => 'Time filter: presets ("today","yesterday","1hour","1week","1month"), dynamic ("3d","6h","2w","1y","2years"), ISO date "YYYY-MM-DD", or "all" for all history. Unknown values return all data.',
+                        'description' => 'Time filter. Presets: today, yesterday, 1hour, 1week, 1month. Any relative duration as <N><unit> where unit=h/d/w/m/y (e.g. 3w, 21d, 6h, 3months, 2years — any number + any unit works). Exact date YYYY-MM-DD. Or "all" for full history. Unknown values fall back to all history.',
                     ],
                     'date_from' => [
-                        'type' => 'integer',
-                        'description' => 'Start of date range: Unix timestamp or "YYYY-MM-DD" string',
+                        'type' => 'string',
+                        'description' => 'Start date: ISO format YYYY-MM-DD (e.g. "2026-03-08") or Unix timestamp as string. Optional.',
                     ],
                     'date_to' => [
-                        'type' => 'integer',
-                        'description' => 'End of date range: Unix timestamp or "YYYY-MM-DD" string',
+                        'type' => 'string',
+                        'description' => 'End date: ISO format YYYY-MM-DD (e.g. "2026-03-29") or Unix timestamp as string. Optional.',
                     ],
                     'limit' => [
                         'type' => 'integer',
@@ -108,7 +124,7 @@ class CoreModule extends ModuleBase
             'description' => 'Get current authenticated user information',
             'input_schema' => [
                 'type' => 'object',
-                'properties' => [],
+                'properties' => new \stdClass(),
             ],
         ]);
     }
@@ -206,6 +222,13 @@ class CoreModule extends ModuleBase
             $finder->where('node_id', $params['forum_id']);
         }
 
+        if (!empty($params['user_id'])) {
+            $finder->where('user_id', (int) $params['user_id']);
+        }
+        if (!empty($params['username'])) {
+            $finder->where('username', $params['username']);
+        }
+
         $dateFrom = $this->resolveDateFrom($params);
         if ($dateFrom !== null) {
             $finder->where('post_date', '>=', $dateFrom);
@@ -264,6 +287,13 @@ class CoreModule extends ModuleBase
 
         if (!empty($params['thread_id'])) {
             $finder->where('thread_id', $params['thread_id']);
+        }
+
+        if (!empty($params['user_id'])) {
+            $finder->where('user_id', (int) $params['user_id']);
+        }
+        if (!empty($params['username'])) {
+            $finder->where('username', $params['username']);
         }
 
         $dateFrom = $this->resolveDateFrom($params);

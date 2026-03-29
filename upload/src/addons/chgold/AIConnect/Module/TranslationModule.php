@@ -27,11 +27,11 @@ class TranslationModule extends ModuleBase
                     ],
                     'source_lang' => [
                         'type' => 'string',
-                        'description' => 'Source language code (e.g., "en", "he", "es"). Leave empty for auto-detection.',
+                        'description' => 'Source language as ISO 639-1 two-letter lowercase code (e.g. "en", "he", "fr", "ru"). Leave empty for auto-detection.',
                     ],
                     'target_lang' => [
                         'type' => 'string',
-                        'description' => 'Target language code (e.g., "en", "he", "es", "fr", "de", "ru")',
+                        'description' => 'Target language as ISO 639-1 two-letter lowercase code (e.g. "en" English, "he" Hebrew, "fr" French, "ru" Russian, "ar" Arabic, "es" Spanish). Use getSupportedLanguages for full list.',
                     ],
                 ],
             ],
@@ -41,7 +41,7 @@ class TranslationModule extends ModuleBase
             'description' => 'Get list of commonly supported language codes for translation',
             'input_schema' => [
                 'type' => 'object',
-                'properties' => [],
+                'properties' => new \stdClass(),
             ],
         ]);
     }
