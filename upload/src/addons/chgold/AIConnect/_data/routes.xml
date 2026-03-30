@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<routes>
+  <route route_type="api" route_prefix="ai-connect" controller="chgold\AIConnect:Manifest"/>
+  <route route_type="api" route_prefix="aiconnect-auth" controller="chgold\AIConnect:Auth"/>
+  <route route_type="api" route_prefix="aiconnect-authorize" controller="chgold\AIConnect:Authorize"/>
+  <route route_type="api" route_prefix="aiconnect-manifest" controller="chgold\AIConnect:Manifest"/>
+  <route route_type="api" route_prefix="aiconnect-me" controller="chgold\AIConnect:Me"/>
+  <route route_type="api" route_prefix="aiconnect-oauth" controller="chgold\AIConnect:Token"/>
+  <route route_type="api" route_prefix="aiconnect-tools" controller="chgold\AIConnect:Tools"/>
+  <route route_type="public" route_prefix="ai-connect" controller="chgold\AIConnect:InfoPage"/>
+</routes>

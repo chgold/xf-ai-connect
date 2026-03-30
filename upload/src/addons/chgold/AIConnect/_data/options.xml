@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<options>
+  <option option_id="aiconnect_nav_bottom" edit_format="onoff" data_type="boolean" advanced="0">
+    <default_value>1</default_value>
+    <relation group_id="aiconnect_navigation" display_order="20"/>
+  </option>
+  <option option_id="aiconnect_nav_top" edit_format="onoff" data_type="boolean" advanced="0">
+    <default_value>1</default_value>
+    <relation group_id="aiconnect_navigation" display_order="10"/>
+  </option>
+  <option option_id="aiconnect_translation_provider" edit_format="radio" data_type="string" advanced="0">
+    <default_value>ai_self</default_value>
+    <edit_format_params>ai_self=AI Self-Translate (Recommended)
+mymemory=MyMemory API (External, limited)
+disabled=Disabled</edit_format_params>
+    <relation group_id="aiconnect_settings" display_order="10"/>
+  </option>
+</options>

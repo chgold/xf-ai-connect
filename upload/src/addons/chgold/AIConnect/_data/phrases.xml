@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<phrases>
+  <phrase title="aiconnect_error_csrf_invalid" version_id="1011400" version_string="1.1.14"><![CDATA[Error: Invalid security token.]]></phrase>
+  <phrase title="aiconnect_error_csrf_missing" version_id="1011400" version_string="1.1.14"><![CDATA[Error: Security token missing.]]></phrase>
+  <phrase title="aiconnect_error_missing_required_params" version_id="1011400" version_string="1.1.14"><![CDATA[Error: Missing required OAuth parameters.]]></phrase>
+  <phrase title="aiconnect_error_not_logged_in" version_id="1011400" version_string="1.1.14"><![CDATA[Error: You must be logged in to continue.]]></phrase>
+  <phrase title="aiconnect_info_copied_label" version_id="1011500" version_string="1.1.15"><![CDATA[Copied!]]></phrase>
+  <phrase title="aiconnect_info_copy_btn" version_id="1011500" version_string="1.1.15"><![CDATA[Copy]]></phrase>
+  <phrase title="aiconnect_info_footer_powered_by" version_id="1011500" version_string="1.1.15"><![CDATA[Powered by <a href="{infoUrl}" target="_blank" rel="noopener">AI Connect</a>]]></phrase>
+  <phrase title="aiconnect_info_full_docs_btn" version_id="1011500" version_string="1.1.15"><![CDATA[Full Documentation]]></phrase>
+  <phrase title="aiconnect_info_how_it_works_title" version_id="1011500" version_string="1.1.15"><![CDATA[How It Works]]></phrase>
+  <phrase title="aiconnect_info_prompt_text" version_id="1011500" version_string="1.1.15"><![CDATA[You have access to {forumTitle} via AI Connect.
+
+To get started:
+1. Fetch the manifest: GET {manifestUrl}
+2. Authenticate via OAuth 2.0 + PKCE:
+   - Authorization URL: {authorizeUrl}
+   - Method: authorization_code with PKCE (S256)
+   - Redirect: urn:ietf:wg:oauth:2.0:oob (out-of-band)
+   - Your client_id: use the one that matches your identity from the list below
+3. Use Bearer token for all tool calls
+
+Registered AI clients (use the matching client_id for your identity):
+  claude-ai       → Claude (Anthropic)
+  chatgpt         → ChatGPT (OpenAI)
+  gemini          → Gemini (Google)
+  grok            → Grok (xAI)
+  copilot         → Microsoft Copilot
+  perplexity      → Perplexity AI
+  meta-ai         → Meta AI
+  deepseek        → DeepSeek AI
+
+The manifest lists all available tools. Read it first to understand capabilities.
+For documentation: {infoUrl}]]></phrase>
+  <phrase title="aiconnect_info_quick_start_title" version_id="1011500" version_string="1.1.15"><![CDATA[Quick Start Prompt]]></phrase>
+  <phrase title="aiconnect_info_step1_body" version_id="1011500" version_string="1.1.15"><![CDATA[Copy the ready-made prompt above with connection details for this forum.]]></phrase>
+  <phrase title="aiconnect_info_step1_title" version_id="1011500" version_string="1.1.15"><![CDATA[Copy the Prompt]]></phrase>
+  <phrase title="aiconnect_info_step2_body" version_id="1011500" version_string="1.1.15"><![CDATA[Paste it into ChatGPT, Claude, Gemini, or any AI assistant that supports tools.]]></phrase>
+  <phrase title="aiconnect_info_step2_title" version_id="1011500" version_string="1.1.15"><![CDATA[Paste to Your AI]]></phrase>
+  <phrase title="aiconnect_info_step3_body" version_id="1011500" version_string="1.1.15"><![CDATA[Approve access when prompted. Your permissions are always respected.]]></phrase>
+  <phrase title="aiconnect_info_step3_title" version_id="1011500" version_string="1.1.15"><![CDATA[Authorize Once]]></phrase>
+  <phrase title="aiconnect_info_what_is_body" version_id="1011500" version_string="1.1.15"><![CDATA[AI Connect bridges your forum with AI assistants like ChatGPT, Claude, and Gemini. It gives AI agents secure, permission-aware access to search, read, and interact with your community &mdash; all through a standardized protocol with OAuth&nbsp;2.0 authentication.]]></phrase>
+  <phrase title="aiconnect_info_what_is_title" version_id="1011500" version_string="1.1.15"><![CDATA[What is AI Connect?]]></phrase>
+  <phrase title="aiconnect_oauth_app_can" version_id="1011400" version_string="1.1.14"><![CDATA[This application will be able to:]]></phrase>
+  <phrase title="aiconnect_oauth_authorization_approved" version_id="1011400" version_string="1.1.14"><![CDATA[Authorization Approved]]></phrase>
+  <phrase title="aiconnect_oauth_authorization_request" version_id="1011400" version_string="1.1.14"><![CDATA[Authorization Request]]></phrase>
+  <phrase title="aiconnect_oauth_authorize" version_id="1011400" version_string="1.1.14"><![CDATA[Authorize]]></phrase>
+  <phrase title="aiconnect_oauth_copied" version_id="1011400" version_string="1.1.14"><![CDATA[Copied!]]></phrase>
+  <phrase title="aiconnect_oauth_copy_code" version_id="1011400" version_string="1.1.14"><![CDATA[Copy Code]]></phrase>
+  <phrase title="aiconnect_oauth_deny" version_id="1011400" version_string="1.1.14"><![CDATA[Deny]]></phrase>
+  <phrase title="aiconnect_oauth_return_to_app" version_id="1011400" version_string="1.1.14"><![CDATA[Return to your application and paste this code.]]></phrase>
+  <phrase title="aiconnect_oauth_trust_warning" version_id="1011400" version_string="1.1.14"><![CDATA[Only authorize if you trust this application. It will have access to your account according to the permissions listed above.]]></phrase>
+  <phrase title="aiconnect_oauth_wants_access" version_id="1011400" version_string="1.1.14"><![CDATA[{name} wants to access your {title} account]]></phrase>
+  <phrase title="aiconnect_oauth_your_code" version_id="1011400" version_string="1.1.14"><![CDATA[Your authorization code:]]></phrase>
+  <phrase title="aiconnect_scope_admin" version_id="1011400" version_string="1.1.14"><![CDATA[Administrative access]]></phrase>
+  <phrase title="aiconnect_scope_delete" version_id="1011400" version_string="1.1.14"><![CDATA[Delete content]]></phrase>
+  <phrase title="aiconnect_scope_read" version_id="1011400" version_string="1.1.14"><![CDATA[Read forum content and your profile]]></phrase>
+  <phrase title="aiconnect_scope_write" version_id="1011400" version_string="1.1.14"><![CDATA[Create and modify content]]></phrase>
+  <phrase title="aiconnect_unknown_client" version_id="1011600" version_string="1.1.16"><![CDATA[Error: Unknown client ID "{client_id}". Use the client_id shown in the manifest registered_clients list.]]></phrase>
+  <phrase title="authorization_denied" version_id="1011400" version_string="1.1.14"><![CDATA[Authorization denied.]]></phrase>
+  <phrase title="invalid_client" version_id="1011400" version_string="1.1.14"><![CDATA[Error: Invalid OAuth client.]]></phrase>
+  <phrase title="invalid_redirect_uri" version_id="1011400" version_string="1.1.14"><![CDATA[Error: Invalid redirect URI.]]></phrase>
+  <phrase title="invalid_scope" version_id="1011400" version_string="1.1.14"><![CDATA[Error: Invalid scope requested.]]></phrase>
+  <phrase title="option.aiconnect_nav_bottom" version_id="1011600" version_string="1.1.16"><![CDATA[Show next to RSS button (footer)]]></phrase>
+  <phrase title="option.aiconnect_nav_top" version_id="1011600" version_string="1.1.16"><![CDATA[Show in top navigation menu]]></phrase>
+  <phrase title="option.aiconnect_translation_provider" version_id="1012900" version_string="1.1.29"><![CDATA[Translation provider]]></phrase>
+  <phrase title="option_explain.aiconnect_nav_bottom" version_id="1011600" version_string="1.1.16"><![CDATA[Adds an AI Connect icon button next to the RSS feed link in the page footer.]]></phrase>
+  <phrase title="option_explain.aiconnect_nav_top" version_id="1011600" version_string="1.1.16"><![CDATA[Adds an "AI Connect" link as the last item in the main navigation bar.]]></phrase>
+  <phrase title="option_explain.aiconnect_translation_provider" version_id="1012900" version_string="1.1.29"><![CDATA[Choose how translation works for AI agents connected to your forum.<br><br><b>AI Self-Translate</b> — The AI agent translates content using its own language abilities. No external API, no limits, best quality. <em>Recommended.</em><br><b>MyMemory API</b> — Uses the free <a href="https://mymemory.translated.net/" target="_blank">MyMemory</a> translation service. Limited to ~5,000 characters/day.<br><b>Disabled</b> — No translation capability offered to AI agents.]]></phrase>
+  <phrase title="option_group.aiconnect_navigation" version_id="1011600" version_string="1.1.16"><![CDATA[AI Connect — Navigation]]></phrase>
+  <phrase title="option_group.aiconnect_settings" version_id="1012900" version_string="1.1.29" global_cache="1"><![CDATA[AI Connect — Settings]]></phrase>
+  <phrase title="option_group_description.aiconnect_navigation" version_id="1011600" version_string="1.1.16"><![CDATA[Control where the AI Connect link appears on your forum.]]></phrase>
+  <phrase title="option_group_description.aiconnect_settings" version_id="1012900" version_string="1.1.29"><![CDATA[Configure how AI agents interact with your forum.]]></phrase>
+  <phrase title="pkce_required" version_id="1011400" version_string="1.1.14"><![CDATA[Error: PKCE with S256 challenge method is required.]]></phrase>
+  <phrase title="unsupported_response_type" version_id="1011400" version_string="1.1.14"><![CDATA[Error: Only the authorization code flow is supported.]]></phrase>
+  <phrase title="viewing_oauth_authorization" version_id="1011400" version_string="1.1.14"><![CDATA[Viewing OAuth authorization]]></phrase>
+</phrases>

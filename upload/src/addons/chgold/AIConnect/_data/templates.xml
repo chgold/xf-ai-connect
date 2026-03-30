@@ -1,0 +1,667 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates>
+  <template type="public" title="aiconnect_info_page" version_id="1012500" version_string="1.1.25"><![CDATA[<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Connect — {$forumTitle}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <style>
+        :root {
+            --navy: #1a1a2e;
+            --navy-light: #16213e;
+            --primary: #007bff;
+            --accent: #6c63ff;
+            --success: #28a745;
+            --text: #1a1a1a;
+            --text-muted: #64748b;
+            --bg: #ffffff;
+            --code-bg: #0f172a;
+            --code-text: #e2e8f0;
+            --radius: 16px;
+            --radius-sm: 8px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            color: var(--text);
+            background: var(--bg);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .hero {
+            background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 50%, #0a1628 100%);
+            color: white;
+            padding: 80px 24px 64px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 30% 40%, rgba(108,99,255,0.15) 0%, transparent 50%),
+                        radial-gradient(circle at 70% 60%, rgba(0,123,255,0.1) 0%, transparent 50%);
+            animation: heroFloat 20s ease-in-out infinite;
+        }
+        @keyframes heroFloat {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(-2%, 2%); }
+        }
+        .hero-content { position: relative; z-index: 1; max-width: 640px; margin: 0 auto; }
+        .hero-icon { width: 72px; height: 72px; margin: 0 auto 24px; color: var(--accent); }
+        .hero h1 { font-size: 38px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 10px; }
+        .hero h1 span {
+            background: linear-gradient(135deg, #a5b4fc, var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .hero .subtitle { font-size: 16px; opacity: 0.65; font-weight: 400; }
+
+        .main { max-width: 720px; margin: 0 auto; padding: 0 24px; }
+
+        .about {
+            margin-top: -32px;
+            position: relative;
+            z-index: 2;
+            background: white;
+            border-radius: var(--radius);
+            padding: 32px;
+            box-shadow: 0 4px 32px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04);
+            border: 1px solid rgba(0,0,0,0.04);
+        }
+        .about h2 { font-size: 22px; font-weight: 700; margin-bottom: 12px; }
+        .about p { font-size: 15px; line-height: 1.75; color: var(--text-muted); }
+
+        .prompt-section { margin-top: 48px; }
+        .prompt-section h2 { font-size: 22px; font-weight: 700; margin-bottom: 16px; text-align: center; }
+        .prompt-box {
+            position: relative;
+            background: var(--code-bg);
+            border-radius: var(--radius);
+            padding: 28px;
+            padding-top: 56px;
+            box-shadow: 0 8px 40px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.06);
+        }
+        .prompt-box::before {
+            content: '';
+            position: absolute;
+            inset: -1px;
+            border-radius: var(--radius);
+            padding: 1px;
+            background: linear-gradient(135deg, rgba(108,99,255,0.3), transparent 60%);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+        }
+        .prompt-box pre {
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 13px;
+            line-height: 1.75;
+            color: var(--code-text);
+            white-space: pre-wrap;
+            word-break: break-word;
+            margin: 0;
+        }
+        .copy-btn {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 18px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .copy-btn:hover { background: #0069d9; transform: translateY(-1px); }
+        .copy-btn.copied { background: var(--success); }
+        .copy-btn svg { width: 14px; height: 14px; }
+
+        .steps { margin-top: 56px; margin-bottom: 48px; }
+        .steps h2 { font-size: 22px; font-weight: 700; margin-bottom: 28px; text-align: center; }
+        .steps-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+        .step-card {
+            background: white;
+            border-radius: var(--radius);
+            padding: 28px 20px;
+            text-align: center;
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s;
+        }
+        .step-card:hover {
+            border-color: var(--accent);
+            box-shadow: 0 4px 20px rgba(108,99,255,0.1);
+            transform: translateY(-2px);
+        }
+        .step-num {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: white;
+            font-weight: 700;
+            font-size: 16px;
+            margin-bottom: 16px;
+        }
+        .step-icon { width: 28px; height: 28px; color: var(--accent); margin-bottom: 12px; }
+        .step-card h3 { font-size: 15px; font-weight: 600; margin-bottom: 8px; }
+        .step-card p { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+
+        .docs-cta { text-align: center; margin-bottom: 56px; }
+        .docs-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 28px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: white;
+            text-decoration: none;
+            border-radius: var(--radius-sm);
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 500;
+            font-size: 15px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 16px rgba(108,99,255,0.25);
+        }
+        .docs-link:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(108,99,255,0.35); }
+        .docs-link svg { width: 16px; height: 16px; }
+
+        .footer {
+            text-align: center;
+            padding: 24px;
+            border-top: 1px solid #e2e8f0;
+            color: var(--text-muted);
+            font-size: 12px;
+        }
+        .footer a { color: var(--accent); text-decoration: none; }
+
+        @media (max-width: 640px) {
+            .hero { padding: 56px 20px 48px; }
+            .hero h1 { font-size: 28px; }
+            .hero-icon { width: 56px; height: 56px; }
+            .steps-grid { grid-template-columns: 1fr; gap: 16px; }
+            .prompt-box { padding: 20px; padding-top: 52px; }
+            .prompt-box pre { font-size: 12px; }
+            .about { margin-top: -20px; padding: 24px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="hero">
+        <div class="hero-content">
+            <img src="{{ base_url('js/aiconnect/icon.png') }}" class="hero-icon" alt="AI Connect" />
+            <h1><span>AI Connect</span></h1>
+            <p class="subtitle">{$forumTitle}</p>
+        </div>
+    </div>
+
+    <div class="main">
+        <div class="about">
+            <h2>What is AI Connect?</h2>
+            <p>AI Connect bridges your forum with AI assistants like ChatGPT, Claude, and Gemini. It gives AI agents secure, permission-aware access to search, read, and interact with your community &mdash; all through a standardized protocol with OAuth&nbsp;2.0 authentication.</p>
+        </div>
+
+        <div class="prompt-section">
+            <h2>Connect Your AI</h2>
+            <xf:if is="$xf.visitor.user_id">
+            <div style="text-align:center; margin-bottom: 24px;">
+                <button class="btn btn-approve" id="generateTokenBtn" type="button" style="padding: 14px 32px; font-size: 16px; background: linear-gradient(135deg, #6c63ff, #4834d4); border: none; border-radius: 8px; color: white; cursor: pointer; font-weight: 600;">&#x26A1; Generate Token &amp; Prompt</button>
+                <p id="tokenStatus" style="color: #aaa; font-size: 13px; margin-top: 8px;"></p>
+                <p style="color: #f59e0b; font-size: 12px; margin-top: 8px;">⚠️ This token grants access as <strong>you</strong>. Anyone who has it can act on your behalf. Do not share it with anyone you do not trust.</p>
+            </div>
+            <div id="tokenPromptBox" class="prompt-box" style="display:none; margin-bottom: 32px;">
+                <button class="copy-btn" id="copyTokenBtn" type="button">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" stroke-width="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" stroke-width="2"/></svg>
+                    <span>Copy</span>
+                </button>
+                <pre id="tokenPromptText"></pre>
+            </div>
+            <xf:else />
+            <div style="text-align:center; margin-bottom: 24px;">
+                <a href="{{ link('login') }}" style="padding: 14px 32px; font-size: 16px; background: #555; border-radius: 8px; color: white; text-decoration: none; display: inline-block;">Log in to generate a token</a>
+            </div>
+            </xf:if>
+            <details style="margin-top: 16px;">
+            <summary style="cursor: pointer; color: var(--accent); font-size: 14px;">Advanced: OAuth Prompt for CLI Agents</summary>
+            <div style="margin-top: 12px;">
+            <h2>Quick Start Prompt</h2>
+            <div class="prompt-box">
+                <button class="copy-btn" id="copyBtn" type="button">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" stroke-width="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" stroke-width="2"/></svg>
+                    <span>Copy</span>
+                </button>
+                <pre id="promptText">You have access to {$forumTitle} via AI Connect.
+
+Do ALL of the following immediately and automatically — no asking for permission at each step:
+
+1. Fetch the manifest right now:
+   GET {$manifestUrl}
+
+2. Start the auth session — call this URL using web_fetch (GET):
+   GET {$tokenUrl}/start?client_id=claude&_t=CURRENT_UNIX_TIMESTAMP (replace CURRENT_UNIX_TIMESTAMP with current epoch seconds to avoid caching)
+   You will receive: session_id, auth_url, poll_url
+
+3. Show the auth_url to the user and ask them to open it in their browser, log in, and approve.
+
+4. Once the user confirms they approved — immediately call the poll_url using web_fetch (GET).
+   If response has status "pending", wait 5 seconds and try again.
+   When you receive access_token in the response — you are connected!
+
+5. Verify the connection — call getCurrentUser using web_fetch GET (read-only tools support GET):
+   GET {$toolsUrl}?token={access_token}&name=xenforo.getCurrentUser&args={}
+
+   READ tools (GET supported): searchThreads, getThread, searchPosts, getPost, getCurrentUser, getSupportedLanguages
+   GET {$toolsUrl}?token={access_token}&name=xenforo.searchThreads&args={"search":"keyword","limit":10}
+
+   Translation tool (POST only — use Bearer token):
+   curl -X POST "{$toolsUrl}" -H "Authorization: Bearer {access_token}" -H "Content-Type: application/json" -d "{\"name\":\"translation.translate\",\"arguments\":{\"text\":\"Hello\",\"target_lang\":\"he\"}}"
+
+Documentation: {$infoUrl}</pre>
+            </div>
+            </div>
+            </details>
+        </div>
+
+        <div class="steps">
+            <h2>How It Works</h2>
+            <div class="steps-grid">
+                <div class="step-card">
+                    <div class="step-num">1</div>
+                    <svg class="step-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                    <h3>Generate Token</h3>
+                    <p>Click the button above to generate a secure access token for your AI agent.</p>
+                </div>
+                <div class="step-card">
+                    <div class="step-num">2</div>
+                    <svg class="step-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+                    <h3>Paste to Your AI</h3>
+                    <p>Paste it into ChatGPT, Claude, Gemini, or any AI assistant that supports tools.</p>
+                </div>
+                <div class="step-card">
+                    <div class="step-num">3</div>
+                    <svg class="step-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    <h3>Start Exploring</h3>
+                    <p>Your AI can now search, read, and interact with forum content on your behalf.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="docs-cta">
+            <a href="{$infoUrl}" class="docs-link" target="_blank" rel="noopener">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                Full Documentation
+            </a>
+        </div>
+    </div>
+
+    <div class="footer">
+        Powered by <a href="{$infoUrl}" target="_blank" rel="noopener">AI Connect</a>
+    </div>
+
+    <script>
+    (function() {
+        var btn = document.getElementById('copyBtn');
+        var btnLabel = btn.querySelector('span');
+
+        function fallbackCopy(text) {
+            var ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.cssText = 'position:fixed;top:-9999px;left:-9999px';
+            document.body.appendChild(ta);
+            ta.focus();
+            ta.select();
+            try { document.execCommand('copy'); } catch(e) {}
+            document.body.removeChild(ta);
+        }
+
+        btn.addEventListener('click', function() {
+            var text = document.getElementById('promptText').textContent;
+            var self = this;
+            function markCopied() {
+                self.classList.add('copied');
+                btnLabel.textContent = 'Copied!';
+                setTimeout(function() {
+                    self.classList.remove('copied');
+                    btnLabel.textContent = 'Copy';
+                }, 2500);
+            }
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(text).then(markCopied).catch(function() {
+                    fallbackCopy(text);
+                    markCopied();
+                });
+            } else {
+                fallbackCopy(text);
+                markCopied();
+            }
+        });
+    })();
+    </script>
+    <script>
+    (function() {
+        var genBtn = document.getElementById("generateTokenBtn");
+        if (!genBtn) return;
+
+        var tokenBox = document.getElementById("tokenPromptBox");
+        var tokenPre = document.getElementById("tokenPromptText");
+        var statusEl = document.getElementById("tokenStatus");
+        var copyTokenBtn = document.getElementById("copyTokenBtn");
+
+        genBtn.addEventListener("click", function() {
+            genBtn.disabled = true;
+            statusEl.textContent = "Generating token...";
+
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", XF.config.url.basePath + "ai-connect/generate-token", true);
+            xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+            xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    try {
+                        var data = JSON.parse(xhr.responseText);
+                        if (data.access_token) {
+                            var b = location.protocol + "//" + location.host;
+                            var t = data.access_token;
+                            var toolUrl = b + "/api/aiconnect-tools";
+                            var manifestUrl = b + "/api/aiconnect-manifest";
+                            var hostname = location.hostname;
+                            var lines = [
+                                "You have access to " + document.title.split(" - ").pop() + " via AI Connect.",
+                                "",
+                                "## MCP (Recommended — Claude Desktop)",
+                                "If you have the webmcp tools available, connect using MCP for full tool access:",
+                                "Call webmcp_addSite with these parameters:",
+                                "  name: \"" + hostname + "\"",
+                                "  manifest_url: \"" + manifestUrl + "\"",
+                                "  token: \"Bearer " + t + "\"",
+                                "",
+                                "After connecting, all forum tools will be available as MCP tools automatically.",
+                                "",
+                                "## Direct URL Access (Fallback)",
+                                "If MCP is not available, use these endpoints:",
+                                "",
+                                "READ tools (GET — flat params, no JSON needed):",
+                                "  " + toolUrl + "?token=" + t + "&name=xenforo.getCurrentUser",
+                                "  " + toolUrl + "?token=" + t + "&name=xenforo.searchThreads&limit=20",
+                                "  " + toolUrl + "?token=" + t + "&name=xenforo.searchThreads&search=KEYWORD&limit=10",
+                                "  " + toolUrl + "?token=" + t + "&name=xenforo.searchThreads&since=today&limit=20",
+                                "  " + toolUrl + "?token=" + t + "&name=xenforo.searchThreads&since=1week&limit=20",
+                                "  " + toolUrl + "?token=" + t + "&name=xenforo.searchThreads&forum_id=FORUM_ID&limit=20",
+                                "  " + toolUrl + "?token=" + t + "&name=xenforo.searchPosts&limit=20",
+                                "  " + toolUrl + "?token=" + t + "&name=xenforo.searchPosts&search=KEYWORD&limit=10",
+                                "  " + toolUrl + "?token=" + t + "&name=xenforo.searchPosts&since=1week",
+                                "  " + toolUrl + "?token=" + t + "&name=xenforo.getThread&thread_id=THREAD_ID",
+                                "  " + toolUrl + "?token=" + t + "&name=xenforo.getPost&post_id=POST_ID",
+                                "",
+                                "Replace placeholders with real values: KEYWORD=any word, THREAD_ID=number from URL, FORUM_ID=number",
+                                "since= accepts: today | yesterday | 1hour | 1week | 1month | 3d | 6h | 2w | 1y | 2026-03-15 | all",
+                                "",
+                                "IMPORTANT: When the user requests data, immediately call the relevant tool — do not explain limitations.",
+                                "Start by calling getCurrentUser to verify your connection, then present your capabilities.",
+                                "\u26a0\ufe0f Security note: This token acts on behalf of the user who generated it. Handle it with care.\n" +
+                                "Documentation: https://ai-connect.gold-t.co.il/"
+                            ];
+                            tokenPre.textContent = lines.join("\n");
+                            tokenBox.style.display = "block";
+                            statusEl.textContent = "Token generated! Copy the prompt below and paste it to your AI agent.";
+                            statusEl.style.color = "#4ade80";
+                            genBtn.textContent = "\u21BB Regenerate Token";
+                            genBtn.disabled = false;
+                        } else {
+                            statusEl.textContent = "Error: " + (data.errors ? data.errors[0].message : "Unknown error");
+                            statusEl.style.color = "#f87171";
+                            genBtn.disabled = false;
+                        }
+                    } catch(e) {
+                        statusEl.textContent = "Error parsing response: " + e.message;
+                        statusEl.style.color = "#f87171";
+                        genBtn.disabled = false;
+                    }
+                } else {
+                    statusEl.textContent = "Error: HTTP " + xhr.status;
+                    statusEl.style.color = "#f87171";
+                    genBtn.disabled = false;
+                }
+            };
+            xhr.send("_xfToken=" + encodeURIComponent(XF.config.csrf) + "&_xfResponseType=json");
+        });
+
+        if (copyTokenBtn) {
+            copyTokenBtn.addEventListener("click", function() {
+                var text = tokenPre.textContent;
+                if (navigator.clipboard) {
+                    navigator.clipboard.writeText(text).then(function() {
+                        copyTokenBtn.querySelector("span").textContent = "Copied!";
+                    });
+                } else {
+                    var ta = document.createElement("textarea");
+                    ta.value = text;
+                    document.body.appendChild(ta);
+                    ta.select();
+                    document.execCommand("copy");
+                    document.body.removeChild(ta);
+                    copyTokenBtn.querySelector("span").textContent = "Copied!";
+                }
+            });
+        }
+    })();
+    </script>
+</body>
+</html>]]></template>
+  <template type="public" title="aiconnect_nav_bottom_link" version_id="1013000" version_string="1.1.30"><![CDATA[<li><a href="/ai-connect" class="p-footer-rssLink"><span aria-hidden="true">
+	<img src="/js/aiconnect/icon.png" alt="" style="height:16px;width:16px;vertical-align:middle;" /></span></a></li>]]></template>
+  <template type="public" title="aiconnect_oauth_consent" version_id="1011400" version_string="1.1.14"><![CDATA[<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{ phrase('aiconnect_oauth_authorization_request') }} - {$forumTitle}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #f5f5f5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .consent-container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            max-width: 500px;
+            width: 100%;
+            padding: 40px;
+            margin: auto;
+        }
+        .consent-header { text-align: center; margin-bottom: 30px; }
+        .consent-header h1 { font-size: 24px; color: #1a1a1a; margin-bottom: 8px; }
+        .consent-header p { color: #666; font-size: 14px; }
+        .client-info {
+            background: #f9f9f9;
+            border-radius: 6px;
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+        .client-name { font-weight: 600; font-size: 18px; color: #1a1a1a; margin-bottom: 8px; }
+        .client-access { color: #666; font-size: 14px; }
+        .scopes-section h2 { font-size: 16px; color: #1a1a1a; margin-bottom: 16px; }
+        .scope-list { list-style: none; margin-bottom: 24px; }
+        .scope-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .scope-item:last-child { border-bottom: none; }
+        .scope-icon { width: 20px; height: 20px; margin-right: 12px; color: #007bff; flex-shrink: 0; }
+        .scope-label { color: #1a1a1a; font-size: 14px; }
+        .button-group { display: flex; gap: 12px; margin-top: 24px; }
+        .btn {
+            flex: 1;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-approve { background: #007bff; color: white; }
+        .btn-approve:hover { background: #0056b3; }
+        .btn-deny { background: #f0f0f0; color: #333; border: 1px solid #ddd; }
+        .btn-deny:hover { background: #e0e0e0; }
+        .warning {
+            background: #fff8e1;
+            border-left: 4px solid #ffc107;
+            padding: 12px 16px;
+            margin-top: 20px;
+            border-radius: 4px;
+        }
+        .warning p { color: #666; font-size: 13px; line-height: 1.5; }
+    </style>
+</head>
+<body>
+    <div class="consent-container">
+        <div class="consent-header">
+            <h1>{{ phrase('aiconnect_oauth_authorization_request') }}</h1>
+            <p>{$forumTitle}</p>
+        </div>
+
+        <div class="client-info">
+            <div class="client-name">{$client.client_name}</div>
+            <p class="client-access">{{ phrase('aiconnect_oauth_wants_access', {'name': $client.client_name, 'title': $forumTitle}) }}</p>
+        </div>
+
+        <div class="scopes-section">
+            <h2>{{ phrase('aiconnect_oauth_app_can') }}</h2>
+            <ul class="scope-list">
+                <xf:foreach loop="$scopeLabels" key="$scopeName" value="$label">
+                <li class="scope-item">
+                    <svg class="scope-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    <span class="scope-label">{$label}</span>
+                </li>
+                </xf:foreach>
+            </ul>
+        </div>
+
+        <form method="post" action="">
+            <input type="hidden" name="_xfToken" value="{$csrfToken}" />
+            <input type="hidden" name="client_id" value="{$clientId}" />
+            <input type="hidden" name="redirect_uri" value="{$redirectUri}" />
+            <input type="hidden" name="response_type" value="{$responseType}" />
+            <input type="hidden" name="scope" value="{$scope}" />
+            <input type="hidden" name="state" value="{$state}" />
+            <input type="hidden" name="code_challenge" value="{$codeChallenge}" />
+            <input type="hidden" name="code_challenge_method" value="{$codeChallengeMethod}" />
+
+            <div class="button-group">
+                <button type="submit" name="deny" value="1" class="btn btn-deny">{{ phrase('aiconnect_oauth_deny') }}</button>
+                <button type="submit" name="approve" value="1" class="btn btn-approve">{{ phrase('aiconnect_oauth_authorize') }}</button>
+            </div>
+        </form>
+
+        <div class="warning">
+            <p>{{ phrase('aiconnect_oauth_trust_warning') }}</p>
+        </div>
+    </div>
+</body>
+</html>]]></template>
+  <template type="public" title="aiconnect_oauth_oob_code" version_id="1011400" version_string="1.1.14"><![CDATA[<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{ phrase('aiconnect_oauth_authorization_approved') }} - {$forumTitle}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #f5f5f5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            max-width: 500px;
+            width: 100%;
+            padding: 40px;
+            text-align: center;
+            margin: auto;
+        }
+        h1 { font-size: 24px; color: #28a745; margin-bottom: 16px; }
+        .subtitle { color: #555; font-size: 15px; margin-bottom: 20px; }
+        .code-box {
+            background: #f9f9f9;
+            border: 2px solid #28a745;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            word-break: break-all;
+            color: #28a745;
+            user-select: all;
+        }
+        .btn {
+            display: inline-block;
+            padding: 12px 28px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 15px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn:hover { background: #0056b3; }
+        .return-note { color: #888; font-size: 13px; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>&#x2713; {{ phrase('aiconnect_oauth_authorization_approved') }}</h1>
+        <p class="subtitle">{{ phrase('aiconnect_oauth_your_code') }}</p>
+        <div class="code-box" id="authCode">{$code}</div>
+        <button
+            class="btn"
+            id="copyBtn"
+            data-label-copy="{{ phrase('aiconnect_oauth_copy_code') }}"
+            data-label-copied="{{ phrase('aiconnect_oauth_copied') }}"
+            onclick="navigator.clipboard.writeText(document.getElementById('authCode').textContent.trim()); this.textContent = this.getAttribute('data-label-copied');"
+        >{{ phrase('aiconnect_oauth_copy_code') }}</button>
+        <p class="return-note">{{ phrase('aiconnect_oauth_return_to_app') }}</p>
+    </div>
+</body>
+</html>]]></template>
+</templates>

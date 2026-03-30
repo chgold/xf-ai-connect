@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<template_modifications>
+  <modification type="public" template="PAGE_CONTAINER" modification_key="aiconnect_nav_bottom" description="AI Connect footer link" execution_order="10" enabled="1" action="str_replace">
+    <find><![CDATA[<xf:fa icon="fa-rss" /><span class="u-srOnly">{{ phrase('rss') }}</span></span></a></li>]]></find>
+    <replace><![CDATA[<xf:fa icon="fa-rss" /><span class="u-srOnly">{{ phrase('rss') }}</span></span></a></li><xf:include template="aiconnect_nav_bottom_link" />]]></replace>
+  </modification>
+</template_modifications>

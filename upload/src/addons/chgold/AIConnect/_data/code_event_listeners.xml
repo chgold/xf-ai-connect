@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<code_event_listeners>
+  <listener event_id="app_api_validate_request" execute_order="10" callback_class="chgold\AIConnect\Listener\ApiAuth" callback_method="validateApiRequest" active="1" description="Validates Bearer tokens and allows public AI Connect endpoints"/>
+</code_event_listeners>
