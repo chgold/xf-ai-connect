@@ -36,6 +36,27 @@ class InfoPage extends AbstractController
         );
     }
 
+    public function actionGenerateToken(ParameterBag $params)
+    {
+        $this->assertRegistrationRequired();
+
+        if (!$this->isPost()) {
+            return $this->noPermission();
+        }
+
+        $visitor = \XF::visitor();
+
+        /** @var \chgold\AIConnect\Service\OAuthServer $oauthServer */
+        $oauthServer = $this->service('chgold\AIConnect:OAuthServer');
+        $tokenData = $oauthServer->createAccessToken('web-ui', $visitor->user_id, ['read', 'write']);
+
+        return $this->view(
+            'chgold\AIConnect:InfoPage\GenerateToken',
+            '',
+            $tokenData
+        );
+    }
+
     public function allowUnauthenticatedAccess($action)
     {
         return true;
