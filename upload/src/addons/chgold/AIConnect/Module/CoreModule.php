@@ -9,7 +9,7 @@ class CoreModule extends ModuleBase
     protected function registerTools()
     {
         $this->registerTool('searchThreads', [
-            'description' => 'Search XenForo threads with filters',
+            'description' => 'Search XenForo threads. Date options: (1) since=Xw for open range from X ago until now; (2) date_from+date_to for exact window (e.g. date_from=2026-03-09&date_to=2026-03-15); (3) since+until for relative window (e.g. since=3w&until=2w = the week 3 weeks ago). All params optional.',
             'input_schema' => [
                 'type' => 'object',
                 'properties' => [
@@ -31,7 +31,7 @@ class CoreModule extends ModuleBase
                     ],
                     'since' => [
                         'type' => 'string',
-                        'description' => 'Time filter. Presets: today, yesterday, 1hour, 1week, 1month. Any relative duration as <N><unit> where unit=h/d/w/m/y (e.g. 3w, 21d, 6h, 3months, 2years — any number + any unit works). Exact date YYYY-MM-DD. Or "all" for full history. Unknown values fall back to all history.',
+                        'description' => 'Lower time bound only — returns results from this point UNTIL NOW (open-ended). Formats: presets (today, yesterday, 1hour, 1week, 1month), relative (3d, 6h, 2w, 1y, 3months), ISO date (2026-03-15), or "all". To limit the upper bound too, add date_to or until.',
                     ],
                     'date_from' => [
                         'type' => 'string',
@@ -40,6 +40,10 @@ class CoreModule extends ModuleBase
                     'date_to' => [
                         'type' => 'string',
                         'description' => 'End date: ISO format YYYY-MM-DD (e.g. "2026-03-29") or Unix timestamp as string. Optional.',
+                    ],
+                    'until' => [
+                        'type' => 'string',
+                        'description' => 'Upper time bound — same format as since. Use with since to define a closed relative window: since=3w&until=2w = the week from 3 to 2 weeks ago.',
                     ],
                     'limit' => [
                         'type' => 'integer',
@@ -65,7 +69,7 @@ class CoreModule extends ModuleBase
         ]);
 
         $this->registerTool('searchPosts', [
-            'description' => 'Search XenForo posts',
+            'description' => 'Search XenForo posts. Date options: (1) since=Xw for open range from X ago until now; (2) date_from+date_to for exact window (e.g. date_from=2026-03-09&date_to=2026-03-15); (3) since+until for relative window (e.g. since=3w&until=2w = the week 3 weeks ago). All params optional.',
             'input_schema' => [
                 'type' => 'object',
                 'properties' => [
@@ -87,7 +91,7 @@ class CoreModule extends ModuleBase
                     ],
                     'since' => [
                         'type' => 'string',
-                        'description' => 'Time filter. Presets: today, yesterday, 1hour, 1week, 1month. Any relative duration as <N><unit> where unit=h/d/w/m/y (e.g. 3w, 21d, 6h, 3months, 2years — any number + any unit works). Exact date YYYY-MM-DD. Or "all" for full history. Unknown values fall back to all history.',
+                        'description' => 'Lower time bound only — returns results from this point UNTIL NOW (open-ended). Formats: presets (today, yesterday, 1hour, 1week, 1month), relative (3d, 6h, 2w, 1y, 3months), ISO date (2026-03-15), or "all". To limit the upper bound too, add date_to or until.',
                     ],
                     'date_from' => [
                         'type' => 'string',
@@ -96,6 +100,10 @@ class CoreModule extends ModuleBase
                     'date_to' => [
                         'type' => 'string',
                         'description' => 'End date: ISO format YYYY-MM-DD (e.g. "2026-03-29") or Unix timestamp as string. Optional.',
+                    ],
+                    'until' => [
+                        'type' => 'string',
+                        'description' => 'Upper time bound — same format as since. Use with since to define a closed relative window: since=3w&until=2w = the week from 3 to 2 weeks ago.',
                     ],
                     'limit' => [
                         'type' => 'integer',
@@ -236,6 +244,9 @@ class CoreModule extends ModuleBase
         if (!empty($params['date_to'])) {
             $finder->where('post_date', '<=', $this->parseTimestamp($params['date_to']));
         }
+        if (!empty($params['until']) && empty($params['date_to'])) {
+            $finder->where('post_date', '<=', $this->parseSince($params['until']));
+        }
 
         $limit = $params['limit'] ?? 10;
 
@@ -302,6 +313,9 @@ class CoreModule extends ModuleBase
         }
         if (!empty($params['date_to'])) {
             $finder->where('post_date', '<=', $this->parseTimestamp($params['date_to']));
+        }
+        if (!empty($params['until']) && empty($params['date_to'])) {
+            $finder->where('post_date', '<=', $this->parseSince($params['until']));
         }
 
         $limit = $params['limit'] ?? 10;
