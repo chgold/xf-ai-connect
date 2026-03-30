@@ -1,5 +1,5 @@
 {
-    "src/addons/chgold/AIConnect/addon.json": "ca20b998d32d46803d3c32d9012865ba95dbe147ae8d220115688e02b9b01051",
+    "src/addons/chgold/AIConnect/addon.json": "d3cdd7cfb7988fc3c2ddc0ddbc73854a3813373c26de7d8ed4b23ccce9b85f9c",
     "src/addons/chgold/AIConnect/Api/Controller/Auth.php": "87501d407e6933d2f0c0ccd7727e9af9d1a53559de49eda071f7592ff08c0cd3",
     "src/addons/chgold/AIConnect/Api/Controller/Authorize.php": "d9be5e5d4aeee551eb941e17d6cb43274b0cc710942e1a35821db9d0c242f1e0",
     "src/addons/chgold/AIConnect/Api/Controller/Manifest.php": "a84bf07bf5eb4dffbb5a08078761619afac033a5c5e1a3c8b5016f0c339a565a",
