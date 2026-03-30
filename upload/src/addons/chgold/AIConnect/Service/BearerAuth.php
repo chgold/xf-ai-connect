@@ -68,12 +68,16 @@ class BearerAuth extends AbstractService
     {
         $authHeader = $this->getAuthorizationHeader();
 
-        if (!$authHeader) {
+        if ($authHeader) {
+            if (strpos($authHeader, 'Bearer ') === 0) {
+                return substr($authHeader, 7);
+            }
             return null;
         }
 
-        if (strpos($authHeader, 'Bearer ') === 0) {
-            return substr($authHeader, 7);
+        $queryToken = \XF::app()->request()->filter('token', 'str');
+        if ($queryToken) {
+            return $queryToken;
         }
 
         return null;

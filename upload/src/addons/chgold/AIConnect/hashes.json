@@ -24,7 +24,7 @@
     "src/addons/chgold/AIConnect/Pub/View/OAuth/OobCode.php": "03b58dcfe0a34d89f6346adc283e97e27cbb86efcde5f56cb1ff958c4c4d1cfb",
     "src/addons/chgold/AIConnect/README.md": "11899eeb7e7c29a442e77550bb34716271382d4b5e27c711bcdc8519ab218aa5",
     "src/addons/chgold/AIConnect/Service/Auth.php": "0e56349d8b3079bbc8b8af003ae35def002b9bc9661d43961b902530ea566394",
-    "src/addons/chgold/AIConnect/Service/BearerAuth.php": "bd0d1c2655cdcb7f3440bbeec3754e3360ac6899a750f47a2d92848e8f569977",
+    "src/addons/chgold/AIConnect/Service/BearerAuth.php": "96e7979863c8117e0a50caae48aaa63e72cf772a6ffab5ec153902e933bfe2ac",
     "src/addons/chgold/AIConnect/Service/Manifest.php": "e4b2eded130c48bda26f402515bc1e85a0de283b0bd046df90c994817a1fc81d",
     "src/addons/chgold/AIConnect/Service/OAuthServer.php": "f2f5825fcb4b3c001a63d2dcaf91dbec534335f92e1f8b090bc6eda4f3697d62",
     "src/addons/chgold/AIConnect/Service/RateLimiter.php": "e1d2a2eafdaaa591895bb4133b8b226d05c477d7fea2f1d7d7b885dedcccde15",
