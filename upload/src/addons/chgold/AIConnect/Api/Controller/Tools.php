@@ -28,7 +28,7 @@ class Tools extends AbstractController
         $visitor = \XF::visitor();
         $rateLimiter = \XF::service('chgold\AIConnect:RateLimiter');
         $identifier = 'user_' . $visitor->user_id;
-        if ($rateLimiter->isRateLimited($identifier)) {
+        if ($rateLimiter->isRateLimited($identifier)['limited']) {
             return $this->error('Rate limit exceeded. Please slow down your requests.', 429);
         }
         $rateLimiter->recordRequest($identifier);
@@ -75,7 +75,7 @@ class Tools extends AbstractController
         $visitor = \XF::visitor();
         $rateLimiter = \XF::service('chgold\AIConnect:RateLimiter');
         $getIdentifier = 'user_' . $visitor->user_id;
-        if ($rateLimiter->isRateLimited($getIdentifier)) {
+        if ($rateLimiter->isRateLimited($getIdentifier)['limited']) {
             return $this->error('Rate limit exceeded. Please slow down your requests.', 429);
         }
         $rateLimiter->recordRequest($getIdentifier);

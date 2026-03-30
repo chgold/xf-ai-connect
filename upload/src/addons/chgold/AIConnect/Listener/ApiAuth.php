@@ -34,19 +34,25 @@ class ApiAuth
         }
 
         $authHeader = $request->getServer('HTTP_AUTHORIZATION');
+        $queryToken = $request->filter('token', 'str');
 
-        if ($isOurEndpoint && (!$authHeader || strpos($authHeader, 'Bearer ') !== 0)) {
+        $bearerToken = null;
+        if ($authHeader && strpos($authHeader, 'Bearer ') === 0) {
+            $bearerToken = substr($authHeader, 7);
+        } elseif ($queryToken) {
+            $bearerToken = $queryToken;
+        }
+
+        if ($isOurEndpoint && !$bearerToken) {
             $error = 'api_error.bearer_token_required';
             $code = 401;
             $result = false;
             return;
         }
 
-        if (!$authHeader || strpos($authHeader, 'Bearer ') !== 0) {
+        if (!$bearerToken) {
             return;
         }
-
-        $bearerToken = substr($authHeader, 7);
 
         $oauthServer = \XF::service('chgold\AIConnect:OAuthServer');
         $tokenData = $oauthServer->validateToken($bearerToken);

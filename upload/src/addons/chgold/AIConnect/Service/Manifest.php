@@ -77,7 +77,7 @@ class Manifest extends AbstractService
                 'token_type' => 'Bearer'
             ],
             'usage' => [
-                'tools_endpoint' => $baseUrl . '/api/ai-connect/v1/tools/{tool_name}',
+                'tools_endpoint' => $baseUrl . '/api/aiconnect-tools',
                 'method' => 'POST',
                 'headers' => [
                     'Authorization' => 'Bearer {access_token}',
