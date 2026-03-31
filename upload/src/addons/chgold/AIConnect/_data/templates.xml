@@ -269,12 +269,20 @@ Do ALL of the following immediately and automatically — no asking for permissi
    When you receive access_token in the response — you are connected!
 
 5. Verify the connection — call getCurrentUser using web_fetch GET (read-only tools support GET):
-   GET {$toolsUrl}?token={access_token}&name=xenforo.getCurrentUser&args={}
+   GET {$toolsUrl}?token={access_token}&name=xenforo.getCurrentUser
 
-   READ tools (GET supported): searchThreads, getThread, searchPosts, getPost, getCurrentUser, getSupportedLanguages
-   GET {$toolsUrl}?token={access_token}&name=xenforo.searchThreads&args={"search":"keyword","limit":10}
+   READ tools (flat GET params, no JSON needed):
+   GET {$toolsUrl}?token={access_token}&name=xenforo.searchThreads&search=KEYWORD&limit=20
+   GET {$toolsUrl}?token={access_token}&name=xenforo.searchThreads&since=1week&limit=20
+   GET {$toolsUrl}?token={access_token}&name=xenforo.searchThreads&since=3d&until=1d
+   GET {$toolsUrl}?token={access_token}&name=xenforo.searchPosts&search=KEYWORD&since=1month
+   GET {$toolsUrl}?token={access_token}&name=xenforo.getThread&thread_id=THREAD_ID
+   GET {$toolsUrl}?token={access_token}&name=xenforo.getPost&post_id=POST_ID
 
-   Translation tool (POST only — use Bearer token):
+   since/until: today | yesterday | 1hour | 1week | 3d | 6h | 2w | 1y | YYYY-MM-DD | all
+   until= is the upper bound: since=3w&until=2w = the week 3 to 2 weeks ago
+
+   Translation (POST — Bearer token required):
    curl -X POST "{$toolsUrl}" -H "Authorization: Bearer {access_token}" -H "Content-Type: application/json" -d "{\"name\":\"translation.translate\",\"arguments\":{\"text\":\"Hello\",\"target_lang\":\"he\"}}"
 
 Documentation: {$infoUrl}</pre>
