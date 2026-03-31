@@ -25,7 +25,7 @@
     "src/addons/chgold/AIConnect/README.md": "11899eeb7e7c29a442e77550bb34716271382d4b5e27c711bcdc8519ab218aa5",
     "src/addons/chgold/AIConnect/Service/Auth.php": "0e56349d8b3079bbc8b8af003ae35def002b9bc9661d43961b902530ea566394",
     "src/addons/chgold/AIConnect/Service/BearerAuth.php": "96e7979863c8117e0a50caae48aaa63e72cf772a6ffab5ec153902e933bfe2ac",
-    "src/addons/chgold/AIConnect/Service/Manifest.php": "9a9d1bd88d0fbfe31a0a2ea0801cf67c3a6e28dc47c3dad6f1494760f43062c6",
+    "src/addons/chgold/AIConnect/Service/Manifest.php": "5b0d3a480cf7aa0e54a5e39fd2940580fe9c20acf11ee372593902f7d299d0ca",
     "src/addons/chgold/AIConnect/Service/OAuthServer.php": "f2f5825fcb4b3c001a63d2dcaf91dbec534335f92e1f8b090bc6eda4f3697d62",
     "src/addons/chgold/AIConnect/Service/RateLimiter.php": "e1d2a2eafdaaa591895bb4133b8b226d05c477d7fea2f1d7d7b885dedcccde15",
     "src/addons/chgold/AIConnect/Service/Settings.php": "040d6566b4e7a6c53335ce241bfd8bb3649057532b6f562354a3da4d7a45bc22",
@@ -145,7 +145,7 @@
     "src/addons/chgold/AIConnect/_data/routes.xml": "1f00179c4d8379c7e9354d7a1b6a5b1710f76d47481d362d54915c584d062a59",
     "src/addons/chgold/AIConnect/_data/style_properties.xml": "8b8690a8512f01f219dd2da76e3d0c5f62afc1f317b87794a7331c859c36a7a8",
     "src/addons/chgold/AIConnect/_data/style_property_groups.xml": "68e1879cb3846c42d978487aa8d5145ff3335fc39e58016878824d5cf3fd684c",
-    "src/addons/chgold/AIConnect/_data/templates.xml": "a40b616e7ac8dbe185a1fdb2f867c747ddbbe991e720168316855a06fcaf9569",
+    "src/addons/chgold/AIConnect/_data/templates.xml": "e97ada530c018c018079a5ec8112c6677d509b7ea115bdfa4acd1217e73c7108",
     "src/addons/chgold/AIConnect/_data/template_modifications.xml": "900260b53dd825cbe5ad9594c305daf8246e7f29512327abc415afdbddeff035",
     "src/addons/chgold/AIConnect/_data/widget_definitions.xml": "37e46965256430f24004c2e7f08ba08f9b0d1cbcc4d70e84b3f4e3ffb713e64b",
     "src/addons/chgold/AIConnect/_data/widget_positions.xml": "a29cee66134f6bc5d75ed9df1eef21096c24401915c5b5c774389c3d7bb2d5b3"

@@ -112,6 +112,7 @@ class Manifest extends AbstractService
                 . '  - Specific date: 2026-03-15 (YYYY-MM-DD format)' . "\n"
                 . '  - All history: "all" or "everything" → returns all records regardless of date' . "\n"
                 . '  - Unknown value → falls back to all history (no date limit)' . "\n"
+                . 'Parameter `until`: upper time bound, same format as `since`. Combine with `since` for a closed window: since=3w&until=2w = the week between 3 and 2 weeks ago.' . "\n"
                 . 'Parameters `date_from` / `date_to`: Unix timestamp or "YYYY-MM-DD" string for any exact date range.' . "\n\n"
                 . $this->getTranslationInstructions()
                 . '## COMBINING TOOLS' . "\n"

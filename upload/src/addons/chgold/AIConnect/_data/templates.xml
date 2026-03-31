@@ -416,6 +416,7 @@ Documentation: {$infoUrl}</pre>
                                 "",
                                 "Replace placeholders with real values: KEYWORD=any word, THREAD_ID=number from URL, FORUM_ID=number",
                                 "since= accepts: today | yesterday | 1hour | 1week | 1month | 3d | 6h | 2w | 1y | 2026-03-15 | all",
+                                "until= upper time bound (same formats). Combine with since: since=3w\&until=2w = week from 3 to 2 weeks ago",
                                 "",
                                 "IMPORTANT: When the user requests data, immediately call the relevant tool — do not explain limitations.",
                                 "Start by calling getCurrentUser to verify your connection, then present your capabilities.",
