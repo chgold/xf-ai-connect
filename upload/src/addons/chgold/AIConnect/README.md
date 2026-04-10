@@ -100,6 +100,31 @@ AI Connect implements the WebMCP protocol. Connect AI agents via **MCP** for ful
 
 When connected via MCP, the AI agent receives all tool definitions with full schemas and can call any tool with any parameters freely.
 
+### Claude Desktop / Cursor / OpenCode — MCP Setup
+
+**Step 1** — Install [webmcp-client](https://www.npmjs.com/package/webmcp-client):
+```bash
+npm install -g webmcp-client
+```
+
+**Step 2** — Add to `claude_desktop_config.json` (set once, never change):
+```json
+{
+  "mcpServers": {
+    "webmcp": {
+      "command": "webmcp-client",
+      "env": {
+        "NODE_TLS_REJECT_UNAUTHORIZED": "0"
+      }
+    }
+  }
+}
+```
+
+> **Note for NetFree / corporate SSL proxy users:** The `NODE_TLS_REJECT_UNAUTHORIZED: "0"` setting bypasses SSL certificate verification. Required for networks that intercept HTTPS traffic.
+
+**Step 3** — Use the AI Connect info page (`/ai-connect/`) to generate a token and connect your site.
+
 ### Quick Start: Token Prompt (for web interfaces)
 
 For AI web interfaces that support web browsing (Grok, Claude.ai chat, etc.), AI Connect provides a **token-based system prompt** that lets the agent call tools via GET requests.
