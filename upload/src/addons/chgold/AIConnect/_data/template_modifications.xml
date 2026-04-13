@@ -4,4 +4,14 @@
     <find><![CDATA[<xf:fa icon="fa-rss" /><span class="u-srOnly">{{ phrase('rss') }}</span></span></a></li>]]></find>
     <replace><![CDATA[<xf:fa icon="fa-rss" /><span class="u-srOnly">{{ phrase('rss') }}</span></span></a></li><xf:include template="aiconnect_nav_bottom_link" />]]></replace>
   </modification>
+  <modification type="admin" template="permission_user_edit" modification_key="aiconnect_admin_perm_user_js" description="AI Connect: inject permission greying script (user)" execution_order="10" enabled="1" action="str_replace">
+    <find><![CDATA[</xf:form>]]></find>
+    <replace><![CDATA[<xf:js src="chgold/aiconnect/admin-permissions.js" min="0" />
+ </xf:form>]]></replace>
+  </modification>
+  <modification type="admin" template="permissions_user_group_edit" modification_key="aiconnect_admin_permission_js" description="AI Connect: inject permission greying script" execution_order="10" enabled="1" action="str_replace">
+    <find><![CDATA[</xf:form>]]></find>
+    <replace><![CDATA[<xf:js src="chgold/aiconnect/admin-permissions.js" min="0" />
+ </xf:form>]]></replace>
+  </modification>
 </template_modifications>
