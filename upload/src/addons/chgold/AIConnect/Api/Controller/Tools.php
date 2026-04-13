@@ -53,6 +53,10 @@ class Tools extends AbstractController
             return $this->error('Invalid module: ' . $moduleName, 404);
         }
 
+        if (!$this->checkToolPermission($visitor, $moduleName, $tool)) {
+            return $this->error('You do not have permission to use this tool.', 403);
+        }
+
         $result = $this->modules[$moduleName]->executeTool($tool, $input);
 
         if (isset($result['success']) && $result['success'] === false) {
@@ -119,6 +123,10 @@ class Tools extends AbstractController
             return $this->error('Invalid module: ' . $moduleName, 404);
         }
 
+        if (!$this->checkToolPermission($visitor, $moduleName, $tool)) {
+            return $this->error('You do not have permission to use this tool.', 403);
+        }
+
         $result = $this->modules[$moduleName]->executeTool($tool, $input);
 
         if (isset($result['success']) && $result['success'] === false) {
@@ -140,6 +148,58 @@ class Tools extends AbstractController
         }
 
         return ['xenforo', $fullName];
+    }
+
+    /**
+     * Checks whether the current visitor may execute a tool.
+     *
+     * Three-tier check:
+     *  1. Global master switch: aiconnect.useTools must be Allow.
+     *  2. Package switch (optional): if the module declares a packageId, the
+     *     corresponding aiconnect.use_package_{id} permission must be Allow.
+     *  3. Per-tool: aiconnect.tool_{module}_{tool} must be Allow (if registered).
+     *
+     * @param  \XF\Entity\User $visitor
+     * @param  string          $moduleName
+     * @param  string          $toolName
+     * @return bool
+     */
+    protected function checkToolPermission($visitor, string $moduleName, string $toolName): bool
+    {
+        // 1. Master switch
+        if (!$visitor->hasPermission('aiconnect', 'useTools')) {
+            return false;
+        }
+
+        // 2. Package switch (only if the module belongs to a package)
+        $module = $this->modules[$moduleName] ?? null;
+        if ($module !== null && method_exists($module, 'getPackageId')) {
+            $packageId = $module->getPackageId();
+            if ($packageId !== null) {
+                $rawPkg = 'use_package_' . $packageId;
+                $pkgPerm = strlen($rawPkg) <= 25 ? $rawPkg : substr($rawPkg, 0, 25);
+                if (!$visitor->hasPermission('aiconnect', $pkgPerm)) {
+                    return false;
+                }
+            }
+        }
+
+        // 3. Per-tool permission (only if the permission is registered in xf_permission)
+        $rawPermId = 'tool_' . $moduleName . '_' . $toolName;
+        $permId    = strlen($rawPermId) <= 25 ? $rawPermId : substr($rawPermId, 0, 25);
+
+        $exists = \XF::db()->fetchOne(
+            'SELECT permission_id FROM xf_permission
+             WHERE permission_group_id = ? AND permission_id = ?',
+            ['aiconnect', $permId]
+        );
+
+        if ($exists) {
+            return $visitor->hasPermission('aiconnect', $permId);
+        }
+
+        // Permission not yet registered (dynamic/new tool) — global + package checks passed
+        return true;
     }
 
     public function assertRequiredApiInput($keys)

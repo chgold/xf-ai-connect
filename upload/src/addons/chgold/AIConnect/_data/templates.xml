@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <templates>
-  <template type="public" title="aiconnect_info_page" version_id="1020400" version_string="1.2.4"><![CDATA[<!DOCTYPE html>
+  <template type="public" title="aiconnect_info_page" version_id="1020800" version_string="1.2.8"><![CDATA[<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
@@ -269,20 +269,12 @@ Do ALL of the following immediately and automatically — no asking for permissi
    When you receive access_token in the response — you are connected!
 
 5. Verify the connection — call getCurrentUser using web_fetch GET (read-only tools support GET):
-   GET {$toolsUrl}?token={access_token}&name=xenforo.getCurrentUser
+   GET {$toolsUrl}?token={access_token}&name=xenforo.getCurrentUser&args={}
 
-   READ tools (flat GET params, no JSON needed):
-   GET {$toolsUrl}?token={access_token}&name=xenforo.searchThreads&search=KEYWORD&limit=20
-   GET {$toolsUrl}?token={access_token}&name=xenforo.searchThreads&since=1week&limit=20
-   GET {$toolsUrl}?token={access_token}&name=xenforo.searchThreads&since=3d&until=1d
-   GET {$toolsUrl}?token={access_token}&name=xenforo.searchPosts&search=KEYWORD&since=1month
-   GET {$toolsUrl}?token={access_token}&name=xenforo.getThread&thread_id=THREAD_ID
-   GET {$toolsUrl}?token={access_token}&name=xenforo.getPost&post_id=POST_ID
+   READ tools (GET supported): searchThreads, getThread, searchPosts, getPost, getCurrentUser, getSupportedLanguages
+   GET {$toolsUrl}?token={access_token}&name=xenforo.searchThreads&args={"search":"keyword","limit":10}
 
-   since/until: today | yesterday | 1hour | 1week | 3d | 6h | 2w | 1y | YYYY-MM-DD | all
-   until= is the upper bound: since=3w&until=2w = the week 3 to 2 weeks ago
-
-   Translation (POST — Bearer token required):
+   Translation tool (POST only — use Bearer token):
    curl -X POST "{$toolsUrl}" -H "Authorization: Bearer {access_token}" -H "Content-Type: application/json" -d "{\"name\":\"translation.translate\",\"arguments\":{\"text\":\"Hello\",\"target_lang\":\"he\"}}"
 
 Documentation: {$infoUrl}</pre>
@@ -393,19 +385,25 @@ Documentation: {$infoUrl}</pre>
                             var t = data.access_token;
                             var toolUrl = b + "/api/aiconnect-tools";
                             var manifestUrl = b + "/api/aiconnect-manifest";
-                            var hostname = location.hostname;
-                            var lines = [
-                                "You have access to " + document.title.split(" - ").pop() + " via AI Connect.",
-                                "",
-                                "## MCP (Recommended — Claude Desktop)",
-                                "If you have the webmcp tools available, connect using MCP for full tool access:",
-                                "Call webmcp_addSite with these parameters:",
-                                "  name: \"" + hostname + "\"",
-                                "  manifest_url: \"" + manifestUrl + "\"",
-                                "  token: \"Bearer " + t + "\"",
-                                "",
-                                "After connecting, all forum tools will be available as MCP tools automatically.",
-                                "",
+                             var hostname = location.hostname;
+                             var siteKey  = hostname.replace(/[^a-zA-Z0-9_-]/g, "_");
+                             var siteName = document.title.split(" - ").pop();
+                             var lines = [
+                                 "You have access to " + siteName + " via AI Connect.",
+                                 "",
+                                 "## MCP (Recommended — Claude Desktop)",
+                                 "Call webmcp_addSite with these parameters:",
+                                 "  name: \"" + hostname + "\"",
+                                 "  manifest_url: \"" + manifestUrl + "\"",
+                                 "  token: \"Bearer " + t + "\"",
+                                 "",
+                                 "After adding the site, call these tools by EXACT name (do not search — use directly):",
+                                 "  " + siteKey + "_xenforo_getCurrentUser     \u2190 call this first to verify",
+                                 "  " + siteKey + "_xenforo_searchThreads      \u2190 search=KEYWORD, since=1week, limit=20",
+                                 "  " + siteKey + "_xenforo_getThread          \u2190 thread_id=NUMBER",
+                                 "  " + siteKey + "_xenforo_searchPosts        \u2190 search=KEYWORD, since=1week, limit=20",
+                                 "  " + siteKey + "_xenforo_getPost            \u2190 post_id=NUMBER",
+                                 "",
                                 "## Direct URL Access (Fallback)",
                                 "If MCP is not available, use these endpoints:",
                                 "",
@@ -424,10 +422,9 @@ Documentation: {$infoUrl}</pre>
                                 "",
                                 "Replace placeholders with real values: KEYWORD=any word, THREAD_ID=number from URL, FORUM_ID=number",
                                 "since= accepts: today | yesterday | 1hour | 1week | 1month | 3d | 6h | 2w | 1y | 2026-03-15 | all",
-                                "until= upper time bound (same formats). Combine with since: since=3w\&until=2w = week from 3 to 2 weeks ago",
                                 "",
-                                "IMPORTANT: When the user requests data, immediately call the relevant tool — do not explain limitations.",
-                                "Start by calling getCurrentUser to verify your connection, then present your capabilities.",
+                                 "IMPORTANT: Do NOT use webmcp tool search — it may return tools from other sites.",
+                                 "Call the tools listed above by their EXACT full name. Start with getCurrentUser.",
                                 "\u26a0\ufe0f Security note: This token acts on behalf of the user who generated it. Handle it with care.\n" +
                                 "Documentation: https://ai-connect.gold-t.co.il/"
                             ];

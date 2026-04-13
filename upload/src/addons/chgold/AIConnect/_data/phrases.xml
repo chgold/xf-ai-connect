@@ -71,6 +71,18 @@ For documentation: {infoUrl}]]></phrase>
   <phrase title="option_group.aiconnect_settings" version_id="1012900" version_string="1.1.29" global_cache="1"><![CDATA[AI Connect — Settings]]></phrase>
   <phrase title="option_group_description.aiconnect_navigation" version_id="1011600" version_string="1.1.16"><![CDATA[Control where the AI Connect link appears on your forum.]]></phrase>
   <phrase title="option_group_description.aiconnect_settings" version_id="1012900" version_string="1.1.29"><![CDATA[Configure how AI agents interact with your forum.]]></phrase>
+  <phrase title="permission.aiconnect_tool_translation_getSuppo" version_id="1021100" version_string="1.2.11"><![CDATA[Tool: Get supported languages]]></phrase>
+  <phrase title="permission.aiconnect_tool_translation_translat" version_id="1021100" version_string="1.2.11"><![CDATA[Tool: Translate text]]></phrase>
+  <phrase title="permission.aiconnect_tool_xenforo_getCurrentUs" version_id="1021100" version_string="1.2.11"><![CDATA[Tool: Get current user info]]></phrase>
+  <phrase title="permission.aiconnect_tool_xenforo_getPost" version_id="1021100" version_string="1.2.11"><![CDATA[Tool: Get post by ID]]></phrase>
+  <phrase title="permission.aiconnect_tool_xenforo_getThread" version_id="1021100" version_string="1.2.11"><![CDATA[Tool: Get thread by ID]]></phrase>
+  <phrase title="permission.aiconnect_tool_xenforo_searchPosts" version_id="1021100" version_string="1.2.11"><![CDATA[Tool: Search posts]]></phrase>
+  <phrase title="permission.aiconnect_tool_xenforo_searchThread" version_id="1021100" version_string="1.2.11"><![CDATA[Tool: Search threads]]></phrase>
+  <phrase title="permission.aiconnect_useTools" version_id="1021200" version_string="1.2.12"><![CDATA[Use AI Connect tools (master switch)]]></phrase>
+  <phrase title="permission.aiconnect_viewAiConnect" version_id="1021200" version_string="1.2.12"><![CDATA[View AI Connect (navigation links and info page)]]></phrase>
+  <phrase title="permission.aiconnect_viewNavLink" version_id="1021000" version_string="1.2.10"><![CDATA[View AI Connect navigation links]]></phrase>
+  <phrase title="permission_interface.aiconnect_general" version_id="1021000" version_string="1.2.10"><![CDATA[AI Connect]]></phrase>
+  <phrase title="permission_interface.aiconnect_tools" version_id="1021200" version_string="1.2.12"><![CDATA[AI Connect — Tools]]></phrase>
   <phrase title="pkce_required" version_id="1011400" version_string="1.1.14"><![CDATA[Error: PKCE with S256 challenge method is required.]]></phrase>
   <phrase title="unsupported_response_type" version_id="1011400" version_string="1.1.14"><![CDATA[Error: Only the authorization code flow is supported.]]></phrase>
   <phrase title="viewing_oauth_authorization" version_id="1011400" version_string="1.1.14"><![CDATA[Viewing OAuth authorization]]></phrase>
