@@ -1,6 +1,6 @@
 # XenForo AI Connect
 
-[![Version](https://img.shields.io/badge/version-1.1.31-blue.svg)](https://github.com/chgold/xf-ai-connect/releases/latest)
+[![Version](https://img.shields.io/badge/version-1.2.10-blue.svg)](https://github.com/chgold/xf-ai-connect/releases/latest)
 [![XenForo](https://img.shields.io/badge/XenForo-2.2.0+-orange.svg)](https://xenforo.com)
 [![License](https://img.shields.io/badge/license-GPL--3.0-green.svg)](upload/src/addons/chgold/AIConnect/LICENSE-GPL.txt)
 

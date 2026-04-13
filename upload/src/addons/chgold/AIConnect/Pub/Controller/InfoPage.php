@@ -9,6 +9,10 @@ class InfoPage extends AbstractController
 {
     public function actionIndex(ParameterBag $params)
     {
+        if (!\XF::visitor()->hasPermission('aiconnect', 'viewAiConnect')) {
+            return $this->noPermission();
+        }
+
         $options    = \XF::options();
         $request = $this->request();
         $scheme  = $request->getServer('HTTPS') === 'on' ? 'https' : 'http';
@@ -44,6 +48,10 @@ class InfoPage extends AbstractController
 
         if (!$visitor->user_id) {
             return $this->error(\XF::phrase('you_must_be_logged_in_to_do_that'), 403);
+        }
+
+        if (!$visitor->hasPermission('aiconnect', 'useTools')) {
+            return $this->error(\XF::phrase('do_not_have_permission'), 403);
         }
 
         /** @var \chgold\AIConnect\Service\OAuthServer $oauthServer */

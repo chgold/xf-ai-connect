@@ -1,6 +1,6 @@
 # XenForo AI Connect
 
-[![Version](https://img.shields.io/badge/version-1.1.9-blue.svg)](https://github.com/chgold/xf-ai-connect/releases/latest)
+[![Version](https://img.shields.io/badge/version-1.2.10-blue.svg)](https://github.com/chgold/xf-ai-connect/releases/latest)
 [![XenForo](https://img.shields.io/badge/XenForo-2.2.0+-orange.svg)](https://xenforo.com)
 [![License](https://img.shields.io/badge/license-GPL--3.0-green.svg)](upload/src/addons/chgold/AIConnect/LICENSE-GPL.txt)
 
@@ -248,6 +248,39 @@ php cmd.php xf-addon:build-release chgold/AIConnect
 ## License
 
 This project is licensed under the GPL-3.0 License — see [LICENSE-GPL.txt](upload/src/addons/chgold/AIConnect/LICENSE-GPL.txt).
+
+---
+
+## 📋 Changelog
+
+### Version 1.2.10 - 2026-04-12
+* **Added:** Permission `viewNavLink` — admins can control which user groups see the AI Connect navigation links (top nav and footer icon) via Admin CP → User Groups → Permissions → AI Connect
+* **Default:** Allow for all users (guests and registered). Restrict to specific groups by setting "Not Set" in User Groups Permissions.
+* **Fixed:** Footer template now uses `link('ai-connect')` and `base_url()` instead of hardcoded paths — works correctly when XenForo is installed in a subdirectory
+
+### Version 1.2.9 - 2026-04-12
+* **Docs:** Added Claude Desktop / webmcp-client MCP setup instructions to README
+
+### Version 1.2.8 - 2026-03-31
+* **Added:** `until=` parameter documentation in token prompt and manifest date filtering instructions
+
+### Version 1.2.6 - 2026-03-30
+* **Added:** Token generator endpoint (`/ai-connect/generate-token`) — logged-in users can generate Bearer tokens in one click
+* **Added:** `?token=` query parameter authentication — AI agents that can't set HTTP headers can authenticate via URL parameter
+* **Fixed:** Three critical bugs: rate limiter always returning 429, tools_endpoint pointing to wrong controller, ?token= auth in wrong middleware layer
+
+### Version 1.2.2 - 2026-03-29
+* **Added:** `until=` date filter for closed time windows (e.g. `since=1week&until=yesterday`)
+
+### Version 1.2.0 - 2026-03-29
+* **Improved:** Universal tool schemas — date filters accept natural language ("today", "1week"), dynamic durations ("3d", "6h"), ISO dates; added username/user_id filters; ISO language codes for translation
+
+### Version 1.1.31 - 2026-03-19
+* **Added:** Translation Provider Admin Setting (AI Self-Translate / MyMemory API / Disabled)
+* **Added:** AI Connect info page (`/ai-connect/`) — public page with manifest URL, OAuth URL, and connection instructions
+* **Added:** Footer icon and top navigation entry (configurable in Admin CP)
+* **Fixed:** Fuzzy client_id matching — supports gemini_client, claude_ai, chatgpt_client variants automatically
+* **Fixed:** Navigation template variable causing PHP warnings
 
 ---
 
