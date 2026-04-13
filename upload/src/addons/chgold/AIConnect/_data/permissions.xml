@@ -1,2 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<permissions/>
+<permissions>
+  <permission permission_group_id="aiconnect" permission_id="tool_translation_getSuppo" permission_type="flag" depend_permission_id="useTools" interface_group_id="aiconnect_tools" display_order="10"/>
+  <permission permission_group_id="aiconnect" permission_id="tool_translation_translat" permission_type="flag" depend_permission_id="useTools" interface_group_id="aiconnect_tools" display_order="10"/>
+  <permission permission_group_id="aiconnect" permission_id="tool_xenforo_getCurrentUs" permission_type="flag" depend_permission_id="useTools" interface_group_id="aiconnect_tools" display_order="10"/>
+  <permission permission_group_id="aiconnect" permission_id="tool_xenforo_getPost" permission_type="flag" depend_permission_id="useTools" interface_group_id="aiconnect_tools" display_order="10"/>
+  <permission permission_group_id="aiconnect" permission_id="tool_xenforo_getThread" permission_type="flag" depend_permission_id="useTools" interface_group_id="aiconnect_tools" display_order="10"/>
+  <permission permission_group_id="aiconnect" permission_id="tool_xenforo_searchPosts" permission_type="flag" depend_permission_id="useTools" interface_group_id="aiconnect_tools" display_order="10"/>
+  <permission permission_group_id="aiconnect" permission_id="tool_xenforo_searchThread" permission_type="flag" depend_permission_id="useTools" interface_group_id="aiconnect_tools" display_order="10"/>
+  <permission permission_group_id="aiconnect" permission_id="useTools" permission_type="flag" interface_group_id="aiconnect_tools" display_order="5"/>
+  <permission permission_group_id="aiconnect" permission_id="viewAiConnect" permission_type="flag" interface_group_id="aiconnect_general" display_order="10"/>
+</permissions>
