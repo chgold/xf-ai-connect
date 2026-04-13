@@ -8,6 +8,15 @@ abstract class ModuleBase
     protected $tools = [];
     protected $manifestService;
 
+    /**
+     * Optional: package this module belongs to (null = free tier).
+     * Pro modules set this to their package ID, e.g. 'premium'.
+     * The permission 'use_package_{packageId}' is checked before per-tool permissions.
+     *
+     * @var string|null
+     */
+    protected $packageId = null;
+
     public function __construct($manifestService)
     {
         $this->manifestService = $manifestService;
@@ -131,6 +140,33 @@ abstract class ModuleBase
     public function getModuleName()
     {
         return $this->moduleName;
+    }
+
+    /**
+     * Returns an array of tool name => human-readable label pairs.
+     * Used by Setup::syncToolPermissions() to register per-tool permissions.
+     *
+     * @return array<string, string>  ['toolName' => 'Human label', ...]
+     */
+    public function getToolNames(): array
+    {
+        $names = [];
+        foreach (array_keys($this->tools) as $name) {
+            // Convert camelCase to "Title Case" for the label
+            $label = ucfirst(ltrim(preg_replace('/[A-Z]/', ' $0', $name)));
+            $names[$name] = $label;
+        }
+        return $names;
+    }
+
+    /**
+     * Returns the package ID for this module, or null if it is a free-tier module.
+     *
+     * @return string|null
+     */
+    public function getPackageId(): ?string
+    {
+        return $this->packageId;
     }
 
     protected function success($data, $message = null)
