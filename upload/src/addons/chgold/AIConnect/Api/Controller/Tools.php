@@ -9,6 +9,11 @@ class Tools extends AbstractController
 {
     protected $modules = [];
 
+    protected function allowUnauthenticatedRequest($action)
+    {
+        return false;
+    }
+
     protected function preDispatchController($action, ParameterBag $params)
     {
         parent::preDispatchController($action, $params);
