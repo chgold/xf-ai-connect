@@ -1,6 +1,6 @@
 # XenForo AI Connect
 
-[![Version](https://img.shields.io/badge/version-1.2.10-blue.svg)](https://github.com/chgold/xf-ai-connect/releases/latest)
+[![Version](https://img.shields.io/badge/version-1.2.17-blue.svg)](https://github.com/chgold/xf-ai-connect/releases/latest)
 [![XenForo](https://img.shields.io/badge/XenForo-2.2.0+-orange.svg)](https://xenforo.com)
 [![License](https://img.shields.io/badge/license-GPL--3.0-green.svg)](upload/src/addons/chgold/AIConnect/LICENSE-GPL.txt)
 
@@ -235,6 +235,7 @@ php cmd.php xf-addon:build-release chgold/AIConnect
 - Refresh tokens expire after 30 days
 - Rate limiting prevents abuse
 - Token revocation support
+- `allowUnauthenticatedRequest` explicitly declared on all API controllers — unauthenticated access to tool endpoints is blocked at the framework level
 
 ---
 
@@ -251,7 +252,71 @@ This project is licensed under the GPL-3.0 License — see [LICENSE-GPL.txt](upl
 
 ---
 
+## Permission System
+
+AI Connect implements a **3-tier permission system** managed entirely through XenForo's native Admin CP → User Groups → Permissions interface.
+
+### Tier 1 — Master Switch
+
+| Permission | Default | Description |
+|---|---|---|
+| `viewAiConnect` | Allow (Guests + Registered) | Controls visibility of navigation links and the info page |
+| `useTools` | Allow (Registered only) | Master switch — deny blocks ALL tools for that group |
+
+### Tier 2 — Package Permissions *(Pro addons)*
+
+Automatically created when a Pro addon registers a package via the `ai_connect_sync_tool_permissions` code event.
+
+| Permission | Format | Description |
+|---|---|---|
+| Package switch | `use_package_{id}` | Controls access to an entire group of Pro tools |
+
+### Tier 3 — Per-Tool Permissions
+
+One permission per tool, registered automatically on install/upgrade. Shown in Admin CP under **AI Connect — Tools**.
+
+| Permission format | Example | Default |
+|---|---|---|
+| `tool_{module}_{tool}` | `tool_xenforo_searchThread` | Allow (Registered) |
+
+All per-tool permissions depend on `useTools` — XenForo greys them out automatically in Admin CP when the master switch is set to Never.
+
+### Permission-Aware Manifest
+
+- **Anonymous requests** to `/api/aiconnect-manifest` → returns all tools (for AI client discovery before auth)
+- **Authenticated requests** (Bearer token) → returns only tools the token owner is permitted to use
+
+### Permission-Aware Prompt Generator
+
+The token generator at `/ai-connect/generate-token` produces a **personalised prompt** containing only the tools the logged-in user is allowed to call. The MCP tool list and fallback URL examples are both filtered server-side.
+
+New modules automatically participate in this filtering — no changes to the prompt generator are needed when adding tools.
+
+---
+
 ## 📋 Changelog
+
+### Version 1.2.17 - 2026-04-14
+* **Added:** Generic prompt metadata system — each module declares its own `getToolPromptMeta()` so future tools are automatically reflected in the personalised prompt without touching `InfoPage`
+* **Improved:** `buildPersonalizedPrompt()` now collects tool hints and URL examples from modules at runtime instead of a hardcoded lookup table
+
+### Version 1.2.16 - 2026-04-14
+* **Security:** Added `allowUnauthenticatedRequest()` returning `false` to `Api/Controller/Tools` — unauthenticated access to the tool execution endpoint is now explicitly blocked at the XenForo framework level
+* **Fixed:** Admin CP permission JS file served from wrong path (`src/addons/…/js/`) — moved to `js/chgold/aiconnect/admin-permissions.js` per XenForo static file conventions
+
+### Version 1.2.15 - 2026-04-13
+* **Added:** Admin CP visual permission UI — per-tool permission rows are greyed out automatically when `useTools` is set to Never, matching XenForo's native `depend_permission_id` visual behaviour
+* **Added:** `admin-permissions.js` injected via `template_modifications.xml` into XenForo's permission edit pages
+
+### Version 1.2.14 - 2026-04-13
+* **Added:** Permission-aware manifest — authenticated requests to `/api/aiconnect-manifest` return only tools the token owner is permitted to use; anonymous requests still return the full list for discovery
+* **Added:** Permission-aware prompt generator — `/ai-connect/generate-token` returns a personalised prompt filtered to accessible tools only
+
+### Version 1.2.13 - 2026-04-12
+* **Added:** Full 3-tier permission system: `viewAiConnect` (page visibility), `useTools` (master switch), per-package permissions (`use_package_{id}`), per-tool permissions (`tool_{module}_{tool}`)
+* **Added:** Two Admin CP permission interface groups: **AI Connect** (general) and **AI Connect — Tools** (per-tool, depends on master switch)
+* **Added:** `syncToolPermissions()` and `syncPackagePermissions()` in `Setup.php` — permissions are registered automatically on install and upgrade; third-party addons can hook in via `ai_connect_sync_tool_permissions` code event
+* **Default:** All per-tool permissions default to Allow for Registered users
 
 ### Version 1.2.10 - 2026-04-12
 * **Added:** Permission `viewNavLink` — admins can control which user groups see the AI Connect navigation links (top nav and footer icon) via Admin CP → User Groups → Permissions → AI Connect
