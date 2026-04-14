@@ -8,6 +8,20 @@ class TranslationModule extends ModuleBase
 
     private const MYMEMORY_API = 'https://api.mymemory.translated.net/get';
 
+    public function getToolPromptMeta(): array
+    {
+        return [
+            'translate' => [
+                'hint'       => 'text=TEXT, target_lang=CODE (POST only)',
+                'url_params' => [],
+            ],
+            'getSupportedLanguages' => [
+                'hint'       => 'no params needed',
+                'url_params' => [''],
+            ],
+        ];
+    }
+
     protected function registerTools()
     {
         $provider = \XF::options()->aiconnect_translation_provider ?? 'ai_self';

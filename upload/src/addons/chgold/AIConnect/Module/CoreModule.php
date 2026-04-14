@@ -6,6 +6,42 @@ class CoreModule extends ModuleBase
 {
     protected $moduleName = 'xenforo';
 
+    public function getToolPromptMeta(): array
+    {
+        return [
+            'getCurrentUser' => [
+                'hint'       => 'call this first to verify',
+                'url_params' => [''],
+            ],
+            'searchThreads' => [
+                'hint'       => 'search=KEYWORD, since=1week, limit=20',
+                'url_params' => [
+                    'limit=20',
+                    'search=KEYWORD&limit=10',
+                    'since=today&limit=20',
+                    'since=1week&limit=20',
+                    'forum_id=FORUM_ID&limit=20',
+                ],
+            ],
+            'getThread' => [
+                'hint'       => 'thread_id=NUMBER',
+                'url_params' => ['thread_id=THREAD_ID'],
+            ],
+            'searchPosts' => [
+                'hint'       => 'search=KEYWORD, since=1week, limit=20',
+                'url_params' => [
+                    'limit=20',
+                    'search=KEYWORD&limit=10',
+                    'since=1week',
+                ],
+            ],
+            'getPost' => [
+                'hint'       => 'post_id=NUMBER',
+                'url_params' => ['post_id=POST_ID'],
+            ],
+        ];
+    }
+
     protected function registerTools()
     {
         $this->registerTool('searchThreads', [

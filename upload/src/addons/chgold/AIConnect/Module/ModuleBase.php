@@ -169,6 +169,33 @@ abstract class ModuleBase
         return $this->packageId;
     }
 
+    /**
+     * Returns prompt metadata for each tool in this module.
+     *
+     * Used by the token generator (InfoPage::buildPersonalizedPrompt) to produce
+     * personalised, permission-filtered prompts.  Override this in every module
+     * so that newly added tools are automatically reflected in the generated prompt
+     * without touching InfoPage.
+     *
+     * Return format:
+     *   [
+     *     'toolName' => [
+     *       'hint'       => 'Short usage note for the MCP section',
+     *       'url_params' => [           // GET param strings for the fallback URL section
+     *         'param1=VAL&param2=VAL',  // one string per example URL (empty string = no extra params)
+     *       ],                          // empty array = POST-only tool, no URL examples
+     *     ],
+     *   ]
+     *
+     * Keys are short tool names (without the module prefix, e.g. 'searchThreads').
+     *
+     * @return array<string, array{hint: string, url_params: string[]}>
+     */
+    public function getToolPromptMeta(): array
+    {
+        return [];
+    }
+
     protected function success($data, $message = null)
     {
         return [
