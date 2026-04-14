@@ -35,6 +35,70 @@ class Manifest extends AbstractService
     }
 
     /**
+     * Filter registered tools to only those the given visitor may access.
+     *
+     * Mirrors the 3-tier permission check in Api\Controller\Tools::checkToolPermission():
+     *   Tier 1 – aiconnect.useTools        (master switch)
+     *   Tier 2 – aiconnect.use_package_{id} (per-package, if module declares one)
+     *   Tier 3 – aiconnect.tool_{mod}_{tool} (per-tool, only if permission is registered in DB)
+     *
+     * A single DB query fetches all registered permission IDs for the aiconnect group
+     * to avoid N+1 queries when many tools are present.
+     *
+     * @param  array           $modules  Map of moduleName => ModuleBase instances
+     * @param  \XF\Entity\User $visitor
+     */
+    public function filterAccessibleTools(array $modules, \XF\Entity\User $visitor): void
+    {
+        // Tier 1 — master switch: if denied, nothing is accessible
+        if (!$visitor->hasPermission('aiconnect', 'useTools')) {
+            $this->tools = [];
+            return;
+        }
+
+        // Pre-fetch all registered permission IDs for this group (single query)
+        $registeredPerms = \XF::db()->fetchPairs(
+            'SELECT permission_id, permission_id FROM xf_permission WHERE permission_group_id = ?',
+            ['aiconnect']
+        );
+
+        $filtered = [];
+
+        foreach ($this->tools as $fullName => $toolDef) {
+            $parts = explode('.', $fullName, 2);
+            if (count($parts) !== 2) {
+                $filtered[$fullName] = $toolDef;
+                continue;
+            }
+            [$moduleName, $toolName] = $parts;
+
+            // Tier 2 — package check (only if module declares a packageId)
+            $module = $modules[$moduleName] ?? null;
+            if ($module !== null && method_exists($module, 'getPackageId')) {
+                $packageId = $module->getPackageId();
+                if ($packageId !== null) {
+                    $rawPkg  = 'use_package_' . $packageId;
+                    $pkgPerm = strlen($rawPkg) <= 25 ? $rawPkg : substr($rawPkg, 0, 25);
+                    if (!$visitor->hasPermission('aiconnect', $pkgPerm)) {
+                        continue;
+                    }
+                }
+            }
+
+            // Tier 3 — per-tool check (only if the permission is registered)
+            $rawPermId = 'tool_' . $moduleName . '_' . $toolName;
+            $permId    = strlen($rawPermId) <= 25 ? $rawPermId : substr($rawPermId, 0, 25);
+            if (isset($registeredPerms[$permId]) && !$visitor->hasPermission('aiconnect', $permId)) {
+                continue;
+            }
+
+            $filtered[$fullName] = $toolDef;
+        }
+
+        $this->tools = $filtered;
+    }
+
+    /**
      * Generate WebMCP manifest
      */
     public function generate()

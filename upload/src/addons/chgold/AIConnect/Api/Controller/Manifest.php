@@ -10,15 +10,23 @@ class Manifest extends AbstractController
     {
         $manifestService = \XF::service('chgold\AIConnect:Manifest');
 
-        $coreModule = new \chgold\AIConnect\Module\CoreModule($manifestService);
+        $coreModule        = new \chgold\AIConnect\Module\CoreModule($manifestService);
         $translationModule = new \chgold\AIConnect\Module\TranslationModule($manifestService);
 
         $modules = [
-            $coreModule->getModuleName() => $coreModule,
+            $coreModule->getModuleName()        => $coreModule,
             $translationModule->getModuleName() => $translationModule,
         ];
 
         \XF::fire('ai_connect_modules_init', [&$modules, $manifestService], 'chgold/AIConnect');
+
+        // When the request carries a valid Bearer token, personalise the manifest:
+        // show only the tools this specific user is allowed to call.
+        // Anonymous requests (discovery) receive the full tool list.
+        $visitor = \XF::visitor();
+        if ($visitor->user_id) {
+            $manifestService->filterAccessibleTools($modules, $visitor);
+        }
 
         $manifest = $manifestService->generate();
 
