@@ -287,7 +287,7 @@ class Setup extends AbstractSetup
         $db = \XF::db();
 
         $dataExpr = "[\n\t\t'title' => 'AI Connect',\n\t\t'href' => \$__templater->func('link', array('ai-connect', ), false),\n\t\t'attributes' => [],\n\t]";
-        $condExpr  = "\n\t\$__vars['xf']['options']['aiconnect_nav_top'] && \$__vars['xf']['visitor']->hasPermission('aiconnect', 'viewAiConnect')";
+        $condExpr  = "\n\t\$__vars['xf']['options']['aiconnect_nav_top'] && \$__vars['xf']['visitor']->hasPermission('aiconnect', 'viewAiConnect') && \$__vars['xf']['visitor']->hasPermission('aiconnect', 'useTools')";
 
         $existing = $db->fetchOne('SELECT navigation_id FROM xf_navigation WHERE navigation_id = ?', ['ai_connect']);
 
@@ -437,7 +437,7 @@ class Setup extends AbstractSetup
                     'is_moderator'       => 0,
                     'addon_id'           => 'chgold/AIConnect',
                 ]);
-                $this->compilePhrase('permission_interface.' . $groupId, $label);
+                self::compilePhrase('permission_interface.' . $groupId, $label);
             }
         }
 
@@ -447,7 +447,7 @@ class Setup extends AbstractSetup
             'permission.aiconnect_useTools'      => 'Use AI Connect tools (master switch for all tools)',
         ];
         foreach ($staticPhrases as $phraseKey => $phraseText) {
-            $this->compilePhrase($phraseKey, $phraseText);
+            self::compilePhrase($phraseKey, $phraseText);
         }
 
         // Migrate: fix display_order for interface groups (v1.2.13+) — place after XF built-in groups.
@@ -515,7 +515,7 @@ class Setup extends AbstractSetup
                         'version_string' => '1.2.11',
                         'global_cache'   => 0,
                     ]);
-                    $this->compilePhrase($phraseKey, $label);
+                    self::compilePhrase($phraseKey, $label);
                 }
 
                 // 3. Default Allow for Registered users (group 2) — only if not yet set
@@ -560,8 +560,11 @@ class Setup extends AbstractSetup
      * @param \XF\Db\AbstractAdapter $db
      * @param array $packageDefs  [packageId => ['label'=>..., 'display_order'=>..., 'modules'=>[...]]]
      */
-    protected function syncPackagePermissions(\XF\Db\AbstractAdapter $db, array $packageDefs)
-    {
+    public static function syncPackagePermissions(
+        \XF\Db\AbstractAdapter $db,
+        array $packageDefs,
+        string $addonId = 'chgold/AIConnect'
+    ) {
         $rebuild = false;
 
         foreach ($packageDefs as $packageId => $packageConfig) {
@@ -579,10 +582,11 @@ class Setup extends AbstractSetup
                     'interface_group_id' => $igId,
                     'display_order'      => $displayOrder,
                     'is_moderator'       => 0,
-                    'addon_id'           => 'chgold/AIConnect',
+                    'addon_id'           => $addonId,
                 ]);
-                $this->compilePhrase('permission_interface.' . $igId, $label);
             }
+            // Always compile phrase — idempotent, ensures Admin CP shows correct label
+            self::compilePhrase('permission_interface.' . $igId, $label);
 
             // Ensure package master permission: use_package_{packageId}
             $rawPkgPerm = 'use_package_' . $packageId;
@@ -600,9 +604,29 @@ class Setup extends AbstractSetup
                     'interface_group_id'   => $igId,
                     'depend_permission_id' => 'useTools',
                     'display_order'        => 5,
-                    'addon_id'             => 'chgold/AIConnect',
+                    'addon_id'             => $addonId,
                 ]);
-                $this->compilePhrase('permission.aiconnect_' . $pkgPermId, 'Use ' . $label . ' (package switch)');
+            }
+            // Always compile phrase — idempotent
+            self::compilePhrase('permission.aiconnect_' . $pkgPermId, 'Use ' . $label . ' (package switch)');
+
+            // Default Allow for Registered users (group 2) — only if not yet set
+            $pkgEntryExists = $db->fetchOne(
+                'SELECT permission_value FROM xf_permission_entry
+                 WHERE user_group_id = 2 AND user_id = 0
+                   AND permission_group_id = ? AND permission_id = ?',
+                ['aiconnect', $pkgPermId]
+            );
+            if ($pkgEntryExists === false || $pkgEntryExists === null) {
+                $db->insert('xf_permission_entry', [
+                    'user_group_id'        => 2,
+                    'user_id'              => 0,
+                    'permission_group_id'  => 'aiconnect',
+                    'permission_id'        => $pkgPermId,
+                    'permission_value'     => 'allow',
+                    'permission_value_int' => 0,
+                ]);
+                $rebuild = true;
             }
 
             // Register per-tool permissions for this package
@@ -625,26 +649,27 @@ class Setup extends AbstractSetup
                             'interface_group_id'   => $igId,
                             'depend_permission_id' => $pkgPermId,
                             'display_order'        => 10,
-                            'addon_id'             => 'chgold/AIConnect',
+                            'addon_id'             => $addonId,
                         ]);
-                        $phraseExists = $db->fetchOne(
-                            'SELECT title FROM xf_phrase WHERE language_id = 0 AND title = ?',
-                            [$phraseKey]
-                        );
-                        if (!$phraseExists) {
-                            $db->insert('xf_phrase', [
-                                'language_id'    => 0,
-                                'title'          => $phraseKey,
-                                'phrase_text'    => $toolLabel,
-                                'addon_id'       => 'chgold/AIConnect',
-                                'version_id'     => 1021500,
-                                'version_string' => '1.2.15',
-                                'global_cache'   => 0,
-                            ]);
-                            $this->compilePhrase($phraseKey, $toolLabel);
-                        }
                         $rebuild = true;
                     }
+                    // Always compile phrase — idempotent, keeps Admin CP labels fresh
+                    $phraseExists = $db->fetchOne(
+                        'SELECT title FROM xf_phrase WHERE language_id = 0 AND title = ?',
+                        [$phraseKey]
+                    );
+                    if (!$phraseExists) {
+                        $db->insert('xf_phrase', [
+                            'language_id'    => 0,
+                            'title'          => $phraseKey,
+                            'phrase_text'    => $toolLabel,
+                            'addon_id'       => $addonId,
+                            'version_id'     => 1021500,
+                            'version_string' => '1.2.15',
+                            'global_cache'   => 0,
+                        ]);
+                    }
+                    self::compilePhrase($phraseKey, $toolLabel);
 
                     // Default Allow for Registered (group 2)
                     $entryExists = $db->fetchOne(
@@ -685,7 +710,7 @@ class Setup extends AbstractSetup
      * @param string $title      Phrase key (e.g. 'permission.aiconnect_tool_x_y')
      * @param string $phraseText Human-readable text
      */
-    protected function compilePhrase(string $title, string $phraseText)
+    public static function compilePhrase(string $title, string $phraseText)
     {
         $db        = \XF::db();
         $languages = $db->fetchAllColumn('SELECT language_id FROM xf_language');
