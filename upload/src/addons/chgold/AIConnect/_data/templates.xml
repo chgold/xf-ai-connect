@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <templates>
-  <template type="public" title="aiconnect_info_page" version_id="1020800" version_string="1.2.8"><![CDATA[<!DOCTYPE html>
+  <template type="public" title="aiconnect_info_page" version_id="1021700" version_string="1.2.17"><![CDATA[<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
@@ -381,54 +381,10 @@ Documentation: {$infoUrl}</pre>
                     try {
                         var data = JSON.parse(xhr.responseText);
                         if (data.access_token) {
-                            var b = location.protocol + "//" + location.host;
                             var t = data.access_token;
-                            var toolUrl = b + "/api/aiconnect-tools";
-                            var manifestUrl = b + "/api/aiconnect-manifest";
-                             var hostname = location.hostname;
-                             var siteKey  = hostname.replace(/[^a-zA-Z0-9_-]/g, "_");
-                             var siteName = document.title.split(" - ").pop();
-                             var lines = [
-                                 "You have access to " + siteName + " via AI Connect.",
-                                 "",
-                                 "## MCP (Recommended — Claude Desktop)",
-                                 "Call webmcp_addSite with these parameters:",
-                                 "  name: \"" + hostname + "\"",
-                                 "  manifest_url: \"" + manifestUrl + "\"",
-                                 "  token: \"Bearer " + t + "\"",
-                                 "",
-                                 "After adding the site, call these tools by EXACT name (do not search — use directly):",
-                                 "  " + siteKey + "_xenforo_getCurrentUser     \u2190 call this first to verify",
-                                 "  " + siteKey + "_xenforo_searchThreads      \u2190 search=KEYWORD, since=1week, limit=20",
-                                 "  " + siteKey + "_xenforo_getThread          \u2190 thread_id=NUMBER",
-                                 "  " + siteKey + "_xenforo_searchPosts        \u2190 search=KEYWORD, since=1week, limit=20",
-                                 "  " + siteKey + "_xenforo_getPost            \u2190 post_id=NUMBER",
-                                 "",
-                                "## Direct URL Access (Fallback)",
-                                "If MCP is not available, use these endpoints:",
-                                "",
-                                "READ tools (GET — flat params, no JSON needed):",
-                                "  " + toolUrl + "?token=" + t + "&name=xenforo.getCurrentUser",
-                                "  " + toolUrl + "?token=" + t + "&name=xenforo.searchThreads&limit=20",
-                                "  " + toolUrl + "?token=" + t + "&name=xenforo.searchThreads&search=KEYWORD&limit=10",
-                                "  " + toolUrl + "?token=" + t + "&name=xenforo.searchThreads&since=today&limit=20",
-                                "  " + toolUrl + "?token=" + t + "&name=xenforo.searchThreads&since=1week&limit=20",
-                                "  " + toolUrl + "?token=" + t + "&name=xenforo.searchThreads&forum_id=FORUM_ID&limit=20",
-                                "  " + toolUrl + "?token=" + t + "&name=xenforo.searchPosts&limit=20",
-                                "  " + toolUrl + "?token=" + t + "&name=xenforo.searchPosts&search=KEYWORD&limit=10",
-                                "  " + toolUrl + "?token=" + t + "&name=xenforo.searchPosts&since=1week",
-                                "  " + toolUrl + "?token=" + t + "&name=xenforo.getThread&thread_id=THREAD_ID",
-                                "  " + toolUrl + "?token=" + t + "&name=xenforo.getPost&post_id=POST_ID",
-                                "",
-                                "Replace placeholders with real values: KEYWORD=any word, THREAD_ID=number from URL, FORUM_ID=number",
-                                "since= accepts: today | yesterday | 1hour | 1week | 1month | 3d | 6h | 2w | 1y | 2026-03-15 | all",
-                                "",
-                                 "IMPORTANT: Do NOT use webmcp tool search — it may return tools from other sites.",
-                                 "Call the tools listed above by their EXACT full name. Start with getCurrentUser.",
-                                "\u26a0\ufe0f Security note: This token acts on behalf of the user who generated it. Handle it with care.\n" +
-                                "Documentation: https://ai-connect.gold-t.co.il/"
-                            ];
-                            tokenPre.textContent = lines.join("\n");
+                            // Prompt is built server-side with permission-filtered tools.
+                            // data.prompt_text contains the full personalised text.
+                            tokenPre.textContent = data.prompt_text || "";
                             tokenBox.style.display = "block";
                             statusEl.textContent = "Token generated! Copy the prompt below and paste it to your AI agent.";
                             statusEl.style.color = "#4ade80";
@@ -475,8 +431,10 @@ Documentation: {$infoUrl}</pre>
     </script>
 </body>
 </html>]]></template>
-  <template type="public" title="aiconnect_nav_bottom_link" version_id="1013000" version_string="1.1.30"><![CDATA[<li><a href="/ai-connect" class="p-footer-rssLink"><span aria-hidden="true">
-	<img src="/js/aiconnect/icon.png" alt="" style="height:16px;width:16px;vertical-align:middle;" /></span></a></li>]]></template>
+  <template type="public" title="aiconnect_nav_bottom_link" version_id="1022000" version_string="1.2.20"><![CDATA[<xf:if is="$xf.options.aiconnect_nav_bottom AND $xf.visitor.hasPermission('aiconnect', 'viewAiConnect') AND $xf.visitor.hasPermission('aiconnect', 'useTools')">
+<li><a href="/ai-connect" class="p-footer-rssLink"><span aria-hidden="true">
+	<img src="/js/aiconnect/icon.png" alt="" style="height:16px;width:16px;vertical-align:middle;" /></span></a></li>
+</xf:if>]]></template>
   <template type="public" title="aiconnect_oauth_consent" version_id="1011400" version_string="1.1.14"><![CDATA[<!DOCTYPE html>
 <html lang="en">
 <head>
