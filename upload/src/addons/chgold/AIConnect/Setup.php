@@ -287,7 +287,9 @@ class Setup extends AbstractSetup
         $db = \XF::db();
 
         $dataExpr = "[\n\t\t'title' => 'AI Connect',\n\t\t'href' => \$__templater->func('link', array('ai-connect', ), false),\n\t\t'attributes' => [],\n\t]";
-        $condExpr  = "\n\t\$__vars['xf']['options']['aiconnect_nav_top'] && \$__vars['xf']['visitor']->hasPermission('aiconnect', 'viewAiConnect') && \$__vars['xf']['visitor']->hasPermission('aiconnect', 'useTools')";
+        // Guests and visitors without tool access see the link when aiconnect_nav_top is enabled.
+        // Logged-in users also need useTools permission.
+        $condExpr  = "\n\t\$__vars['xf']['options']['aiconnect_nav_top'] && \$__vars['xf']['visitor']->hasPermission('aiconnect', 'viewAiConnect') && (!\$__vars['xf']['visitor']->user_id || \$__vars['xf']['visitor']->hasPermission('aiconnect', 'useTools'))";
 
         $existing = $db->fetchOne('SELECT navigation_id FROM xf_navigation WHERE navigation_id = ?', ['ai_connect']);
 
