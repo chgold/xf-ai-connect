@@ -9,7 +9,7 @@ class Tools extends AbstractController
 {
     protected $modules = [];
 
-    protected function allowUnauthenticatedRequest($action)
+    public function allowUnauthenticatedRequest($action)
     {
         return false;
     }
