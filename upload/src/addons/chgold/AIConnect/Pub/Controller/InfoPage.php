@@ -15,10 +15,6 @@ class InfoPage extends AbstractController
             return $this->noPermission();
         }
 
-        if ($visitor->user_id && !$visitor->hasPermission('aiconnect', 'useTools')) {
-            return $this->noPermission();
-        }
-
         $options    = \XF::options();
         $request = $this->request();
         $scheme  = $request->getServer('HTTPS') === 'on' ? 'https' : 'http';
