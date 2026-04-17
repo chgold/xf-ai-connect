@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <templates>
-  <template type="public" title="aiconnect_info_page" version_id="1022400" version_string="1.2.24"><![CDATA[<!DOCTYPE html>
+  <template type="public" title="aiconnect_info_page" version_id="1022500" version_string="1.2.25"><![CDATA[<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
@@ -246,6 +246,7 @@
                 <a href="{{ link('login') }}" style="padding: 14px 32px; font-size: 16px; background: #555; border-radius: 8px; color: white; text-decoration: none; display: inline-block;">Log in to generate a token</a>
             </div>
             </xf:if>
+            <xf:if is="!$xf.visitor.user_id OR $xf.visitor.hasPermission('aiconnect', 'useTools')">
             <details style="margin-top: 16px;">
             <summary style="cursor: pointer; color: var(--accent); font-size: 14px;">Advanced: OAuth Prompt for CLI Agents</summary>
             <div style="margin-top: 12px;">
@@ -285,6 +286,7 @@ Documentation: {$infoUrl}</pre>
             </div>
             </div>
             </details>
+            </xf:if>
         </div>
 
         <div class="steps">
