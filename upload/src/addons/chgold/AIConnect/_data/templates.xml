@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <templates>
-  <template type="public" title="aiconnect_info_page" version_id="1022300" version_string="1.2.23"><![CDATA[<!DOCTYPE html>
+  <template type="public" title="aiconnect_info_page" version_id="1022400" version_string="1.2.24"><![CDATA[<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
@@ -224,7 +224,7 @@
 
         <div class="prompt-section">
             <h2>Connect Your AI</h2>
-            <xf:if is="$xf.visitor.user_id">
+            <xf:if is="$xf.visitor.user_id AND $xf.visitor.hasPermission('aiconnect', 'useTools')">
             <div style="text-align:center; margin-bottom: 24px;">
                 <button class="btn btn-approve" id="generateTokenBtn" type="button" style="padding: 14px 32px; font-size: 16px; background: linear-gradient(135deg, #6c63ff, #4834d4); border: none; border-radius: 8px; color: white; cursor: pointer; font-weight: 600;">&#x26A1; Generate Token &amp; Prompt</button>
                 <p id="tokenStatus" style="color: #aaa; font-size: 13px; margin-top: 8px;"></p>
@@ -236,6 +236,10 @@
                     <span>Copy</span>
                 </button>
                 <pre id="tokenPromptText"></pre>
+            </div>
+            <xf:elseif is="$xf.visitor.user_id" />
+            <div style="text-align:center; margin-bottom: 24px;">
+                <p style="color: #9ca3af; font-size: 14px; margin: 0;">You do not have permission to use AI Connect tools. Contact an administrator to request access.</p>
             </div>
             <xf:else />
             <div style="text-align:center; margin-bottom: 24px;">
