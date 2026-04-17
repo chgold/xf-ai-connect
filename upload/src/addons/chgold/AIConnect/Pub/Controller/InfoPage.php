@@ -15,10 +15,11 @@ class InfoPage extends AbstractController
             return $this->noPermission();
         }
 
-        // Logged-in users must also have useTools to access this page.
-        // Anonymous users are exempt — their access is controlled by viewAiConnect
-        // and the aiconnect_nav_top display toggle only.
-        if ($visitor->user_id && !$visitor->hasPermission('aiconnect', 'useTools')) {
+        $hasTools = $visitor->user_id && $visitor->hasPermission('aiconnect', 'useTools');
+
+        // Non-privileged users (anonymous or logged-in without useTools) are only
+        // allowed when the display toggle is on. Privileged users always get through.
+        if (!$hasTools && !\XF::options()->aiconnect_nav_top) {
             return $this->noPermission();
         }
 

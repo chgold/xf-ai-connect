@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <templates>
-  <template type="public" title="aiconnect_info_page" version_id="1021700" version_string="1.2.17"><![CDATA[<!DOCTYPE html>
+  <template type="public" title="aiconnect_info_page" version_id="1022300" version_string="1.2.23"><![CDATA[<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
