@@ -18,7 +18,7 @@
     "src/addons/chgold/AIConnect/Module/ModuleBase.php": "eac6289f50d73f645b7c9cd202c15e594bfe37ef07f21eb48117641ce2f767cd",
     "src/addons/chgold/AIConnect/Module/TranslationModule.php": "f980304744d4307abaeda1bfebcb2a26a2aa34353cf6339eb12d694bb8211106",
     "src/addons/chgold/AIConnect/phpcs.xml": "ac105e65505f134fd05095016f5a212607f7670df8682cfd36ae90def10081ed",
-    "src/addons/chgold/AIConnect/Pub/Controller/InfoPage.php": "aee56338761604ec08260d8fa4047995c437e2d44c944ea659df601a80a7d268",
+    "src/addons/chgold/AIConnect/Pub/Controller/InfoPage.php": "dde29fec49588666e8bd0c002bb500753ddb79eb6672be05d7382922b79c117e",
     "src/addons/chgold/AIConnect/Pub/Controller/OAuth.php": "da1dc2ac69f8ea7ae8d444d9504dd624931623d76b7c870f7e9c0007c38c3fac",
     "src/addons/chgold/AIConnect/Pub/View/InfoPage/GenerateToken.php": "a59999193ca729253cd7c1c80edd0bc6fc3f1cb3aaa97377c5a761c976cb11ab",
     "src/addons/chgold/AIConnect/Pub/View/OAuth/ConsentScreen.php": "ed7cffaf0fa96656054b2beb63aa5e8052fc64039cb84b03bdd9a5766fd381d9",

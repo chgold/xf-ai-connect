@@ -11,16 +11,14 @@ class InfoPage extends AbstractController
     {
         $visitor = \XF::visitor();
 
-        if (!$visitor->hasPermission('aiconnect', 'viewAiConnect')) {
-            return $this->noPermission();
-        }
-
         $hasTools = $visitor->user_id && $visitor->hasPermission('aiconnect', 'useTools');
 
-        // Anonymous users: toggle controls page access.
         // Logged-in users always reach the page — template shows the appropriate message.
-        if (!$visitor->user_id && !\XF::options()->aiconnect_nav_top) {
-            return $this->noPermission();
+        // Anonymous: needs viewAiConnect permission AND the display toggle to be on.
+        if (!$visitor->user_id) {
+            if (!$visitor->hasPermission('aiconnect', 'viewAiConnect') || !\XF::options()->aiconnect_nav_top) {
+                return $this->noPermission();
+            }
         }
 
         $options    = \XF::options();
