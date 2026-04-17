@@ -17,9 +17,9 @@ class InfoPage extends AbstractController
 
         $hasTools = $visitor->user_id && $visitor->hasPermission('aiconnect', 'useTools');
 
-        // Non-privileged users (anonymous or logged-in without useTools) are only
-        // allowed when the display toggle is on. Privileged users always get through.
-        if (!$hasTools && !\XF::options()->aiconnect_nav_top) {
+        // Anonymous users: toggle controls page access.
+        // Logged-in users always reach the page — template shows the appropriate message.
+        if (!$visitor->user_id && !\XF::options()->aiconnect_nav_top) {
             return $this->noPermission();
         }
 
