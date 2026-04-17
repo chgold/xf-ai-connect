@@ -325,7 +325,9 @@ class Setup extends AbstractSetup
 
     /**
      * Sets default permissions on install/upgrade.
-     * Only sets values not yet explicitly configured (preserves admin customizations).
+     * Preserves explicit admin choices (allow/deny) but restores missing or
+     * 'unset' entries to their defaults — so critical permissions are never
+     * silently absent after an upgrade or accidental deletion.
      *
      * Defaults:
      *   viewAiConnect — Allow: Guests(1), Registered(2)
@@ -337,7 +339,6 @@ class Setup extends AbstractSetup
         $rebuild = false;
 
         $defaults = [
-            // [permission_id, user_group_id, value]
             ['viewAiConnect', 1, 'allow'],
             ['viewAiConnect', 2, 'allow'],
             ['useTools',      2, 'allow'],
@@ -360,6 +361,15 @@ class Setup extends AbstractSetup
                     'permission_value'     => $value,
                     'permission_value_int' => 0,
                 ]);
+                $rebuild = true;
+            } elseif ($existing === 'unset') {
+                $db->update(
+                    'xf_permission_entry',
+                    ['permission_value' => $value],
+                    'user_group_id = ? AND user_id = 0
+                     AND permission_group_id = ? AND permission_id = ?',
+                    [$groupId, 'aiconnect', $permId]
+                );
                 $rebuild = true;
             }
         }

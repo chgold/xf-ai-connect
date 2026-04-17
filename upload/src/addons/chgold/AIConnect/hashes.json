@@ -30,7 +30,7 @@
     "src/addons/chgold/AIConnect/Service/OAuthServer.php": "f2f5825fcb4b3c001a63d2dcaf91dbec534335f92e1f8b090bc6eda4f3697d62",
     "src/addons/chgold/AIConnect/Service/RateLimiter.php": "e1d2a2eafdaaa591895bb4133b8b226d05c477d7fea2f1d7d7b885dedcccde15",
     "src/addons/chgold/AIConnect/Service/Settings.php": "040d6566b4e7a6c53335ce241bfd8bb3649057532b6f562354a3da4d7a45bc22",
-    "src/addons/chgold/AIConnect/Setup.php": "56244caedf61da626c68267e9d9e9fec54ae07562de96cd223fb7b10677b3e5f",
+    "src/addons/chgold/AIConnect/Setup.php": "efd16932e542db9785f51498e6fa03ad6c3c3e7cfc980505927388e9a3b6aaca",
     "src/addons/chgold/AIConnect/vendor/autoload.php": "e906069f93c5916fc20ee4765baf1590ebd82f850702e565d830a0b9c7b5ec84",
     "src/addons/chgold/AIConnect/vendor/composer/autoload_classmap.php": "375085d0d6690301081436cd75755cb2c882f8a7f6fc385c8814a11734fc413a",
     "src/addons/chgold/AIConnect/vendor/composer/autoload_namespaces.php": "ede505407590638a435137f4e060136f1008de79fc169b3de9793423b0cea38c",
