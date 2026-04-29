@@ -92,16 +92,18 @@ class InfoPage extends AbstractController
         $host    = $request->getServer('HTTP_HOST') ?: $request->getServer('SERVER_NAME');
         $baseUrl = rtrim($scheme . '://' . $host, '/');
 
-        $promptText = $this->buildPersonalizedPrompt($baseUrl, $token['access_token'], $accessibleTools, $modules);
+        $promptText = $this->buildPersonalizedPrompt($baseUrl, $token['access_token'], $accessibleTools, $modules, $token['refresh_token']);
 
         return $this->view(
             'chgold\AIConnect:InfoPage\GenerateToken',
             '',
             [
-                'access_token' => $token['access_token'],
-                'token_type'   => 'Bearer',
-                'expires_in'   => $token['expires_in'],
-                'prompt_text'  => $promptText,
+                'access_token'             => $token['access_token'],
+                'token_type'               => 'Bearer',
+                'expires_in'               => $token['expires_in'],
+                'refresh_token'            => $token['refresh_token'],
+                'refresh_token_expires_in' => $token['refresh_token_expires_in'],
+                'prompt_text'              => $promptText,
             ]
         );
     }
@@ -117,13 +119,15 @@ class InfoPage extends AbstractController
      * @param  string   $accessToken     Bearer token just issued
      * @param  string[] $accessibleTools Filtered list of full tool names (e.g. ['xenforo.searchThreads', ...])
      * @param  array    $modules         Map of moduleName => ModuleBase instances
+     * @param  string   $refreshToken    Refresh token for token renewal
      * @return string
      */
     protected function buildPersonalizedPrompt(
         string $baseUrl,
         string $accessToken,
         array $accessibleTools,
-        array $modules
+        array $modules,
+        string $refreshToken
     ): string {
         $options     = \XF::options();
         $hostname    = parse_url($baseUrl, PHP_URL_HOST) ?: 'forum';
@@ -148,8 +152,9 @@ class InfoPage extends AbstractController
                     $urls[] = $url;
                 }
                 $toolMeta[$fullName] = [
-                    'hint' => $meta['hint'],
-                    'urls' => $urls,
+                    'hint'      => $meta['hint'],
+                    'urls'      => $urls,
+                    'post_body' => $meta['post_body'] ?? null,
                 ];
             }
         }
@@ -172,28 +177,67 @@ class InfoPage extends AbstractController
             $lines[] = '  ' . str_pad($mcpName, 50) . ($hint ? '<- ' . $hint : '');
         }
 
-        $lines[] = '';
-        $lines[] = '## Direct URL Access (Fallback)';
-        $lines[] = 'If MCP is not available, use these GET endpoints (read-only tools):';
-        $lines[] = '';
-
-        $hasGetUrls = false;
+        // --- GET fallback section (read-only tools only) ---
+        $getToolLines = [];
         foreach ($accessibleTools as $toolName) {
             $meta = isset($toolMeta[$toolName]) ? $toolMeta[$toolName] : null;
             if ($meta && !empty($meta['urls'])) {
                 foreach ($meta['urls'] as $url) {
-                    $lines[] = '  ' . $url;
+                    $getToolLines[] = '  ' . $url;
                 }
-                $hasGetUrls = true;
             }
         }
 
-        if ($hasGetUrls) {
+        if (!empty($getToolLines)) {
+            $lines[] = '';
+            $lines[] = '## Direct URL Access (Fallback — read-only tools)';
+            $lines[] = 'If MCP is not available, read-only tools can be called via GET:';
+            $lines[] = '';
+            foreach ($getToolLines as $line) {
+                $lines[] = $line;
+            }
             $lines[] = '';
             $lines[] = 'Replace placeholders: KEYWORD=any word, THREAD_ID/POST_ID/FORUM_ID=numbers from URL';
             $lines[] = 'since= accepts: today | yesterday | 1hour | 1week | 1month | 3d | 6h | 2w | 1y | 2026-03-15 | all';
         }
 
+        // --- POST tools section (write tools that require POST) ---
+        $postToolLines = [];
+        foreach ($accessibleTools as $toolName) {
+            $meta = isset($toolMeta[$toolName]) ? $toolMeta[$toolName] : null;
+            if ($meta && $meta['post_body'] !== null && empty($meta['urls'])) {
+                $postToolLines[] = [
+                    'name'      => $toolName,
+                    'hint'      => $meta['hint'],
+                    'post_body' => $meta['post_body'],
+                ];
+            }
+        }
+
+        if (!empty($postToolLines)) {
+            $lines[] = '';
+            $lines[] = '## Write Tools (POST only — use MCP when possible)';
+            $lines[] = 'If MCP is not available, write tools must be called via POST:';
+            $lines[] = '';
+            $lines[] = '  POST ' . $toolUrl;
+            $lines[] = '  Authorization: Bearer ' . $accessToken;
+            $lines[] = '  Content-Type: application/json';
+            $lines[] = '';
+            foreach ($postToolLines as $pt) {
+                $lines[] = '  // ' . $pt['name'] . ' — ' . $pt['hint'];
+                $lines[] = '  {"name": "' . $pt['name'] . '", "arguments": ' . $pt['post_body'] . '}';
+                $lines[] = '';
+            }
+            $lines[] = 'Replace placeholders: FORUM_ID/THREAD_ID/POST_ID=numbers, USERNAME=exact username';
+        }
+
+        $lines[] = '';
+        $lines[] = '## Token Refresh (valid 30 days)';
+        $lines[] = 'When access_token expires (after 1 hour), refresh it:';
+        $lines[] = '  POST ' . $baseUrl . '/api/aiconnect-oauth';
+        $lines[] = '  Content-Type: application/json';
+        $lines[] = '  {"grant_type":"refresh_token","refresh_token":"' . $refreshToken . '","client_id":"claude-ai"}';
+        $lines[] = 'Response contains a new access_token + new refresh_token (old pair is revoked).';
         $lines[] = '';
         $lines[] = 'IMPORTANT: Do NOT use webmcp tool search — it may return tools from other sites.';
         $lines[] = 'Call the tools listed above by their EXACT full name. Start with getCurrentUser.';
