@@ -86,11 +86,20 @@ class InfoPage extends AbstractController
 
         $accessibleTools = array_column($manifest['tools'] ?? [], 'name');
 
-        // Resolve base URL from the current request so the prompt contains correct endpoints.
-        $request = $this->request();
-        $scheme  = $request->getServer('HTTPS') === 'on' ? 'https' : 'http';
-        $host    = $request->getServer('HTTP_HOST') ?: $request->getServer('SERVER_NAME');
-        $baseUrl = rtrim($scheme . '://' . $host, '/');
+        // Resolve base URL. Priority:
+        // 1. XenForo boardUrl option (already has correct HTTPS scheme from admin config)
+        // 2. X-Forwarded-Proto header (for reverse proxy setups)
+        // 3. HTTPS server var (direct HTTPS connections)
+        $request  = $this->request();
+        $boardUrl = rtrim(\XF::options()->boardUrl ?? '', '/');
+        if ($boardUrl !== '') {
+            $baseUrl = $boardUrl;
+        } else {
+            $forwarded = $request->getServer('HTTP_X_FORWARDED_PROTO');
+            $scheme    = $forwarded ?: ($request->getServer('HTTPS') === 'on' ? 'https' : 'http');
+            $host      = $request->getServer('HTTP_HOST') ?: $request->getServer('SERVER_NAME');
+            $baseUrl   = rtrim($scheme . '://' . $host, '/');
+        }
 
         $promptText = $this->buildPersonalizedPrompt($baseUrl, $token['access_token'], $accessibleTools, $modules, $token['refresh_token']);
 
