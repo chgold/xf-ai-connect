@@ -14,7 +14,7 @@ class OAuthServer extends AbstractService
      * Generate authorization code
      */
     // phpcs:ignore Generic.Files.LineLength -- long signature, cannot shorten further
-    public function createAuthorizationCode($clientId, $userId, $redirectUri, $codeChallenge, $codeChallengeMethod, array $scopes)
+    public function createAuthorizationCode($clientId, $userId, $redirectUri, $codeChallenge, $codeChallengeMethod, array $scopes, $state = null)
     {
         $db = \XF::db();
         $time = \XF::$time;
@@ -30,6 +30,7 @@ class OAuthServer extends AbstractService
             'code_challenge' => $codeChallenge,
             'code_challenge_method' => $codeChallengeMethod,
             'scopes' => json_encode($scopes),
+            'state' => $state,
             'expires_date' => $expiresDate,
             'created_date' => $time
         ]);
