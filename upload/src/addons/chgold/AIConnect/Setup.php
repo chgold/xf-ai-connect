@@ -6,6 +6,7 @@ use XF\AddOn\AbstractSetup;
 use XF\AddOn\StepRunnerInstallTrait;
 use XF\AddOn\StepRunnerUninstallTrait;
 use XF\AddOn\StepRunnerUpgradeTrait;
+use XF\Db\Schema\Alter;
 use XF\Db\Schema\Create;
 
 class Setup extends AbstractSetup
@@ -93,12 +94,27 @@ class Setup extends AbstractSetup
             $table->addColumn('code_challenge', 'varchar', 128)->nullable();
             $table->addColumn('code_challenge_method', 'varchar', 10)->nullable();
             $table->addColumn('scopes', 'text')->nullable();
+            $table->addColumn('state', 'varchar', 128)->nullable();
             $table->addColumn('expires_date', 'int');
             $table->addColumn('used_date', 'int')->setDefault(0);
             $table->addColumn('created_date', 'int');
             $table->addPrimaryKey('code_id');
             $table->addUniqueKey('code');
             $table->addKey(['client_id', 'user_id']);
+            $table->addKey('expires_date');
+            $table->addKey('state');
+        });
+
+        // OAuth Auth Sessions table (session-based auth flow)
+        $schemaManager->createTable('xf_ai_connect_auth_sessions', function (Create $table) {
+            $table->checkExists(true);
+            $table->addColumn('session_id', 'varchar', 64);
+            $table->addColumn('client_id', 'varchar', 80);
+            $table->addColumn('code_verifier', 'varchar', 128);
+            $table->addColumn('code_challenge', 'varchar', 128);
+            $table->addColumn('expires_date', 'int');
+            $table->addColumn('created_date', 'int');
+            $table->addPrimaryKey('session_id');
             $table->addKey('expires_date');
         });
 
@@ -756,6 +772,34 @@ class Setup extends AbstractSetup
         });
     }
 
+    /**
+     * v1.2.27 — add state column to oauth_codes + create auth_sessions table.
+     * Runs for any installation upgrading from below v1.2.27 (version_id 1022700).
+     */
+    public function upgrade1022700Step1()
+    {
+        $schemaManager = $this->schemaManager();
+
+        $schemaManager->alterTable('xf_ai_connect_oauth_codes', function (Alter $table) {
+            if (!$table->getColumnDefinition('state')) {
+                $table->addColumn('state', 'varchar', 128)->nullable()->after('scopes');
+                $table->addKey('state');
+            }
+        });
+
+        $schemaManager->createTable('xf_ai_connect_auth_sessions', function (Create $table) {
+            $table->checkExists(true);
+            $table->addColumn('session_id', 'varchar', 64);
+            $table->addColumn('client_id', 'varchar', 80);
+            $table->addColumn('code_verifier', 'varchar', 128);
+            $table->addColumn('code_challenge', 'varchar', 128);
+            $table->addColumn('expires_date', 'int');
+            $table->addColumn('created_date', 'int');
+            $table->addPrimaryKey('session_id');
+            $table->addKey('expires_date');
+        });
+    }
+
     public function uninstallStep1()
     {
         $schemaManager = $this->schemaManager();
@@ -769,6 +813,7 @@ class Setup extends AbstractSetup
             'xf_ai_connect_oauth_tokens',
             'xf_ai_connect_oauth_codes',
             'xf_ai_connect_oauth_clients',
+            'xf_ai_connect_auth_sessions',
         ];
 
         foreach ($tables as $table) {
