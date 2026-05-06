@@ -287,10 +287,42 @@ class Setup extends AbstractSetup
 
     public function postUpgrade($previousVersion, array &$stateChanges)
     {
+        $this->applyMissingSchemaFixes();
         $this->setupNavigation();
         $this->setupDefaultPermissions();
         $this->syncToolPermissions();
         $this->rebuildAddOnData();
+    }
+
+    /**
+     * Idempotent schema fixes — safe to run on every upgrade.
+     * Ensures columns/tables added in later versions exist even if
+     * the version-specific upgrade step was skipped (e.g. jumped versions).
+     */
+    protected function applyMissingSchemaFixes()
+    {
+        $schemaManager = $this->schemaManager();
+
+        // state column — added in v1.2.27
+        $schemaManager->alterTable('xf_ai_connect_oauth_codes', function (Alter $table) {
+            if (!$table->getColumnDefinition('state')) {
+                $table->addColumn('state', 'varchar', 128)->nullable()->after('scopes');
+                $table->addKey('state');
+            }
+        });
+
+        // auth_sessions table — added in v1.2.27
+        $schemaManager->createTable('xf_ai_connect_auth_sessions', function (Create $table) {
+            $table->checkExists(true);
+            $table->addColumn('session_id', 'varchar', 64);
+            $table->addColumn('client_id', 'varchar', 80);
+            $table->addColumn('code_verifier', 'varchar', 128);
+            $table->addColumn('code_challenge', 'varchar', 128);
+            $table->addColumn('expires_date', 'int');
+            $table->addColumn('created_date', 'int');
+            $table->addPrimaryKey('session_id');
+            $table->addKey('expires_date');
+        });
     }
 
     /**
