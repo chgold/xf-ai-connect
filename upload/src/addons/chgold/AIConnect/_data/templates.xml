@@ -1,5 +1,112 @@
 <?xml version="1.0" encoding="utf-8"?>
 <templates>
+  <template type="admin" title="aiconnect_tokens_list" version_id="1023100" version_string="1.2.31"><![CDATA[<xf:title>{{ phrase('aiconnect_tokens_title') }}</xf:title>
+
+<div class="block">
+    <div class="block-container">
+        <div class="block-body">
+            <div class="block-row block-row--separated">
+                <div class="formRow">
+                    <div class="formRow-label">{{ phrase('aiconnect_tokens_filter') }}</div>
+                    <div class="formRow-content">
+                        <xf:select name="filter" value="{$filter}" data-xf-init="submit-on-change">
+                            <xf:option value="active">{{ phrase('aiconnect_tokens_filter_active') }}</xf:option>
+                            <xf:option value="revoked">{{ phrase('aiconnect_tokens_filter_revoked') }}</xf:option>
+                            <xf:option value="all">{{ phrase('aiconnect_tokens_filter_all') }}</xf:option>
+                        </xf:select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="block">
+    <div class="block-container">
+        <h2 class="block-tabHeader tabs hScroller" data-xf-init="h-scroller tabs">
+            <span class="hScroller-scroll">
+                <span class="tabs-tab is-active">{{ phrase('aiconnect_tokens_title') }} ({$tokens|count})</span>
+            </span>
+        </h2>
+        <div class="block-body">
+            <xf:if is="$tokens is empty">
+                <div class="block-row block-row--separated">{{ phrase('aiconnect_tokens_empty') }}</div>
+            <xf:else />
+                <table class="dataList-table" style="width:100%">
+                    <thead>
+                        <tr class="dataList-row dataList-row--header">
+                            <th class="dataList-cell">{{ phrase('aiconnect_tokens_col_prefix') }}</th>
+                            <th class="dataList-cell">{{ phrase('aiconnect_tokens_col_user') }}</th>
+                            <th class="dataList-cell">{{ phrase('aiconnect_tokens_col_client') }}</th>
+                            <th class="dataList-cell">{{ phrase('aiconnect_tokens_col_source') }}</th>
+                            <th class="dataList-cell">{{ phrase('aiconnect_tokens_col_scope') }}</th>
+                            <th class="dataList-cell">{{ phrase('aiconnect_tokens_col_issued') }}</th>
+                            <th class="dataList-cell">{{ phrase('aiconnect_tokens_col_last_used') }}</th>
+                            <th class="dataList-cell">{{ phrase('aiconnect_tokens_col_status') }}</th>
+                            <th class="dataList-cell">{{ phrase('aiconnect_tokens_col_actions') }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <xf:foreach loop="$tokens" value="$token">
+                            <tr class="dataList-row">
+                                <td class="dataList-cell"><code>{$token.token_prefix}...</code></td>
+                                <td class="dataList-cell">
+                                    <xf:if is="$token.User">
+                                        <xf:username user="{$token.User}" />
+                                    <xf:else />
+                                        #{$token.user_id}
+                                    </xf:if>
+                                </td>
+                                <td class="dataList-cell">{$token.client_id}</td>
+                                <td class="dataList-cell">{$token.source}</td>
+                                <td class="dataList-cell">{$token.scope}</td>
+                                <td class="dataList-cell"><xf:date time="{$token.issued_at}" /></td>
+                                <td class="dataList-cell">
+                                    <xf:if is="$token.last_used_at">
+                                        <xf:date time="{$token.last_used_at}" />
+                                    <xf:else />
+                                        —
+                                    </xf:if>
+                                </td>
+                                <td class="dataList-cell">
+                                    <xf:if is="$token.revoked_at">
+                                        <span class="label label--red">{{ phrase('aiconnect_tokens_status_revoked') }}</span>
+                                    <xf:elseif is="$token.expires_at < $xf.time" />
+                                        <span class="label label--orange">{{ phrase('aiconnect_tokens_status_expired') }}</span>
+                                    <xf:else />
+                                        <span class="label label--green">{{ phrase('aiconnect_tokens_status_active') }}</span>
+                                    </xf:if>
+                                </td>
+                                <td class="dataList-cell">
+                                    <xf:if is="!$token.revoked_at">
+                                        <xf:button href="{{ link('ai-connect/tokens/revoke', $token) }}" overlay="true" class="button--link">{{ phrase('aiconnect_tokens_action_revoke') }}</xf:button>
+                                    </xf:if>
+                                </td>
+                            </tr>
+                        </xf:foreach>
+                    </tbody>
+                </table>
+            </xf:if>
+        </div>
+    </div>
+</div>]]></template>
+  <template type="admin" title="aiconnect_tokens_revoke" version_id="1023100" version_string="1.2.31"><![CDATA[<xf:title>{{ phrase('aiconnect_tokens_revoke_title') }}</xf:title>
+
+<xf:form action="{{ link('ai-connect/tokens/revoke', $token) }}" ajax="true" class="block">
+    <div class="block-container">
+        <div class="block-body">
+            <div class="block-row">
+                <p>{{ phrase('aiconnect_tokens_revoke_confirm', {'prefix': $token.token_prefix}) }}</p>
+                <p><strong>{{ phrase('aiconnect_tokens_col_user') }}:</strong>
+                    <xf:if is="$token.User"><xf:username user="{$token.User}" /><xf:else />#{$token.user_id}</xf:if>
+                </p>
+                <p><strong>{{ phrase('aiconnect_tokens_col_client') }}:</strong> {$token.client_id}</p>
+                <p><strong>{{ phrase('aiconnect_tokens_col_scope') }}:</strong> {$token.scope}</p>
+            </div>
+        </div>
+        <xf:submitrow icon="delete" sticky="true" />
+    </div>
+</xf:form>]]></template>
   <template type="public" title="aiconnect_info_page" version_id="1022500" version_string="1.2.25"><![CDATA[<!DOCTYPE html>
 <html lang="en">
 <head>

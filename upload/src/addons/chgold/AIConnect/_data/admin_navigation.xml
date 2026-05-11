@@ -1,2 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<admin_navigation/>
+<admin_navigation>
+  <admin_navigation_entry navigation_id="aiConnectTokens" parent_navigation_id="tools" display_order="500" link="ai-connect/tokens" icon="fa-key" debug_only="0" development_only="0" hide_no_children="0"/>
+</admin_navigation>

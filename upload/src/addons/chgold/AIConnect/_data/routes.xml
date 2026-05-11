@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <routes>
+  <route route_type="admin" route_prefix="ai-connect" sub_name="tokens" format="tokens/:int&lt;token_id&gt;/" controller="chgold\AIConnect:Tokens" context="aiConnectTokens"/>
   <route route_type="api" route_prefix="ai-connect" controller="chgold\AIConnect:Manifest"/>
   <route route_type="api" route_prefix="aiconnect-auth" controller="chgold\AIConnect:Auth"/>
   <route route_type="api" route_prefix="aiconnect-authorize" controller="chgold\AIConnect:Authorize"/>

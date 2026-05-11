@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <phrases>
+  <phrase title="admin_navigation.aiConnectTokens" version_id="1023100" version_string="1.2.31"><![CDATA[AI Connect: Tokens]]></phrase>
   <phrase title="aiconnect_error_csrf_invalid" version_id="1011400" version_string="1.1.14"><![CDATA[Error: Invalid security token.]]></phrase>
   <phrase title="aiconnect_error_csrf_missing" version_id="1011400" version_string="1.1.14"><![CDATA[Error: Security token missing.]]></phrase>
   <phrase title="aiconnect_error_missing_required_params" version_id="1011400" version_string="1.1.14"><![CDATA[Error: Missing required OAuth parameters.]]></phrase>
@@ -56,6 +57,28 @@ For documentation: {infoUrl}]]></phrase>
   <phrase title="aiconnect_scope_delete" version_id="1011400" version_string="1.1.14"><![CDATA[Delete content]]></phrase>
   <phrase title="aiconnect_scope_read" version_id="1011400" version_string="1.1.14"><![CDATA[Read forum content and your profile]]></phrase>
   <phrase title="aiconnect_scope_write" version_id="1011400" version_string="1.1.14"><![CDATA[Create and modify content]]></phrase>
+  <phrase title="aiconnect_tokens_action_revoke" version_id="1023100" version_string="1.2.31"><![CDATA[Revoke]]></phrase>
+  <phrase title="aiconnect_tokens_col_actions" version_id="1023100" version_string="1.2.31"><![CDATA[Actions]]></phrase>
+  <phrase title="aiconnect_tokens_col_client" version_id="1023100" version_string="1.2.31"><![CDATA[Client]]></phrase>
+  <phrase title="aiconnect_tokens_col_issued" version_id="1023100" version_string="1.2.31"><![CDATA[Issued]]></phrase>
+  <phrase title="aiconnect_tokens_col_last_used" version_id="1023100" version_string="1.2.31"><![CDATA[Last used]]></phrase>
+  <phrase title="aiconnect_tokens_col_prefix" version_id="1023100" version_string="1.2.31"><![CDATA[Token prefix]]></phrase>
+  <phrase title="aiconnect_tokens_col_scope" version_id="1023100" version_string="1.2.31"><![CDATA[Scope]]></phrase>
+  <phrase title="aiconnect_tokens_col_source" version_id="1023100" version_string="1.2.31"><![CDATA[Source]]></phrase>
+  <phrase title="aiconnect_tokens_col_status" version_id="1023100" version_string="1.2.31"><![CDATA[Status]]></phrase>
+  <phrase title="aiconnect_tokens_col_user" version_id="1023100" version_string="1.2.31"><![CDATA[User]]></phrase>
+  <phrase title="aiconnect_tokens_empty" version_id="1023100" version_string="1.2.31"><![CDATA[No tokens have been recorded in the registry yet.]]></phrase>
+  <phrase title="aiconnect_tokens_filter" version_id="1023100" version_string="1.2.31"><![CDATA[Filter]]></phrase>
+  <phrase title="aiconnect_tokens_filter_active" version_id="1023100" version_string="1.2.31"><![CDATA[Active only]]></phrase>
+  <phrase title="aiconnect_tokens_filter_all" version_id="1023100" version_string="1.2.31"><![CDATA[All]]></phrase>
+  <phrase title="aiconnect_tokens_filter_revoked" version_id="1023100" version_string="1.2.31"><![CDATA[Revoked only]]></phrase>
+  <phrase title="aiconnect_tokens_invalid_id" version_id="1023100" version_string="1.2.31"><![CDATA[Invalid token ID.]]></phrase>
+  <phrase title="aiconnect_tokens_revoke_confirm" version_id="1023100" version_string="1.2.31"><![CDATA[Are you sure you want to revoke the token starting with "{prefix}"? Any AI agent currently using it will be denied immediately.]]></phrase>
+  <phrase title="aiconnect_tokens_revoke_title" version_id="1023100" version_string="1.2.31"><![CDATA[Revoke token]]></phrase>
+  <phrase title="aiconnect_tokens_status_active" version_id="1023100" version_string="1.2.31"><![CDATA[Active]]></phrase>
+  <phrase title="aiconnect_tokens_status_expired" version_id="1023100" version_string="1.2.31"><![CDATA[Expired]]></phrase>
+  <phrase title="aiconnect_tokens_status_revoked" version_id="1023100" version_string="1.2.31"><![CDATA[Revoked]]></phrase>
+  <phrase title="aiconnect_tokens_title" version_id="1023100" version_string="1.2.31"><![CDATA[AI Connect — Token Registry]]></phrase>
   <phrase title="aiconnect_unknown_client" version_id="1011600" version_string="1.1.16"><![CDATA[Error: Unknown client ID "{client_id}". Use the client_id shown in the manifest registered_clients list.]]></phrase>
   <phrase title="authorization_denied" version_id="1011400" version_string="1.1.14"><![CDATA[Authorization denied.]]></phrase>
   <phrase title="invalid_client" version_id="1011400" version_string="1.1.14"><![CDATA[Error: Invalid OAuth client.]]></phrase>
