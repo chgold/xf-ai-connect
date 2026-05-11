@@ -137,6 +137,36 @@ class Setup extends AbstractSetup
             $table->addKey(['client_id', 'user_id']);
             $table->addKey('expires_date');
         });
+
+        $this->createTokenRegistryTable();
+    }
+
+    /**
+     * Token Registry — audit trail for every issued token (prefix only).
+     * Shared between install (installStep1) and upgrade (upgrade1023100Step1)
+     * so the schema definition lives in one place.
+     */
+    protected function createTokenRegistryTable()
+    {
+        $this->schemaManager()->createTable('xf_chgold_aiconnect_token_registry', function (Create $table) {
+            $table->checkExists(true);
+            $table->addColumn('id', 'int')->autoIncrement();
+            $table->addColumn('token_prefix', 'varchar', 16);
+            $table->addColumn('user_id', 'int');
+            $table->addColumn('client_id', 'varchar', 80);
+            $table->addColumn('scope', 'varchar', 255);
+            $table->addColumn('issued_at', 'int');
+            $table->addColumn('expires_at', 'int');
+            $table->addColumn('last_used_at', 'int')->nullable();
+            $table->addColumn('revoked_at', 'int')->nullable();
+            $table->addColumn('revoked_by', 'int')->nullable();
+            $table->addColumn('source', 'enum')->values(['generator', 'oauth', 'refresh'])->setDefault('oauth');
+            $table->addColumn('ip_address', 'varchar', 45)->nullable();
+            $table->addPrimaryKey('id');
+            $table->addKey('token_prefix');
+            $table->addKey('user_id');
+            $table->addKey('revoked_at');
+        });
     }
 
     public function installStep2()
@@ -323,6 +353,9 @@ class Setup extends AbstractSetup
             $table->addPrimaryKey('session_id');
             $table->addKey('expires_date');
         });
+
+        // token_registry table — added in v1.2.31
+        $this->createTokenRegistryTable();
     }
 
     /**
@@ -832,6 +865,14 @@ class Setup extends AbstractSetup
         });
     }
 
+    /**
+     * v1.2.31 — create token_registry table for the audit trail of issued tokens.
+     */
+    public function upgrade1023100Step1()
+    {
+        $this->createTokenRegistryTable();
+    }
+
     public function uninstallStep1()
     {
         $schemaManager = $this->schemaManager();
@@ -846,6 +887,7 @@ class Setup extends AbstractSetup
             'xf_ai_connect_oauth_codes',
             'xf_ai_connect_oauth_clients',
             'xf_ai_connect_auth_sessions',
+            'xf_chgold_aiconnect_token_registry',
         ];
 
         foreach ($tables as $table) {
