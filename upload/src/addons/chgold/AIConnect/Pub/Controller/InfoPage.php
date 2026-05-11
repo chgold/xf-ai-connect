@@ -70,7 +70,8 @@ class InfoPage extends AbstractController
         $token = $oauthServer->createAccessToken(
             'claude-ai',
             $visitor->user_id,
-            ['read', 'write']
+            ['read', 'write'],
+            'generator'
         );
 
         // Build filtered manifest — only tools this user is permitted to call.

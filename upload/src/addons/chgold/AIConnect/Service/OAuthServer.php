@@ -94,9 +94,14 @@ class OAuthServer extends AbstractService
     }
 
     /**
-     * Create access token with refresh token
+     * Create access token with refresh token.
+     *
+     * @param string $clientId
+     * @param int    $userId
+     * @param array  $scopes
+     * @param string $source 'oauth' (default), 'refresh' or 'generator'
      */
-    public function createAccessToken($clientId, $userId, array $scopes)
+    public function createAccessToken($clientId, $userId, array $scopes, $source = 'oauth')
     {
         $db = \XF::db();
         $time = \XF::$time;
@@ -117,6 +122,8 @@ class OAuthServer extends AbstractService
             'created_date' => $time
         ]);
 
+        $this->recordInRegistry($accessToken, $userId, $clientId, $scopes, $expiresDate, $source);
+
         return [
             'access_token' => $accessToken,
             'token_type' => 'Bearer',
@@ -125,6 +132,29 @@ class OAuthServer extends AbstractService
             'refresh_token_expires_in' => $this->defaultRefreshTokenLifetime,
             'scope' => implode(' ', $scopes)
         ];
+    }
+
+    /**
+     * Best-effort registry write. Failures must not break token issuance.
+     */
+    protected function recordInRegistry(
+        string $accessToken,
+        int $userId,
+        string $clientId,
+        array $scopes,
+        int $expiresDate,
+        string $source
+    ): void {
+        try {
+            $request = \XF::app()->request();
+            $ip = $request ? $request->getIp(true) : null;
+
+            /** @var \chgold\AIConnect\Repository\TokenRegistry $registry */
+            $registry = \XF::repository('chgold\AIConnect:TokenRegistry');
+            $registry->record($accessToken, $userId, $clientId, $scopes, $expiresDate, $source, $ip);
+        } catch (\Throwable $e) {
+            \XF::logException($e, false, 'OAuthServer::recordInRegistry failed: ');
+        }
     }
 
     /**
@@ -150,6 +180,17 @@ class OAuthServer extends AbstractService
 
         if ($tokenData['expires_date'] < $time) {
             return ['valid' => false, 'error' => 'Token expired'];
+        }
+
+        try {
+            /** @var \chgold\AIConnect\Repository\TokenRegistry $registry */
+            $registry = \XF::repository('chgold\AIConnect:TokenRegistry');
+            if ($registry->isRevoked($token)) {
+                return ['valid' => false, 'error' => 'Token has been revoked'];
+            }
+            $registry->markUsed($token);
+        } catch (\Throwable $e) {
+            \XF::logException($e, false, 'OAuthServer::validateToken registry check failed: ');
         }
 
         return [
@@ -201,7 +242,8 @@ class OAuthServer extends AbstractService
         $newToken = $this->createAccessToken(
             $tokenData['client_id'],
             $tokenData['user_id'],
-            json_decode($tokenData['scopes'], true)
+            json_decode($tokenData['scopes'], true),
+            'refresh'
         );
 
         return $newToken;
@@ -221,6 +263,15 @@ class OAuthServer extends AbstractService
             'access_token = ?',
             $token
         );
+
+        try {
+            $visitorId = \XF::visitor()->user_id ?: null;
+            /** @var \chgold\AIConnect\Repository\TokenRegistry $registry */
+            $registry = \XF::repository('chgold\AIConnect:TokenRegistry');
+            $registry->revokeByToken($token, $visitorId);
+        } catch (\Throwable $e) {
+            \XF::logException($e, false, 'OAuthServer::revokeToken registry sync failed: ');
+        }
 
         return $updated > 0;
     }
