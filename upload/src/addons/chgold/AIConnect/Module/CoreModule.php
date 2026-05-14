@@ -51,7 +51,9 @@ class CoreModule extends ModuleBase
                 'properties' => [
                     'search' => [
                         'type' => 'string',
-                        'description' => 'Search query',
+                        'description' => 'Search query (min 1 character, max 200 characters)',
+                        'minLength' => 1,
+                        'maxLength' => 200,
                     ],
                     'forum_id' => [
                         'type' => 'integer',
@@ -111,7 +113,9 @@ class CoreModule extends ModuleBase
                 'properties' => [
                     'search' => [
                         'type' => 'string',
-                        'description' => 'Search query',
+                        'description' => 'Search query (min 1 character, max 200 characters)',
+                        'minLength' => 1,
+                        'maxLength' => 200,
                     ],
                     'thread_id' => [
                         'type' => 'integer',

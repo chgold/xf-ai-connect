@@ -103,6 +103,21 @@ abstract class ModuleBase
                     }
                 }
 
+                // Check minLength for string params (trim-based: whitespace-only strings are rejected)
+                if (is_string($value) && isset($prop['minLength']) && mb_strlen(trim($value)) < (int) $prop['minLength']) {
+                    return $this->error(
+                        'invalid_param',
+                        sprintf('Parameter %s must be at least %d character(s)', $key, (int) $prop['minLength'])
+                    );
+                }
+                // Check maxLength for string params
+                if (is_string($value) && isset($prop['maxLength']) && mb_strlen($value) > (int) $prop['maxLength']) {
+                    return $this->error(
+                        'invalid_param',
+                        sprintf('Parameter %s must be at most %d character(s)', $key, (int) $prop['maxLength'])
+                    );
+                }
+
                 $validated[$key] = $value;
             } elseif (isset($prop['default'])) {
                 $validated[$key] = $prop['default'];

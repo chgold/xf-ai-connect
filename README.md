@@ -296,6 +296,11 @@ New modules automatically participate in this filtering — no changes to the pr
 
 ## 📋 Changelog
 
+### Version 1.2.32 - 2026-05-14
+* **Fixed:** `searchThreads` and `searchPosts` now reject explicitly empty or whitespace-only `search` strings with a clear validation error ("Parameter search must be at least 1 character(s)") instead of silently returning all results. Omitting `search` (pass `{}`) still returns all threads/posts as before.
+* **Added:** Max-length validation — `search` values longer than 200 characters are rejected with a clear error.
+* **Improved:** `validateParams()` in `ModuleBase` now respects `minLength`/`maxLength` schema constraints for string parameters — all future tools that declare these constraints will be validated automatically.
+
 ### Version 1.2.17 - 2026-04-14
 * **Added:** Generic prompt metadata system — each module declares its own `getToolPromptMeta()` so future tools are automatically reflected in the personalised prompt without touching `InfoPage`
 * **Improved:** `buildPersonalizedPrompt()` now collects tool hints and URL examples from modules at runtime instead of a hardcoded lookup table
