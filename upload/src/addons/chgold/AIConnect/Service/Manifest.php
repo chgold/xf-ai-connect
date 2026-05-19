@@ -143,6 +143,7 @@ class Manifest extends AbstractService
             'usage' => [
                 'tools_endpoint' => $baseUrl . '/api/aiconnect-tools',
                 'method' => 'POST',
+                'body_format' => 'mcp',
                 'headers' => [
                     'Authorization' => 'Bearer {access_token}',
                     'Content-Type' => 'application/json',
