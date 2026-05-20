@@ -181,6 +181,9 @@ class InfoPage extends AbstractController
         $lines[] = '  name: "' . $hostname . '"';
         $lines[] = '  manifest_url: "' . $manifestUrl . '"';
         $lines[] = '  token: "Bearer ' . $accessToken . '"';
+        $lines[] = '  refresh_token: "' . $refreshToken . '"';
+        $lines[] = '';
+        $lines[] = 'IMPORTANT: Paste BOTH token and refresh_token — otherwise the connection will stop working after 1 hour.';
         $lines[] = '';
         $lines[] = 'After adding the site, call these tools by EXACT name (do not search — use directly):';
         foreach ($accessibleTools as $toolName) {
