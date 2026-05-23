@@ -178,9 +178,10 @@ class InfoPage extends AbstractController
         // --- MCP section ---
         $lines[] = '## MCP (Recommended — Claude Desktop)';
         $lines[] = 'Call webmcp_addSite with these parameters:';
-        $lines[] = '  name: "' . $hostname . '"';
-        $lines[] = '  manifest_url: "' . $manifestUrl . '"';
-        $lines[] = '  token: "Bearer ' . $accessToken . '"';
+        $lines[] = '  name:          "' . $hostname . '"';
+        $lines[] = '  url:           "' . $baseUrl . '"';
+        $lines[] = '  manifest_url:  "' . $manifestUrl . '"';
+        $lines[] = '  token:         "Bearer ' . $accessToken . '"';
         $lines[] = '  refresh_token: "' . $refreshToken . '"';
         $lines[] = '';
         $lines[] = 'IMPORTANT: Paste BOTH token and refresh_token — otherwise the connection will stop working after 1 hour.';
