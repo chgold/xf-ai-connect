@@ -62,9 +62,10 @@ class TokenRegistry extends Repository
     }
 
     /**
-     * Update last_used_at for a token (called on every successful bearer auth).
+     * Update last_used_at, last_used_ip and last_used_ua for a token
+     * (called on every successful bearer auth).
      */
-    public function markUsed(string $accessToken): void
+    public function markUsed(string $accessToken, ?string $ip = null, ?string $ua = null): void
     {
         $prefix = $this->prefixOf($accessToken);
         if ($prefix === '') {
@@ -73,7 +74,11 @@ class TokenRegistry extends Repository
         try {
             $this->db()->update(
                 'xf_chgold_aiconnect_token_registry',
-                ['last_used_at' => \XF::$time],
+                [
+                    'last_used_at' => \XF::$time,
+                    'last_used_ip' => $ip,
+                    'last_used_ua' => $ua,
+                ],
                 'token_prefix = ? AND revoked_at IS NULL',
                 $prefix
             );
@@ -121,6 +126,185 @@ class TokenRegistry extends Repository
     }
 
     /**
+     * Soft-delete a token by its row ID (for user and admin use).
+     */
+    public function revokeById(int $id, ?int $revokedBy = null): bool
+    {
+        if (!$id) {
+            return false;
+        }
+        try {
+            $affected = $this->db()->update(
+                'xf_chgold_aiconnect_token_registry',
+                [
+                    'revoked_at' => \XF::$time,
+                    'revoked_by' => $revokedBy,
+                ],
+                'id = ? AND revoked_at IS NULL',
+                $id
+            );
+            return $affected > 0;
+        } catch (\Throwable $e) {
+            \XF::logException($e, false, 'TokenRegistry::revokeById failed: ');
+            return false;
+        }
+    }
+
+    /**
+     * Revoke ALL active tokens for a specific user (user's "revoke all" action).
+     *
+     * @return int Number of tokens revoked
+     */
+    public function revokeAllForUser(int $userId, ?int $revokedBy = null): int
+    {
+        if (!$userId) {
+            return 0;
+        }
+        try {
+            return (int)$this->db()->update(
+                'xf_chgold_aiconnect_token_registry',
+                [
+                    'revoked_at' => \XF::$time,
+                    'revoked_by' => $revokedBy,
+                ],
+                'user_id = ? AND revoked_at IS NULL',
+                $userId
+            );
+        } catch (\Throwable $e) {
+            \XF::logException($e, false, 'TokenRegistry::revokeAllForUser failed: ');
+            return 0;
+        }
+    }
+
+    /**
+     * Admin bulk: revoke all tokens that have never been used and are older than $days days.
+     *
+     * @return int Number of tokens revoked
+     */
+    public function revokeUnused(int $days = 30, ?int $revokedBy = null): int
+    {
+        $cutoff = \XF::$time - ($days * 86400);
+        try {
+            $db = $this->db();
+            $db->query(
+                'UPDATE xf_chgold_aiconnect_token_registry
+                 SET revoked_at = ?, revoked_by = ?
+                 WHERE last_used_at IS NULL AND issued_at < ? AND revoked_at IS NULL',
+                [\XF::$time, $revokedBy ?? 0, $cutoff]
+            );
+            return $db->affectedRows();
+        } catch (\Throwable $e) {
+            \XF::logException($e, false, 'TokenRegistry::revokeUnused failed: ');
+            return 0;
+        }
+    }
+
+    /**
+     * Admin bulk: revoke all tokens not used in $days days.
+     *
+     * @return int Number of tokens revoked
+     */
+    public function revokeInactive(int $days = 180, ?int $revokedBy = null): int
+    {
+        $cutoff = \XF::$time - ($days * 86400);
+        try {
+            $db = $this->db();
+            $db->query(
+                'UPDATE xf_chgold_aiconnect_token_registry
+                 SET revoked_at = ?, revoked_by = ?
+                 WHERE last_used_at IS NOT NULL AND last_used_at < ? AND revoked_at IS NULL',
+                [\XF::$time, $revokedBy ?? 0, $cutoff]
+            );
+            return $db->affectedRows();
+        } catch (\Throwable $e) {
+            \XF::logException($e, false, 'TokenRegistry::revokeInactive failed: ');
+            return 0;
+        }
+    }
+
+    /**
+     * Check whether the lazy cleanup should run (>24h since last run).
+     */
+    public function shouldRunCleanup(): bool
+    {
+        try {
+            $last = \XF::db()->fetchOne(
+                "SELECT setting_value FROM xf_ai_connect_settings WHERE setting_key = 'last_cleanup_at'"
+            );
+            return !$last || (time() - (int)$last) > 86400;
+        } catch (\Throwable $e) {
+            return false;
+        }
+    }
+
+    /**
+     * Run all 4 cleanup rules and update the last-run timestamp.
+     *
+     * Rules:
+     *   1. Never used + older than 30 days  → revoke
+     *   2. Last used > 180 days ago          → revoke
+     *   3. Expired > 90 days ago (not revoked yet) → revoke
+     *   4. Revoked > 365 days ago            → hard DELETE
+     *
+     * @return array{unused: int, inactive: int, expired: int, deleted: int}
+     */
+    public function runCleanup(): array
+    {
+        $db      = $this->db();
+        $now     = \XF::$time;
+        $results = ['unused' => 0, 'inactive' => 0, 'expired' => 0, 'deleted' => 0];
+
+        try {
+            // Rule 1: never used + older than 30 days → revoke
+            $db->query(
+                'UPDATE xf_chgold_aiconnect_token_registry
+                 SET revoked_at = ?, revoked_by = 0
+                 WHERE last_used_at IS NULL AND issued_at < ? AND revoked_at IS NULL',
+                [$now, $now - 30 * 86400]
+            );
+            $results['unused'] = $db->affectedRows();
+
+            // Rule 2: last used > 180 days ago → revoke
+            $db->query(
+                'UPDATE xf_chgold_aiconnect_token_registry
+                 SET revoked_at = ?, revoked_by = 0
+                 WHERE last_used_at IS NOT NULL AND last_used_at < ? AND revoked_at IS NULL',
+                [$now, $now - 180 * 86400]
+            );
+            $results['inactive'] = $db->affectedRows();
+
+            // Rule 3: expired > 90 days ago (and not yet revoked) → revoke
+            $db->query(
+                'UPDATE xf_chgold_aiconnect_token_registry
+                 SET revoked_at = ?, revoked_by = 0
+                 WHERE revoked_at IS NULL AND expires_at < ?',
+                [$now, $now - 90 * 86400]
+            );
+            $results['expired'] = $db->affectedRows();
+
+            // Rule 4: revoked > 365 days ago → hard DELETE
+            $db->query(
+                'DELETE FROM xf_chgold_aiconnect_token_registry
+                 WHERE revoked_at IS NOT NULL AND revoked_at < ?',
+                [$now - 365 * 86400]
+            );
+            $results['deleted'] = $db->affectedRows();
+
+            // Persist the timestamp of this run
+            $db->query(
+                "INSERT INTO xf_ai_connect_settings (setting_key, setting_value)
+                 VALUES ('last_cleanup_at', ?)
+                 ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)",
+                [$now]
+            );
+        } catch (\Throwable $e) {
+            \XF::logException($e, false, 'TokenRegistry::runCleanup failed: ');
+        }
+
+        return $results;
+    }
+
+    /**
      * Check whether a token has been revoked in the registry.
      */
     public function isRevoked(string $accessToken): bool
@@ -143,7 +327,7 @@ class TokenRegistry extends Repository
     }
 
     /**
-     * Get a finder for the admin listing.
+     * Get a finder for the admin listing (all tokens).
      */
     public function findTokensForList(): \XF\Mvc\Entity\Finder
     {

@@ -188,7 +188,17 @@ class OAuthServer extends AbstractService
             if ($registry->isRevoked($token)) {
                 return ['valid' => false, 'error' => 'Token has been revoked'];
             }
-            $registry->markUsed($token);
+            $ip = substr(\XF::app()->request()->getIp(), 0, 45);
+            $ua = substr(\XF::app()->request()->getServer('HTTP_USER_AGENT') ?? '', 0, 255);
+            $registry->markUsed($token, $ip ?: null, $ua ?: null);
+
+            try {
+                if ($registry->shouldRunCleanup()) {
+                    $registry->runCleanup();
+                }
+            } catch (\Throwable $cleanupEx) {
+                \XF::logException($cleanupEx, false, 'TokenRegistry cleanup failed: ');
+            }
         } catch (\Throwable $e) {
             \XF::logException($e, false, 'OAuthServer::validateToken registry check failed: ');
         }

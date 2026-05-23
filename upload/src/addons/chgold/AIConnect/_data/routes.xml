@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <routes>
+  <route route_type="admin" route_prefix="ai-connect" sub_name="revokeAll" format="revoke-all/" controller="chgold\AIConnect:Tokens" context="aiConnectRevokeAll"/>
+  <route route_type="admin" route_prefix="ai-connect" sub_name="revokeInactive" format="revoke-inactive/" controller="chgold\AIConnect:Tokens" context="aiConnectRevokeInactive"/>
+  <route route_type="admin" route_prefix="ai-connect" sub_name="revokeUnused" format="revoke-unused/" controller="chgold\AIConnect:Tokens" context="aiConnectRevokeUnused"/>
   <route route_type="admin" route_prefix="ai-connect" sub_name="tokens" format="tokens/:int&lt;token_id&gt;/" controller="chgold\AIConnect:Tokens" context="aiConnectTokens"/>
   <route route_type="api" route_prefix="ai-connect" controller="chgold\AIConnect:Manifest"/>
   <route route_type="api" route_prefix="aiconnect-auth" controller="chgold\AIConnect:Auth"/>
@@ -9,4 +12,6 @@
   <route route_type="api" route_prefix="aiconnect-oauth" controller="chgold\AIConnect:Token"/>
   <route route_type="api" route_prefix="aiconnect-tools" controller="chgold\AIConnect:Tools"/>
   <route route_type="public" route_prefix="ai-connect" controller="chgold\AIConnect:InfoPage"/>
+  <route route_type="public" route_prefix="ai-connect-tokens" controller="chgold\AIConnect:TokenManager" context="aiConnectMyTokens"/>
+  <route route_type="public" route_prefix="ai-connect-tokens" sub_name="revoke" format="revoke/:int&lt;token_id&gt;/" controller="chgold\AIConnect:TokenManager" context="aiConnectMyTokensRevoke"/>
 </routes>

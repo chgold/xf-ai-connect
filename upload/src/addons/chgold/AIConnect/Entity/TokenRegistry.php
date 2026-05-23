@@ -25,6 +25,8 @@ use XF\Mvc\Entity\Structure;
  * @property int|null    $revoked_by
  * @property string      $source
  * @property string|null $ip_address
+ * @property string|null $last_used_ip
+ * @property string|null $last_used_ua
  *
  * RELATIONS
  * @property-read \XF\Entity\User|null $User
@@ -54,6 +56,8 @@ class TokenRegistry extends Entity
                 'default'     => 'oauth',
             ],
             'ip_address'   => ['type' => self::STR, 'maxLength' => 45, 'nullable' => true, 'default' => null],
+            'last_used_ip' => ['type' => self::STR, 'maxLength' => 45, 'nullable' => true, 'default' => null],
+            'last_used_ua' => ['type' => self::STR, 'maxLength' => 255, 'nullable' => true, 'default' => null],
         ];
         $structure->relations = [
             'User' => [

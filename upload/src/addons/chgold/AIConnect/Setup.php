@@ -158,6 +158,8 @@ class Setup extends AbstractSetup
             $table->addColumn('issued_at', 'int');
             $table->addColumn('expires_at', 'int');
             $table->addColumn('last_used_at', 'int')->nullable();
+            $table->addColumn('last_used_ip', 'varchar', 45)->nullable();
+            $table->addColumn('last_used_ua', 'varchar', 255)->nullable();
             $table->addColumn('revoked_at', 'int')->nullable();
             $table->addColumn('revoked_by', 'int')->nullable();
             $table->addColumn('source', 'enum')->values(['generator', 'oauth', 'refresh'])->setDefault('oauth');
@@ -871,6 +873,21 @@ class Setup extends AbstractSetup
     public function upgrade1023100Step1()
     {
         $this->createTokenRegistryTable();
+    }
+
+    /**
+     * v1.2.34 — add last_used_ip and last_used_ua columns to token_registry.
+     */
+    public function upgrade1023400Step1()
+    {
+        $this->schemaManager()->alterTable('xf_chgold_aiconnect_token_registry', function (Alter $table) {
+            if (!$table->getColumnDefinition('last_used_ip')) {
+                $table->addColumn('last_used_ip', 'varchar', 45)->nullable()->after('last_used_at');
+            }
+            if (!$table->getColumnDefinition('last_used_ua')) {
+                $table->addColumn('last_used_ua', 'varchar', 255)->nullable()->after('last_used_ip');
+            }
+        });
     }
 
     public function uninstallStep1()

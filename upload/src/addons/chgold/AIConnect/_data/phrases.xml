@@ -42,6 +42,26 @@ For documentation: {infoUrl}]]></phrase>
   <phrase title="aiconnect_info_step3_title" version_id="1011500" version_string="1.1.15"><![CDATA[Authorize Once]]></phrase>
   <phrase title="aiconnect_info_what_is_body" version_id="1011500" version_string="1.1.15"><![CDATA[AI Connect bridges your forum with AI assistants like ChatGPT, Claude, and Gemini. It gives AI agents secure, permission-aware access to search, read, and interact with your community &mdash; all through a standardized protocol with OAuth&nbsp;2.0 authentication.]]></phrase>
   <phrase title="aiconnect_info_what_is_title" version_id="1011500" version_string="1.1.15"><![CDATA[What is AI Connect?]]></phrase>
+  <phrase title="aiconnect_my_tokens_col_issued" version_id="1023400" version_string="1.2.34"><![CDATA[Created]]></phrase>
+  <phrase title="aiconnect_my_tokens_col_last_ip" version_id="1023400" version_string="1.2.34"><![CDATA[Last IP]]></phrase>
+  <phrase title="aiconnect_my_tokens_col_last_used" version_id="1023400" version_string="1.2.34"><![CDATA[Last used]]></phrase>
+  <phrase title="aiconnect_my_tokens_col_prefix" version_id="1023400" version_string="1.2.34"><![CDATA[Token]]></phrase>
+  <phrase title="aiconnect_my_tokens_col_source" version_id="1023400" version_string="1.2.34"><![CDATA[Type]]></phrase>
+  <phrase title="aiconnect_my_tokens_col_state" version_id="1023400" version_string="1.2.34"><![CDATA[State]]></phrase>
+  <phrase title="aiconnect_my_tokens_empty" version_id="1023400" version_string="1.2.34"><![CDATA[You have no tokens matching the selected filter.]]></phrase>
+  <phrase title="aiconnect_my_tokens_intro" version_id="1023400" version_string="1.2.34"><![CDATA[These are the access tokens you have issued for AI agents. Revoke any token to immediately disconnect the associated agent.]]></phrase>
+  <phrase title="aiconnect_my_tokens_never" version_id="1023400" version_string="1.2.34"><![CDATA[Never]]></phrase>
+  <phrase title="aiconnect_my_tokens_revoke" version_id="1023400" version_string="1.2.34"><![CDATA[Revoke]]></phrase>
+  <phrase title="aiconnect_my_tokens_revoke_all" version_id="1023400" version_string="1.2.34"><![CDATA[Revoke all my tokens]]></phrase>
+  <phrase title="aiconnect_my_tokens_revoke_all_confirm" version_id="1023400" version_string="1.2.34"><![CDATA[Revoke ALL your tokens? Every connected AI agent will be disconnected.]]></phrase>
+  <phrase title="aiconnect_my_tokens_revoke_all_success" version_id="1023400" version_string="1.2.34"><![CDATA[All your tokens have been revoked.]]></phrase>
+  <phrase title="aiconnect_my_tokens_revoke_confirm" version_id="1023400" version_string="1.2.34"><![CDATA[Revoke the token starting with "{prefix}"? Any AI agent using it will be disconnected.]]></phrase>
+  <phrase title="aiconnect_my_tokens_revoked_success" version_id="1023400" version_string="1.2.34"><![CDATA[Token revoked successfully.]]></phrase>
+  <phrase title="aiconnect_my_tokens_state_active" version_id="1023400" version_string="1.2.34"><![CDATA[Active]]></phrase>
+  <phrase title="aiconnect_my_tokens_state_inactive" version_id="1023400" version_string="1.2.34"><![CDATA[Inactive]]></phrase>
+  <phrase title="aiconnect_my_tokens_state_revoked" version_id="1023400" version_string="1.2.34"><![CDATA[Revoked]]></phrase>
+  <phrase title="aiconnect_my_tokens_state_unused" version_id="1023400" version_string="1.2.34"><![CDATA[Not used yet]]></phrase>
+  <phrase title="aiconnect_my_tokens_title" version_id="1023400" version_string="1.2.34"><![CDATA[My AI Connect Tokens]]></phrase>
   <phrase title="aiconnect_oauth_app_can" version_id="1011400" version_string="1.1.14"><![CDATA[This application will be able to:]]></phrase>
   <phrase title="aiconnect_oauth_authorization_approved" version_id="1011400" version_string="1.1.14"><![CDATA[Authorization Approved]]></phrase>
   <phrase title="aiconnect_oauth_authorization_request" version_id="1011400" version_string="1.1.14"><![CDATA[Authorization Request]]></phrase>
@@ -58,9 +78,18 @@ For documentation: {infoUrl}]]></phrase>
   <phrase title="aiconnect_scope_read" version_id="1011400" version_string="1.1.14"><![CDATA[Read forum content and your profile]]></phrase>
   <phrase title="aiconnect_scope_write" version_id="1011400" version_string="1.1.14"><![CDATA[Create and modify content]]></phrase>
   <phrase title="aiconnect_tokens_action_revoke" version_id="1023100" version_string="1.2.31"><![CDATA[Revoke]]></phrase>
+  <phrase title="aiconnect_tokens_bulk_confirm_all" version_id="1023400" version_string="1.2.34"><![CDATA[⚠ DANGER: Revoke ALL {count} active tokens? This will disconnect all AI agents immediately.]]></phrase>
+  <phrase title="aiconnect_tokens_bulk_confirm_inactive" version_id="1023400" version_string="1.2.34"><![CDATA[Revoke all {count} inactive tokens?]]></phrase>
+  <phrase title="aiconnect_tokens_bulk_confirm_unused" version_id="1023400" version_string="1.2.34"><![CDATA[Revoke all {count} unused tokens? They have never been used.]]></phrase>
+  <phrase title="aiconnect_tokens_bulk_revoke_all" version_id="1023400" version_string="1.2.34"><![CDATA[Revoke ALL active tokens]]></phrase>
+  <phrase title="aiconnect_tokens_bulk_revoke_inactive" version_id="1023400" version_string="1.2.34"><![CDATA[Revoke all inactive (180 days)]]></phrase>
+  <phrase title="aiconnect_tokens_bulk_revoke_unused" version_id="1023400" version_string="1.2.34"><![CDATA[Revoke all unused (30 days)]]></phrase>
+  <phrase title="aiconnect_tokens_bulk_revoked_x" version_id="1023400" version_string="1.2.34"><![CDATA[Revoked {count} tokens.]]></phrase>
   <phrase title="aiconnect_tokens_col_actions" version_id="1023100" version_string="1.2.31"><![CDATA[Actions]]></phrase>
   <phrase title="aiconnect_tokens_col_client" version_id="1023100" version_string="1.2.31"><![CDATA[Client]]></phrase>
   <phrase title="aiconnect_tokens_col_issued" version_id="1023100" version_string="1.2.31"><![CDATA[Issued]]></phrase>
+  <phrase title="aiconnect_tokens_col_last_ip" version_id="1023400" version_string="1.2.34"><![CDATA[Last IP]]></phrase>
+  <phrase title="aiconnect_tokens_col_last_ua" version_id="1023400" version_string="1.2.34"><![CDATA[Last client]]></phrase>
   <phrase title="aiconnect_tokens_col_last_used" version_id="1023100" version_string="1.2.31"><![CDATA[Last used]]></phrase>
   <phrase title="aiconnect_tokens_col_prefix" version_id="1023100" version_string="1.2.31"><![CDATA[Token prefix]]></phrase>
   <phrase title="aiconnect_tokens_col_scope" version_id="1023100" version_string="1.2.31"><![CDATA[Scope]]></phrase>
@@ -71,7 +100,9 @@ For documentation: {infoUrl}]]></phrase>
   <phrase title="aiconnect_tokens_filter" version_id="1023100" version_string="1.2.31"><![CDATA[Filter]]></phrase>
   <phrase title="aiconnect_tokens_filter_active" version_id="1023100" version_string="1.2.31"><![CDATA[Active only]]></phrase>
   <phrase title="aiconnect_tokens_filter_all" version_id="1023100" version_string="1.2.31"><![CDATA[All]]></phrase>
+  <phrase title="aiconnect_tokens_filter_inactive" version_id="1023400" version_string="1.2.34"><![CDATA[Inactive (30+ days)]]></phrase>
   <phrase title="aiconnect_tokens_filter_revoked" version_id="1023100" version_string="1.2.31"><![CDATA[Revoked only]]></phrase>
+  <phrase title="aiconnect_tokens_filter_unused" version_id="1023400" version_string="1.2.34"><![CDATA[Unused (never used)]]></phrase>
   <phrase title="aiconnect_tokens_invalid_id" version_id="1023100" version_string="1.2.31"><![CDATA[Invalid token ID.]]></phrase>
   <phrase title="aiconnect_tokens_revoke_confirm" version_id="1023100" version_string="1.2.31"><![CDATA[Are you sure you want to revoke the token starting with "{prefix}"? Any AI agent currently using it will be denied immediately.]]></phrase>
   <phrase title="aiconnect_tokens_revoke_title" version_id="1023100" version_string="1.2.31"><![CDATA[Revoke token]]></phrase>

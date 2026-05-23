@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <templates>
-  <template type="admin" title="aiconnect_tokens_list" version_id="1023100" version_string="1.2.31"><![CDATA[<xf:title>{{ phrase('aiconnect_tokens_title') }}</xf:title>
+  <template type="admin" title="aiconnect_tokens_list" version_id="1023400" version_string="1.2.34"><![CDATA[<xf:title>{{ phrase('aiconnect_tokens_title') }}</xf:title>
 
 <div class="block">
     <div class="block-container">
@@ -11,11 +11,24 @@
                     <div class="formRow-content">
                         <xf:select name="filter" value="{$filter}" data-xf-init="submit-on-change">
                             <xf:option value="active">{{ phrase('aiconnect_tokens_filter_active') }}</xf:option>
+                            <xf:option value="unused">{{ phrase('aiconnect_tokens_filter_unused') }}</xf:option>
+                            <xf:option value="inactive">{{ phrase('aiconnect_tokens_filter_inactive') }}</xf:option>
                             <xf:option value="revoked">{{ phrase('aiconnect_tokens_filter_revoked') }}</xf:option>
                             <xf:option value="all">{{ phrase('aiconnect_tokens_filter_all') }}</xf:option>
                         </xf:select>
                     </div>
                 </div>
+            </div>
+            <div class="block-row" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:8px 0;">
+                <xf:form action="{{ link('ai-connect/revoke-unused') }}" ajax="true">
+                    <xf:submitrow submit="{{ phrase('aiconnect_tokens_bulk_revoke_unused') }}" icon="delete" class="button--minor" />
+                </xf:form>
+                <xf:form action="{{ link('ai-connect/revoke-inactive') }}" ajax="true">
+                    <xf:submitrow submit="{{ phrase('aiconnect_tokens_bulk_revoke_inactive') }}" icon="delete" class="button--minor" />
+                </xf:form>
+                <xf:form action="{{ link('ai-connect/revoke-all') }}" ajax="true">
+                    <xf:submitrow submit="{{ phrase('aiconnect_tokens_bulk_revoke_all') }}" icon="delete" class="button--danger" />
+                </xf:form>
             </div>
         </div>
     </div>
@@ -42,6 +55,8 @@
                             <th class="dataList-cell">{{ phrase('aiconnect_tokens_col_scope') }}</th>
                             <th class="dataList-cell">{{ phrase('aiconnect_tokens_col_issued') }}</th>
                             <th class="dataList-cell">{{ phrase('aiconnect_tokens_col_last_used') }}</th>
+                            <th class="dataList-cell">{{ phrase('aiconnect_tokens_col_last_ip') }}</th>
+                            <th class="dataList-cell">{{ phrase('aiconnect_tokens_col_last_ua') }}</th>
                             <th class="dataList-cell">{{ phrase('aiconnect_tokens_col_status') }}</th>
                             <th class="dataList-cell">{{ phrase('aiconnect_tokens_col_actions') }}</th>
                         </tr>
@@ -68,6 +83,8 @@
                                         —
                                     </xf:if>
                                 </td>
+                                <td class="dataList-cell">{{ $token.last_used_ip ?: '—' }}</td>
+                                <td class="dataList-cell" title="{$token.last_used_ua}">{{ $token.last_used_ua ? substr($token.last_used_ua, 0, 40) : '—' }}</td>
                                 <td class="dataList-cell">
                                     <xf:if is="$token.revoked_at">
                                         <span class="label label--red">{{ phrase('aiconnect_tokens_status_revoked') }}</span>
@@ -544,6 +561,101 @@ Documentation: {$infoUrl}</pre>
     </script>
 </body>
 </html>]]></template>
+  <template type="public" title="aiconnect_my_tokens" version_id="1023400" version_string="1.2.34"><![CDATA[<xf:title>{{ phrase('aiconnect_my_tokens_title') }}</xf:title>
+
+<div class="block">
+    <div class="block-container">
+        <div class="block-body">
+            <div class="block-row">
+                <p>{{ phrase('aiconnect_my_tokens_intro') }}</p>
+            </div>
+            <div class="block-row">
+                <a href="{{ link('ai-connect-tokens', null, {'filter': 'active'}) }}" class="button{{ $filter == 'active' ? ' button--primary' : '' }}">{{ phrase('aiconnect_tokens_filter_active') }}</a>
+                <a href="{{ link('ai-connect-tokens', null, {'filter': 'unused'}) }}" class="button{{ $filter == 'unused' ? ' button--primary' : '' }}">{{ phrase('aiconnect_tokens_filter_unused') }}</a>
+                <a href="{{ link('ai-connect-tokens', null, {'filter': 'inactive'}) }}" class="button{{ $filter == 'inactive' ? ' button--primary' : '' }}">{{ phrase('aiconnect_tokens_filter_inactive') }}</a>
+                <a href="{{ link('ai-connect-tokens', null, {'filter': 'all'}) }}" class="button{{ $filter == 'all' ? ' button--primary' : '' }}">{{ phrase('aiconnect_tokens_filter_all') }}</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="block">
+    <div class="block-container">
+        <div class="block-body">
+            <xf:if is="$tokens is empty">
+                <div class="block-row">{{ phrase('aiconnect_my_tokens_empty') }}</div>
+            <xf:else />
+                <table class="dataList-table" style="width:100%">
+                    <thead>
+                        <tr class="dataList-row dataList-row--header">
+                            <th class="dataList-cell">{{ phrase('aiconnect_my_tokens_col_prefix') }}</th>
+                            <th class="dataList-cell">{{ phrase('aiconnect_my_tokens_col_source') }}</th>
+                            <th class="dataList-cell">{{ phrase('aiconnect_my_tokens_col_issued') }}</th>
+                            <th class="dataList-cell">{{ phrase('aiconnect_my_tokens_col_last_used') }}</th>
+                            <th class="dataList-cell">{{ phrase('aiconnect_my_tokens_col_last_ip') }}</th>
+                            <th class="dataList-cell">{{ phrase('aiconnect_my_tokens_col_state') }}</th>
+                            <th class="dataList-cell"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <xf:foreach loop="$tokens" key="$i" value="$token">
+                            <tr class="dataList-row">
+                                <td class="dataList-cell"><code>{$token.token_prefix}...</code></td>
+                                <td class="dataList-cell">{$token.source}</td>
+                                <td class="dataList-cell"><xf:date time="{$token.issued_at}" /></td>
+                                <td class="dataList-cell">
+                                    <xf:if is="$token.last_used_at">
+                                        <xf:date time="{$token.last_used_at}" />
+                                    <xf:else />
+                                        {{ phrase('aiconnect_my_tokens_never') }}
+                                    </xf:if>
+                                </td>
+                                <td class="dataList-cell">{{ $token.last_used_ip ?: '—' }}</td>
+                                <td class="dataList-cell">
+                                    <xf:if is="$token.revoked_at">
+                                        <span class="label label--red">{{ phrase('aiconnect_my_tokens_state_revoked') }}</span>
+                                    <xf:elseif is="!$token.last_used_at" />
+                                        <span class="label label--warning">{{ phrase('aiconnect_my_tokens_state_unused') }}</span>
+                                    <xf:elseif is="$token.last_used_at < ($xf.time - 2592000)" />
+                                        <span class="label label--muted">{{ phrase('aiconnect_my_tokens_state_inactive') }}</span>
+                                    <xf:else />
+                                        <span class="label label--green">{{ phrase('aiconnect_my_tokens_state_active') }}</span>
+                                    </xf:if>
+                                </td>
+                                <td class="dataList-cell">
+                                    <xf:if is="!$token.revoked_at">
+                                        <xf:button href="{{ link('ai-connect-tokens/revoke', null, {'token_id': $token.id}) }}" overlay="true" class="button--link button--minor">{{ phrase('aiconnect_my_tokens_revoke') }}</xf:button>
+                                    </xf:if>
+                                </td>
+                            </tr>
+                        </xf:foreach>
+                    </tbody>
+                </table>
+            </xf:if>
+        </div>
+        <xf:if is="$tokens is not empty">
+        <div class="block-footer">
+            <xf:form action="{{ link('ai-connect-tokens/revoke-all') }}" ajax="true">
+                <xf:submitrow submit="{{ phrase('aiconnect_my_tokens_revoke_all') }}" icon="delete" />
+            </xf:form>
+        </div>
+        </xf:if>
+    </div>
+</div>]]></template>
+  <template type="public" title="aiconnect_my_tokens_revoke" version_id="1023400" version_string="1.2.34"><![CDATA[<xf:title>{{ phrase('aiconnect_tokens_revoke_title') }}</xf:title>
+
+<xf:form action="{{ link('ai-connect-tokens/revoke', null, {'token_id': $token.id}) }}" ajax="true" class="block">
+    <div class="block-container">
+        <div class="block-body">
+            <div class="block-row">
+                <p>{{ phrase('aiconnect_my_tokens_revoke_confirm', {'prefix': $token.token_prefix}) }}</p>
+                <p><strong>{{ phrase('aiconnect_my_tokens_col_source') }}:</strong> {$token.source}</p>
+                <p><strong>{{ phrase('aiconnect_my_tokens_col_issued') }}:</strong> <xf:date time="{$token.issued_at}" /></p>
+            </div>
+        </div>
+        <xf:submitrow icon="delete" sticky="true" />
+    </div>
+</xf:form>]]></template>
   <template type="public" title="aiconnect_nav_bottom_link" version_id="1022000" version_string="1.2.20"><![CDATA[<xf:if is="$xf.options.aiconnect_nav_bottom AND $xf.visitor.hasPermission('aiconnect', 'viewAiConnect') AND $xf.visitor.hasPermission('aiconnect', 'useTools')">
 <li><a href="/ai-connect" class="p-footer-rssLink"><span aria-hidden="true">
 	<img src="/js/aiconnect/icon.png" alt="" style="height:16px;width:16px;vertical-align:middle;" /></span></a></li>
