@@ -37,7 +37,7 @@ class TokenManager extends AbstractController
                 break;
         }
 
-        $tokens = $this->db()->fetchAll(
+        $tokens = \XF::db()->fetchAll(
             "SELECT * FROM xf_chgold_aiconnect_token_registry WHERE {$where} ORDER BY issued_at DESC LIMIT 200"
         );
 

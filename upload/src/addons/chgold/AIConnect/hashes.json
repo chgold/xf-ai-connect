@@ -25,7 +25,7 @@
     "src/addons/chgold/AIConnect/phpcs.xml": "ac105e65505f134fd05095016f5a212607f7670df8682cfd36ae90def10081ed",
     "src/addons/chgold/AIConnect/Pub/Controller/InfoPage.php": "f680c87de0b54d5c0ff1bfb4aac01991b5bc5e1b2b44dbd1d225da91220762d3",
     "src/addons/chgold/AIConnect/Pub/Controller/OAuth.php": "da1dc2ac69f8ea7ae8d444d9504dd624931623d76b7c870f7e9c0007c38c3fac",
-    "src/addons/chgold/AIConnect/Pub/Controller/TokenManager.php": "6d0bb4d43a2af05ba40d0deca046832e52aa5c242e4b7145e0b374aedeed3a06",
+    "src/addons/chgold/AIConnect/Pub/Controller/TokenManager.php": "57da85b2b8349fb6f511466055407e94fb1f99cd3dfdef43d939b4b5ff7be0ca",
     "src/addons/chgold/AIConnect/Pub/View/InfoPage/GenerateToken.php": "a59999193ca729253cd7c1c80edd0bc6fc3f1cb3aaa97377c5a761c976cb11ab",
     "src/addons/chgold/AIConnect/Pub/View/OAuth/ConsentScreen.php": "ed7cffaf0fa96656054b2beb63aa5e8052fc64039cb84b03bdd9a5766fd381d9",
     "src/addons/chgold/AIConnect/Pub/View/OAuth/OobCode.php": "03b58dcfe0a34d89f6346adc283e97e27cbb86efcde5f56cb1ff958c4c4d1cfb",
