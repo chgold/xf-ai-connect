@@ -55,7 +55,10 @@ For documentation: {infoUrl}]]></phrase>
   <phrase title="aiconnect_my_tokens_revoke" version_id="1023400" version_string="1.2.34"><![CDATA[Revoke]]></phrase>
   <phrase title="aiconnect_my_tokens_revoke_all" version_id="1023400" version_string="1.2.34"><![CDATA[Revoke all my tokens]]></phrase>
   <phrase title="aiconnect_my_tokens_revoke_all_confirm" version_id="1023400" version_string="1.2.34"><![CDATA[Revoke ALL your tokens? Every connected AI agent will be disconnected.]]></phrase>
+  <phrase title="aiconnect_my_tokens_revoke_all_confirm_x" version_id="1023500" version_string="1.2.35"><![CDATA[Are you sure you want to revoke all {count} tokens matching the current filter ({filter})?]]></phrase>
   <phrase title="aiconnect_my_tokens_revoke_all_success" version_id="1023400" version_string="1.2.34"><![CDATA[All your tokens have been revoked.]]></phrase>
+  <phrase title="aiconnect_my_tokens_revoke_all_success_x" version_id="1023500" version_string="1.2.35"><![CDATA[Revoked {count} tokens.]]></phrase>
+  <phrase title="aiconnect_my_tokens_revoke_all_title" version_id="1023500" version_string="1.2.35"><![CDATA[Revoke all matching tokens]]></phrase>
   <phrase title="aiconnect_my_tokens_revoke_confirm" version_id="1023400" version_string="1.2.34"><![CDATA[Revoke the token starting with "{prefix}"? Any AI agent using it will be disconnected.]]></phrase>
   <phrase title="aiconnect_my_tokens_revoked_success" version_id="1023400" version_string="1.2.34"><![CDATA[Token revoked successfully.]]></phrase>
   <phrase title="aiconnect_my_tokens_state_active" version_id="1023400" version_string="1.2.34"><![CDATA[Active]]></phrase>

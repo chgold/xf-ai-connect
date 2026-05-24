@@ -638,9 +638,9 @@ Documentation: {$infoUrl}</pre>
         </div>
         <xf:if is="$tokens is not empty">
         <div class="block-footer">
-            <xf:form action="{{ link('ai-connect-tokens/revokeAll') }}" ajax="true">
-                <xf:submitrow submit="{{ phrase('aiconnect_my_tokens_revoke_all') }}" icon="delete" />
-            </xf:form>
+            <xf:button href="{{ link('ai-connect-tokens/revoke-all', null, {'filter': $filter}) }}" overlay="true" icon="delete" class="button--minor">
+                {{ phrase('aiconnect_my_tokens_revoke_all') }}
+            </xf:button>
         </div>
         </xf:if>
     </div>
@@ -654,6 +654,18 @@ Documentation: {$infoUrl}</pre>
                 <p>{{ phrase('aiconnect_my_tokens_revoke_confirm', {'prefix': $token.token_prefix}) }}</p>
                 <p><strong>{{ phrase('aiconnect_my_tokens_col_source') }}:</strong> {$token.source}</p>
                 <p><strong>{{ phrase('aiconnect_my_tokens_col_issued') }}:</strong> <xf:date time="{$token.issued_at}" /></p>
+            </div>
+        </div>
+        <xf:submitrow icon="delete" sticky="true" />
+    </div>
+</xf:form>]]></template>
+  <template type="public" title="aiconnect_my_tokens_revoke_all" version_id="1023500" version_string="1.2.35"><![CDATA[<xf:title>{{ phrase('aiconnect_my_tokens_revoke_all_title') }}</xf:title>
+
+<xf:form action="{{ link('ai-connect-tokens/revoke-all', null, {'filter': $filter}) }}" ajax="true" class="block">
+    <div class="block-container">
+        <div class="block-body">
+            <div class="block-row">
+                <p>{{ phrase('aiconnect_my_tokens_revoke_all_confirm_x', {'count': $count, 'filter': $filter}) }}</p>
             </div>
         </div>
         <xf:submitrow icon="delete" sticky="true" />
