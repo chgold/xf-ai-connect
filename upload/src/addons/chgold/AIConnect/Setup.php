@@ -892,6 +892,46 @@ class Setup extends AbstractSetup
     }
 
     /**
+     * v1.2.35.1 — backfill registry for tokens issued BEFORE v1.2.31, when
+     * the registry table did not exist yet.
+     *
+     * Without this, those legacy tokens are invisible in the user-facing
+     * "My AI Tokens" UI and the "Revoke all" action silently skips them —
+     * letting AI agents keep refreshing access tokens after the user
+     * explicitly revoked everything. That is a security regression on upgrade.
+     *
+     * Idempotent: a LEFT JOIN guards against double-insertion, so re-running
+     * this step is a no-op for rows already present in the registry.
+     */
+    public function upgrade1023501Step1()
+    {
+        try {
+            \XF::db()->query("
+                INSERT INTO xf_chgold_aiconnect_token_registry
+                    (token_prefix, user_id, client_id, scope, issued_at, expires_at,
+                     refresh_expires_at, revoked_at, source, ip_address)
+                SELECT
+                    SUBSTRING(o.access_token, 1, 16),
+                    o.user_id,
+                    o.client_id,
+                    COALESCE(REPLACE(REPLACE(REPLACE(REPLACE(o.scopes, '[', ''), ']', ''), '\"', ''), ',', ' '), ''),
+                    o.created_date,
+                    o.expires_date,
+                    o.refresh_token_expires_date,
+                    CASE WHEN o.revoked_date > 0 THEN o.revoked_date ELSE NULL END,
+                    'oauth',
+                    NULL
+                FROM xf_ai_connect_oauth_tokens o
+                LEFT JOIN xf_chgold_aiconnect_token_registry r
+                  ON r.token_prefix = SUBSTRING(o.access_token, 1, 16)
+                WHERE r.id IS NULL
+            ");
+        } catch (\Throwable $e) {
+            \XF::logException($e, false, 'AIConnect 1.2.35.1 backfill failed: ');
+        }
+    }
+
+    /**
      * v1.2.35 — add refresh_expires_at column to token_registry so the UI
      * can distinguish "renewable" tokens (access expired but refresh still
      * valid) and keep them manageable in the user-facing token list.
