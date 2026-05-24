@@ -50,6 +50,7 @@ For documentation: {infoUrl}]]></phrase>
   <phrase title="aiconnect_my_tokens_col_state" version_id="1023400" version_string="1.2.34"><![CDATA[State]]></phrase>
   <phrase title="aiconnect_my_tokens_empty" version_id="1023400" version_string="1.2.34"><![CDATA[You have no tokens matching the selected filter.]]></phrase>
   <phrase title="aiconnect_my_tokens_intro" version_id="1023400" version_string="1.2.34"><![CDATA[These are the access tokens you have issued for AI agents. Revoke any token to immediately disconnect the associated agent.]]></phrase>
+  <phrase title="aiconnect_my_tokens_manage_link" version_id="1023400" version_string="1.2.34"><![CDATA[Manage your AI Connect tokens]]></phrase>
   <phrase title="aiconnect_my_tokens_never" version_id="1023400" version_string="1.2.34"><![CDATA[Never]]></phrase>
   <phrase title="aiconnect_my_tokens_revoke" version_id="1023400" version_string="1.2.34"><![CDATA[Revoke]]></phrase>
   <phrase title="aiconnect_my_tokens_revoke_all" version_id="1023400" version_string="1.2.34"><![CDATA[Revoke all my tokens]]></phrase>

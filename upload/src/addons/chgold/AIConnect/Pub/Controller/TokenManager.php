@@ -18,28 +18,32 @@ class TokenManager extends AbstractController
         $filter  = $this->filter('filter', 'str') ?: 'active';
         $time    = \XF::$time;
 
-        $userId = (int)$visitor->user_id;
-        $where  = 'user_id = ' . $userId;
+        /** @var \chgold\AIConnect\Repository\TokenRegistry $repo */
+        $repo   = $this->repository('chgold\AIConnect:TokenRegistry');
+        $finder = $repo->findTokensForUser((int)$visitor->user_id);
 
         switch ($filter) {
             case 'active':
-                $where .= ' AND revoked_at IS NULL AND expires_at > ' . $time;
+                $finder->whereOr(
+                    ['revoked_at', '=', null],
+                    ['revoked_at', '=', 0]
+                )->where('expires_at', '>', $time);
                 break;
             case 'unused':
-                $where .= ' AND last_used_at IS NULL AND revoked_at IS NULL';
+                $finder->where('last_used_at', null);
+                $finder->whereOr(['revoked_at', '=', null], ['revoked_at', '=', 0]);
                 break;
             case 'inactive':
-                $where .= ' AND last_used_at IS NOT NULL AND last_used_at < ' . ($time - 30 * 86400)
-                    . ' AND revoked_at IS NULL';
+                $finder->where('last_used_at', '>', 0)
+                       ->where('last_used_at', '<', $time - 30 * 86400);
+                $finder->whereOr(['revoked_at', '=', null], ['revoked_at', '=', 0]);
                 break;
             case 'revoked':
-                $where .= ' AND revoked_at IS NOT NULL';
+                $finder->where('revoked_at', '>', 0);
                 break;
         }
 
-        $tokens = \XF::db()->fetchAll(
-            "SELECT * FROM xf_chgold_aiconnect_token_registry WHERE {$where} ORDER BY issued_at DESC LIMIT 200"
-        );
+        $tokens = $finder->limit(200)->fetch();
 
         return $this->view(
             'chgold\AIConnect:TokenManager\Index',

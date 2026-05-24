@@ -335,4 +335,14 @@ class TokenRegistry extends Repository
             ->with(['User', 'RevokedBy'])
             ->order('issued_at', 'DESC');
     }
+
+    /**
+     * Get a finder scoped to a single user's tokens (pub listing).
+     */
+    public function findTokensForUser(int $userId): \XF\Mvc\Entity\Finder
+    {
+        return $this->finder('chgold\AIConnect:TokenRegistry')
+            ->where('user_id', $userId)
+            ->order('issued_at', 'DESC');
+    }
 }

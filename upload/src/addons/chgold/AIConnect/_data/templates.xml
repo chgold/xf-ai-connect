@@ -124,7 +124,7 @@
         <xf:submitrow icon="delete" sticky="true" />
     </div>
 </xf:form>]]></template>
-  <template type="public" title="aiconnect_info_page" version_id="1022500" version_string="1.2.25"><![CDATA[<!DOCTYPE html>
+  <template type="public" title="aiconnect_info_page" version_id="1023400" version_string="1.2.34"><![CDATA[<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
@@ -353,6 +353,7 @@
                 <button class="btn btn-approve" id="generateTokenBtn" type="button" style="padding: 14px 32px; font-size: 16px; background: linear-gradient(135deg, #6c63ff, #4834d4); border: none; border-radius: 8px; color: white; cursor: pointer; font-weight: 600;">&#x26A1; Generate Token &amp; Prompt</button>
                 <p id="tokenStatus" style="color: #aaa; font-size: 13px; margin-top: 8px;"></p>
                 <p style="color: #f59e0b; font-size: 12px; margin-top: 8px;">⚠️ This token grants access as <strong>you</strong>. Anyone who has it can act on your behalf. Do not share it with anyone you do not trust.</p>
+                <p style="margin-top:10px;"><a href="{{ link('ai-connect-tokens') }}" style="color:#6b7280;font-size:14px;font-weight:500;text-decoration:underline;">📋 {{ phrase('aiconnect_my_tokens_manage_link') }}</a></p>
             </div>
             <div id="tokenPromptBox" class="prompt-box" style="display:none; margin-bottom: 32px;">
                 <button class="copy-btn" id="copyTokenBtn" type="button">
@@ -361,7 +362,7 @@
                 </button>
                 <pre id="tokenPromptText"></pre>
             </div>
-            <div style="text-align:center;margin-top:10px;"><a href="{{ link('ai-connect-tokens') }}" style="color:#9ca3af;font-size:13px;text-decoration:none;border-bottom:1px dotted #6b7280;">📋 {{ phrase('aiconnect_my_tokens_manage_link') }}</a></div>
+            <div style="text-align:center;margin-top:14px;"><a href="{{ link('ai-connect-tokens') }}" style="color:#6b7280;font-size:14px;font-weight:500;text-decoration:underline;">📋 {{ phrase('aiconnect_my_tokens_manage_link') }}</a></div>
             <xf:elseif is="$xf.visitor.user_id" />
             <div style="text-align:center; margin-bottom: 24px;">
                 <p style="color: #9ca3af; font-size: 14px; margin: 0;">You do not have permission to use AI Connect tools. Contact an administrator to request access.</p>
@@ -626,7 +627,7 @@ Documentation: {$infoUrl}</pre>
                                 </td>
                                 <td class="dataList-cell">
                                     <xf:if is="!$token.revoked_at">
-                                        <xf:button href="{{ link('ai-connect-tokens') }}revoke/{$token.id}/" overlay="true" class="button--link button--minor">{{ phrase('aiconnect_my_tokens_revoke') }}</xf:button>
+                                        <xf:button href="{{ link('ai-connect-tokens/revoke', $token) }}" overlay="true" class="button--link button--minor">{{ phrase('aiconnect_my_tokens_revoke') }}</xf:button>
                                     </xf:if>
                                 </td>
                             </tr>
@@ -646,7 +647,7 @@ Documentation: {$infoUrl}</pre>
 </div>]]></template>
   <template type="public" title="aiconnect_my_tokens_revoke" version_id="1023400" version_string="1.2.34"><![CDATA[<xf:title>{{ phrase('aiconnect_tokens_revoke_title') }}</xf:title>
 
-<xf:form action="{{ link('ai-connect-tokens/revoke', null, {'token_id': $token.id}) }}" ajax="true" class="block">
+<xf:form action="{{ link('ai-connect-tokens/revoke', $token) }}" ajax="true" class="block">
     <div class="block-container">
         <div class="block-body">
             <div class="block-row">
