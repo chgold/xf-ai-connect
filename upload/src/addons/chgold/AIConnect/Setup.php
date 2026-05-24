@@ -892,6 +892,71 @@ class Setup extends AbstractSetup
     }
 
     /**
+     * v1.2.35.2 — auto-revoke legacy pre-1.2.31 tokens.
+     *
+     * Tokens that were backfilled by 1.2.35.1 from xf_ai_connect_oauth_tokens
+     * have no last_used_at / last_used_ip / last_used_ua history (we didn't
+     * track that data before the registry existed). There is no reliable way
+     * for the user to tell which of these are still being used by AI agents
+     * vs forgotten legacy.
+     *
+     * Secure-by-default: revoke every such token on upgrade and cascade to
+     * the underlying oauth_token so the refresh_token is killed too. Users
+     * regenerate tokens after upgrade if they still need them.
+     *
+     * Identification criteria for "legacy backfilled":
+     *   - revoked_at IS NULL OR 0   (still active)
+     *   - last_used_at IS NULL      (never recorded a use)
+     *   - last_used_ip IS NULL      (no IP recorded — registry never saw it used)
+     *   - last_used_ua IS NULL      (no UA recorded — same)
+     *   - source = 'oauth'          (rules out 'generator' tokens, which UI just issued)
+     *
+     * A token created in the UI seconds before upgrade matches these too,
+     * but that's an acceptable edge case: the user just regenerates.
+     *
+     * Idempotent: the WHERE filters skip already-revoked rows, so a second
+     * run is a no-op.
+     */
+    public function upgrade1023502Step1()
+    {
+        try {
+            $time = \XF::$time;
+            $db   = \XF::db();
+
+            // Step 1: revoke registry rows that look like legacy backfill.
+            $db->query(
+                "UPDATE xf_chgold_aiconnect_token_registry
+                 SET revoked_at = ?, revoked_by = 0
+                 WHERE (revoked_at IS NULL OR revoked_at = 0)
+                   AND last_used_at IS NULL
+                   AND last_used_ip IS NULL
+                   AND last_used_ua IS NULL
+                   AND source = 'oauth'",
+                [$time]
+            );
+
+            // Step 2: cascade to oauth_tokens so the refresh_token dies too.
+            // Joined criterion guarantees we only touch oauth rows whose
+            // registry row was system-revoked above (revoked_by = 0) and
+            // remained in the "never used" legacy state.
+            $db->query(
+                "UPDATE xf_ai_connect_oauth_tokens o
+                 INNER JOIN xf_chgold_aiconnect_token_registry r
+                         ON SUBSTRING(o.access_token, 1, 16) = r.token_prefix
+                 SET o.revoked_date = ?
+                 WHERE o.revoked_date = 0
+                   AND r.revoked_by = 0
+                   AND r.last_used_at IS NULL
+                   AND r.last_used_ip IS NULL
+                   AND r.last_used_ua IS NULL",
+                [$time]
+            );
+        } catch (\Throwable $e) {
+            \XF::logException($e, false, 'AIConnect 1.2.35.2 auto-revoke failed: ');
+        }
+    }
+
+    /**
      * v1.2.35.1 — backfill registry for tokens issued BEFORE v1.2.31, when
      * the registry table did not exist yet.
      *

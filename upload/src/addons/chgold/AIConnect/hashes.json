@@ -1,6 +1,6 @@
 {
     "js/chgold/aiconnect/admin-permissions.js": "9e55985197991112dc2567f88f108f14fa8b7bd75c85bf28af3448c05f72a2dc",
-    "src/addons/chgold/AIConnect/addon.json": "b3feee43fb2057df38bb2047d08eb268d745d755601e79f2b1f264fc1b99c7c2",
+    "src/addons/chgold/AIConnect/addon.json": "d33e19bf862aaa5c26c9e6cee64277f4d5a72b65f43682beb5283a8ae09576d5",
     "src/addons/chgold/AIConnect/Admin/Controller/Tokens.php": "a8115434e140d5294164f73146b309665b5c16f1476151a79feeb62b83a8d1ce",
     "src/addons/chgold/AIConnect/Api/Controller/Auth.php": "87501d407e6933d2f0c0ccd7727e9af9d1a53559de49eda071f7592ff08c0cd3",
     "src/addons/chgold/AIConnect/Api/Controller/Authorize.php": "d9be5e5d4aeee551eb941e17d6cb43274b0cc710942e1a35821db9d0c242f1e0",
@@ -38,7 +38,7 @@
     "src/addons/chgold/AIConnect/Service/OAuthServer.php": "143aa83b4fe95ad1f74e2ced1d3c3a150ce3405a68631ef8fe9fe8b02a5da0d1",
     "src/addons/chgold/AIConnect/Service/RateLimiter.php": "e1d2a2eafdaaa591895bb4133b8b226d05c477d7fea2f1d7d7b885dedcccde15",
     "src/addons/chgold/AIConnect/Service/Settings.php": "040d6566b4e7a6c53335ce241bfd8bb3649057532b6f562354a3da4d7a45bc22",
-    "src/addons/chgold/AIConnect/Setup.php": "77d75ff18403ab431a8270b7c64b2e45de10e5bfd0d5ad646f5afd0f4e9ac430",
+    "src/addons/chgold/AIConnect/Setup.php": "8982a157fdabb8924e2b28c50c732ac62d0fdcf2872a5495c3083d64a32e4016",
     "src/addons/chgold/AIConnect/vendor/autoload.php": "8613a7b455282734b74d9bba780b5b1d0e24cf90bc577bd93d9b9b36fd739075",
     "src/addons/chgold/AIConnect/vendor/composer/autoload_classmap.php": "375085d0d6690301081436cd75755cb2c882f8a7f6fc385c8814a11734fc413a",
     "src/addons/chgold/AIConnect/vendor/composer/autoload_namespaces.php": "ede505407590638a435137f4e060136f1008de79fc169b3de9793423b0cea38c",
