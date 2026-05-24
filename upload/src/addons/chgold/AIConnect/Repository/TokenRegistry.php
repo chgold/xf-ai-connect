@@ -10,6 +10,11 @@ use XF\Mvc\Entity\Repository;
  * All write operations are best-effort and swallow exceptions (audit logging
  * must never break user requests). Tokens are tracked by their 16-char prefix
  * — the full token never enters the registry.
+ *
+ * Every revoke path ALSO cascades into xf_ai_connect_oauth_tokens so the
+ * underlying access_token AND its refresh_token become unusable. Without that
+ * cascade an AI agent could still exchange its refresh_token for a brand new
+ * access_token — defeating the user-visible "revoke" action.
  */
 class TokenRegistry extends Repository
 {
@@ -90,6 +95,46 @@ class TokenRegistry extends Repository
     }
 
     /**
+     * Cascade revoke from registry to xf_ai_connect_oauth_tokens.
+     *
+     * Match by 16-char prefix; this invalidates BOTH the access_token AND
+     * the refresh_token (they live on the same oauth row, and OAuthServer
+     * checks revoked_date on validateToken and rejects exchangeRefreshToken
+     * when revoked_date > 0).
+     *
+     * Idempotent: WHERE revoked_date = 0, so repeat calls are no-ops.
+     *
+     * @param string[] $prefixes  Array of 16-char prefixes to cascade-revoke
+     */
+    protected function cascadeRevokeOAuthRows(array $prefixes, int $time): void
+    {
+        if (empty($prefixes)) {
+            return;
+        }
+        try {
+            // Sanitize: keep only plausible-length strings to avoid weird input.
+            $prefixes = array_values(array_filter($prefixes, function ($p) {
+                return is_string($p) && strlen($p) >= 4 && strlen($p) <= 32;
+            }));
+            if (empty($prefixes)) {
+                return;
+            }
+
+            $db = $this->db();
+            $quoted = $db->quote($prefixes);
+            $db->query(
+                "UPDATE xf_ai_connect_oauth_tokens
+                 SET revoked_date = ?
+                 WHERE revoked_date = 0
+                   AND SUBSTRING(access_token, 1, 16) IN ($quoted)",
+                [$time]
+            );
+        } catch (\Throwable $e) {
+            \XF::logException($e, false, 'TokenRegistry::cascadeRevokeOAuthRows failed: ');
+        }
+    }
+
+    /**
      * Soft-delete a token by its full string.
      *
      * @return int Number of registry rows affected
@@ -112,15 +157,20 @@ class TokenRegistry extends Repository
             return 0;
         }
         try {
-            return $this->db()->update(
+            $time     = \XF::$time;
+            $affected = (int)$this->db()->update(
                 'xf_chgold_aiconnect_token_registry',
                 [
-                    'revoked_at' => \XF::$time,
+                    'revoked_at' => $time,
                     'revoked_by' => $revokedBy,
                 ],
                 'token_prefix = ? AND revoked_at IS NULL',
                 $prefix
             );
+            if ($affected > 0) {
+                $this->cascadeRevokeOAuthRows([$prefix], $time);
+            }
+            return $affected;
         } catch (\Throwable $e) {
             \XF::logException($e, false, 'TokenRegistry::revokeByPrefix failed: ');
             return 0;
@@ -136,19 +186,69 @@ class TokenRegistry extends Repository
             return false;
         }
         try {
-            $affected = $this->db()->update(
+            $db   = $this->db();
+            $row  = $db->fetchRow(
+                'SELECT token_prefix FROM xf_chgold_aiconnect_token_registry WHERE id = ?',
+                $id
+            );
+            if (!$row) {
+                return false;
+            }
+            $time     = \XF::$time;
+            $affected = (int)$db->update(
                 'xf_chgold_aiconnect_token_registry',
                 [
-                    'revoked_at' => \XF::$time,
+                    'revoked_at' => $time,
                     'revoked_by' => $revokedBy,
                 ],
                 'id = ? AND revoked_at IS NULL',
                 $id
             );
+            if ($affected > 0) {
+                $this->cascadeRevokeOAuthRows([$row['token_prefix']], $time);
+            }
             return $affected > 0;
         } catch (\Throwable $e) {
             \XF::logException($e, false, 'TokenRegistry::revokeById failed: ');
             return false;
+        }
+    }
+
+    /**
+     * Revoke a set of registry rows by id, cascading to oauth_tokens.
+     * Used by the user-facing "Revoke all matching the current filter" flow.
+     *
+     * @param int[] $ids
+     * @return int Number of registry rows revoked
+     */
+    public function revokeByIds(array $ids, ?int $revokedBy = null): int
+    {
+        if (empty($ids)) {
+            return 0;
+        }
+        try {
+            $db        = $this->db();
+            $idsInts   = array_map('intval', $ids);
+            $idsQuoted = $db->quote($idsInts);
+            $prefixes  = $db->fetchAllColumn(
+                "SELECT token_prefix FROM xf_chgold_aiconnect_token_registry WHERE id IN ($idsQuoted)"
+            );
+            $time     = \XF::$time;
+            $affected = (int)$db->update(
+                'xf_chgold_aiconnect_token_registry',
+                [
+                    'revoked_at' => $time,
+                    'revoked_by' => $revokedBy,
+                ],
+                "id IN ($idsQuoted) AND (revoked_at IS NULL OR revoked_at = 0)"
+            );
+            if ($affected > 0) {
+                $this->cascadeRevokeOAuthRows($prefixes, $time);
+            }
+            return $affected;
+        } catch (\Throwable $e) {
+            \XF::logException($e, false, 'TokenRegistry::revokeByIds failed: ');
+            return 0;
         }
     }
 
@@ -163,15 +263,26 @@ class TokenRegistry extends Repository
             return 0;
         }
         try {
-            return (int)$this->db()->update(
+            $db       = $this->db();
+            $prefixes = $db->fetchAllColumn(
+                'SELECT token_prefix FROM xf_chgold_aiconnect_token_registry
+                 WHERE user_id = ? AND (revoked_at IS NULL OR revoked_at = 0)',
+                $userId
+            );
+            $time     = \XF::$time;
+            $affected = (int)$db->update(
                 'xf_chgold_aiconnect_token_registry',
                 [
-                    'revoked_at' => \XF::$time,
+                    'revoked_at' => $time,
                     'revoked_by' => $revokedBy,
                 ],
                 'user_id = ? AND revoked_at IS NULL',
                 $userId
             );
+            if ($affected > 0) {
+                $this->cascadeRevokeOAuthRows($prefixes, $time);
+            }
+            return $affected;
         } catch (\Throwable $e) {
             \XF::logException($e, false, 'TokenRegistry::revokeAllForUser failed: ');
             return 0;
@@ -187,14 +298,24 @@ class TokenRegistry extends Repository
     {
         $cutoff = \XF::$time - ($days * 86400);
         try {
-            $db = $this->db();
+            $db       = $this->db();
+            $prefixes = $db->fetchAllColumn(
+                'SELECT token_prefix FROM xf_chgold_aiconnect_token_registry
+                 WHERE last_used_at IS NULL AND issued_at < ? AND revoked_at IS NULL',
+                $cutoff
+            );
+            $time = \XF::$time;
             $db->query(
                 'UPDATE xf_chgold_aiconnect_token_registry
                  SET revoked_at = ?, revoked_by = ?
                  WHERE last_used_at IS NULL AND issued_at < ? AND revoked_at IS NULL',
-                [\XF::$time, $revokedBy ?? 0, $cutoff]
+                [$time, $revokedBy ?? 0, $cutoff]
             );
-            return $db->affectedRows();
+            $affected = (int)$db->affectedRows();
+            if ($affected > 0) {
+                $this->cascadeRevokeOAuthRows($prefixes, $time);
+            }
+            return $affected;
         } catch (\Throwable $e) {
             \XF::logException($e, false, 'TokenRegistry::revokeUnused failed: ');
             return 0;
@@ -210,14 +331,24 @@ class TokenRegistry extends Repository
     {
         $cutoff = \XF::$time - ($days * 86400);
         try {
-            $db = $this->db();
+            $db       = $this->db();
+            $prefixes = $db->fetchAllColumn(
+                'SELECT token_prefix FROM xf_chgold_aiconnect_token_registry
+                 WHERE last_used_at IS NOT NULL AND last_used_at < ? AND revoked_at IS NULL',
+                $cutoff
+            );
+            $time = \XF::$time;
             $db->query(
                 'UPDATE xf_chgold_aiconnect_token_registry
                  SET revoked_at = ?, revoked_by = ?
                  WHERE last_used_at IS NOT NULL AND last_used_at < ? AND revoked_at IS NULL',
-                [\XF::$time, $revokedBy ?? 0, $cutoff]
+                [$time, $revokedBy ?? 0, $cutoff]
             );
-            return $db->affectedRows();
+            $affected = (int)$db->affectedRows();
+            if ($affected > 0) {
+                $this->cascadeRevokeOAuthRows($prefixes, $time);
+            }
+            return $affected;
         } catch (\Throwable $e) {
             \XF::logException($e, false, 'TokenRegistry::revokeInactive failed: ');
             return 0;
@@ -242,11 +373,10 @@ class TokenRegistry extends Repository
     /**
      * Run all 4 cleanup rules and update the last-run timestamp.
      *
-     * Rules:
-     *   1. Never used + older than 30 days  → revoke
-     *   2. Last used > 180 days ago          → revoke
-     *   3. Expired > 90 days ago (not revoked yet) → revoke
-     *   4. Revoked > 365 days ago            → hard DELETE
+     * Rules 1-3 use registry UPDATE and ALSO cascade into oauth_tokens so the
+     * refresh-token can't be exchanged after the cleanup pass.
+     * Rule 4 is a hard DELETE on rows already revoked > 365 days ago — by then
+     * the oauth row was either already cascaded or is itself long-pruned.
      *
      * @return array{unused: int, inactive: int, expired: int, deleted: int}
      */
@@ -257,7 +387,12 @@ class TokenRegistry extends Repository
         $results = ['unused' => 0, 'inactive' => 0, 'expired' => 0, 'deleted' => 0];
 
         try {
-            // Rule 1: never used + older than 30 days → revoke
+            // Rule 1: never used + older than 30 days → revoke (+ cascade)
+            $prefixes1 = $db->fetchAllColumn(
+                'SELECT token_prefix FROM xf_chgold_aiconnect_token_registry
+                 WHERE last_used_at IS NULL AND issued_at < ? AND revoked_at IS NULL',
+                $now - 30 * 86400
+            );
             $db->query(
                 'UPDATE xf_chgold_aiconnect_token_registry
                  SET revoked_at = ?, revoked_by = 0
@@ -265,8 +400,16 @@ class TokenRegistry extends Repository
                 [$now, $now - 30 * 86400]
             );
             $results['unused'] = $db->affectedRows();
+            if ($results['unused'] > 0) {
+                $this->cascadeRevokeOAuthRows($prefixes1, $now);
+            }
 
-            // Rule 2: last used > 180 days ago → revoke
+            // Rule 2: last used > 180 days ago → revoke (+ cascade)
+            $prefixes2 = $db->fetchAllColumn(
+                'SELECT token_prefix FROM xf_chgold_aiconnect_token_registry
+                 WHERE last_used_at IS NOT NULL AND last_used_at < ? AND revoked_at IS NULL',
+                $now - 180 * 86400
+            );
             $db->query(
                 'UPDATE xf_chgold_aiconnect_token_registry
                  SET revoked_at = ?, revoked_by = 0
@@ -274,8 +417,16 @@ class TokenRegistry extends Repository
                 [$now, $now - 180 * 86400]
             );
             $results['inactive'] = $db->affectedRows();
+            if ($results['inactive'] > 0) {
+                $this->cascadeRevokeOAuthRows($prefixes2, $now);
+            }
 
-            // Rule 3: expired > 90 days ago (and not yet revoked) → revoke
+            // Rule 3: expired > 90 days ago (and not yet revoked) → revoke (+ cascade)
+            $prefixes3 = $db->fetchAllColumn(
+                'SELECT token_prefix FROM xf_chgold_aiconnect_token_registry
+                 WHERE revoked_at IS NULL AND expires_at < ?',
+                $now - 90 * 86400
+            );
             $db->query(
                 'UPDATE xf_chgold_aiconnect_token_registry
                  SET revoked_at = ?, revoked_by = 0
@@ -283,8 +434,11 @@ class TokenRegistry extends Repository
                 [$now, $now - 90 * 86400]
             );
             $results['expired'] = $db->affectedRows();
+            if ($results['expired'] > 0) {
+                $this->cascadeRevokeOAuthRows($prefixes3, $now);
+            }
 
-            // Rule 4: revoked > 365 days ago → hard DELETE
+            // Rule 4: revoked > 365 days ago → hard DELETE (no cascade needed)
             $db->query(
                 'DELETE FROM xf_chgold_aiconnect_token_registry
                  WHERE revoked_at IS NOT NULL AND revoked_at < ?',

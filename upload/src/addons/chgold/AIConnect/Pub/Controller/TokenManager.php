@@ -89,19 +89,7 @@ class TokenManager extends AbstractController
         if ($this->isPost()) {
             $tokens   = $finder->fetch();
             $tokenIds = $tokens->keys();
-
-            $count = 0;
-            if (!empty($tokenIds)) {
-                $count = (int)\XF::db()->update(
-                    'xf_chgold_aiconnect_token_registry',
-                    [
-                        'revoked_at' => $time,
-                        'revoked_by' => $visitor->user_id ?: 0,
-                    ],
-                    'id IN (' . \XF::db()->quote($tokenIds) . ')
-                        AND (revoked_at IS NULL OR revoked_at = 0)'
-                );
-            }
+            $count    = $repo->revokeByIds($tokenIds, (int)$visitor->user_id);
 
             return $this->redirect(
                 $this->buildLink('ai-connect-tokens', null, ['filter' => $filter]),
