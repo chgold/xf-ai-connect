@@ -561,7 +561,7 @@ Documentation: {$infoUrl}</pre>
     </script>
 </body>
 </html>]]></template>
-  <template type="public" title="aiconnect_my_tokens" version_id="1023400" version_string="1.2.34"><![CDATA[<xf:title>{{ phrase('aiconnect_my_tokens_title') }}</xf:title>
+  <template type="public" title="aiconnect_my_tokens" version_id="1023500" version_string="1.2.35"><![CDATA[<xf:title>{{ phrase('aiconnect_my_tokens_title') }}</xf:title>
 
 <div class="block">
     <div class="block-container">
@@ -571,6 +571,7 @@ Documentation: {$infoUrl}</pre>
             </div>
             <div class="block-row">
                 <a href="{{ link('ai-connect-tokens', null, {'filter': 'active'}) }}" class="button{{ $filter == 'active' ? ' button--primary' : '' }}">{{ phrase('aiconnect_tokens_filter_active') }}</a>
+                <a href="{{ link('ai-connect-tokens', null, {'filter': 'renewable'}) }}" class="button{{ $filter == 'renewable' ? ' button--primary' : '' }}">{{ phrase('aiconnect_tokens_filter_renewable') }}</a>
                 <a href="{{ link('ai-connect-tokens', null, {'filter': 'unused'}) }}" class="button{{ $filter == 'unused' ? ' button--primary' : '' }}">{{ phrase('aiconnect_tokens_filter_unused') }}</a>
                 <a href="{{ link('ai-connect-tokens', null, {'filter': 'inactive'}) }}" class="button{{ $filter == 'inactive' ? ' button--primary' : '' }}">{{ phrase('aiconnect_tokens_filter_inactive') }}</a>
                 <a href="{{ link('ai-connect-tokens', null, {'filter': 'all'}) }}" class="button{{ $filter == 'all' ? ' button--primary' : '' }}">{{ phrase('aiconnect_tokens_filter_all') }}</a>
@@ -614,6 +615,8 @@ Documentation: {$infoUrl}</pre>
                                 <td class="dataList-cell">
                                     <xf:if is="$token.revoked_at">
                                         <span class="label label--red">{{ phrase('aiconnect_my_tokens_state_revoked') }}</span>
+                                    <xf:elseif is="$token.expires_at <= $xf.time && $token.refresh_expires_at > $xf.time" />
+                                        <span class="label label--blue">{{ phrase('aiconnect_my_tokens_state_renewable') }}</span>
                                     <xf:elseif is="!$token.last_used_at" />
                                         <span class="label label--warning">{{ phrase('aiconnect_my_tokens_state_unused') }}</span>
                                     <xf:elseif is="$token.last_used_at < ($xf.time - 2592000)" />

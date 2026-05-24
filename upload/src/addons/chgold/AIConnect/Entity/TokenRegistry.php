@@ -20,6 +20,7 @@ use XF\Mvc\Entity\Structure;
  * @property string      $scope
  * @property int         $issued_at
  * @property int         $expires_at
+ * @property int|null    $refresh_expires_at
  * @property int|null    $last_used_at
  * @property int|null    $revoked_at
  * @property int|null    $revoked_by
@@ -47,6 +48,7 @@ class TokenRegistry extends Entity
             'scope'        => ['type' => self::STR, 'maxLength' => 255, 'default' => 'read'],
             'issued_at'    => ['type' => self::UINT, 'default' => \XF::$time],
             'expires_at'   => ['type' => self::UINT, 'required' => true],
+            'refresh_expires_at' => ['type' => self::UINT, 'nullable' => true, 'default' => null],
             'last_used_at' => ['type' => self::UINT, 'nullable' => true, 'default' => null],
             'revoked_at'   => ['type' => self::UINT, 'nullable' => true, 'default' => null],
             'revoked_by'   => ['type' => self::UINT, 'nullable' => true, 'default' => null],

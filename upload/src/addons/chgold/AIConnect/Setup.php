@@ -157,6 +157,7 @@ class Setup extends AbstractSetup
             $table->addColumn('scope', 'varchar', 255);
             $table->addColumn('issued_at', 'int');
             $table->addColumn('expires_at', 'int');
+            $table->addColumn('refresh_expires_at', 'int')->nullable();
             $table->addColumn('last_used_at', 'int')->nullable();
             $table->addColumn('last_used_ip', 'varchar', 45)->nullable();
             $table->addColumn('last_used_ua', 'varchar', 255)->nullable();
@@ -888,6 +889,36 @@ class Setup extends AbstractSetup
                 $table->addColumn('last_used_ua', 'varchar', 255)->nullable()->after('last_used_ip');
             }
         });
+    }
+
+    /**
+     * v1.2.35 — add refresh_expires_at column to token_registry so the UI
+     * can distinguish "renewable" tokens (access expired but refresh still
+     * valid) and keep them manageable in the user-facing token list.
+     *
+     * Also backfills the new column from xf_ai_connect_oauth_tokens for
+     * existing rows, matching by the 16-char access-token prefix.
+     */
+    public function upgrade1023500Step1()
+    {
+        $this->schemaManager()->alterTable('xf_chgold_aiconnect_token_registry', function (Alter $table) {
+            if (!$table->getColumnDefinition('refresh_expires_at')) {
+                $table->addColumn('refresh_expires_at', 'int')->nullable()->after('expires_at');
+            }
+        });
+
+        // Backfill from the live oauth_tokens table (one-time data migration).
+        try {
+            \XF::db()->query(
+                'UPDATE xf_chgold_aiconnect_token_registry r
+                 INNER JOIN xf_ai_connect_oauth_tokens o
+                         ON LEFT(o.access_token, 16) = r.token_prefix
+                 SET r.refresh_expires_at = o.refresh_token_expires_date
+                 WHERE r.refresh_expires_at IS NULL'
+            );
+        } catch (\Throwable $e) {
+            \XF::logException($e, false, 'AIConnect 1.2.35 backfill failed: ');
+        }
     }
 
     public function uninstallStep1()

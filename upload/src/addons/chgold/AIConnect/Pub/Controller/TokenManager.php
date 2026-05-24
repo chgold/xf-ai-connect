@@ -27,7 +27,17 @@ class TokenManager extends AbstractController
                 $finder->whereOr(
                     ['revoked_at', '=', null],
                     ['revoked_at', '=', 0]
-                )->where('expires_at', '>', $time);
+                );
+                // Show if access is alive OR refresh is alive (renewable).
+                $finder->whereOr(
+                    ['expires_at', '>', $time],
+                    ['refresh_expires_at', '>', $time]
+                );
+                break;
+            case 'renewable':
+                $finder->whereOr(['revoked_at', '=', null], ['revoked_at', '=', 0]);
+                $finder->where('expires_at', '<=', $time);
+                $finder->where('refresh_expires_at', '>', $time);
                 break;
             case 'unused':
                 $finder->where('last_used_at', null);

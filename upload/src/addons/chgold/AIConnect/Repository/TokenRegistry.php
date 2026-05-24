@@ -39,7 +39,8 @@ class TokenRegistry extends Repository
         array $scopes,
         int $expiresAt,
         string $source = 'oauth',
-        ?string $ipAddress = null
+        ?string $ipAddress = null,
+        ?int $refreshExpiresAt = null
     ): void {
         $prefix = $this->prefixOf($accessToken);
         if ($prefix === '') {
@@ -47,14 +48,15 @@ class TokenRegistry extends Repository
         }
         try {
             $this->db()->insert('xf_chgold_aiconnect_token_registry', [
-                'token_prefix' => $prefix,
-                'user_id'      => $userId,
-                'client_id'    => $clientId,
-                'scope'        => implode(' ', $scopes),
-                'issued_at'    => \XF::$time,
-                'expires_at'   => $expiresAt,
-                'source'       => $source,
-                'ip_address'   => $ipAddress,
+                'token_prefix'       => $prefix,
+                'user_id'            => $userId,
+                'client_id'          => $clientId,
+                'scope'              => implode(' ', $scopes),
+                'issued_at'          => \XF::$time,
+                'expires_at'         => $expiresAt,
+                'refresh_expires_at' => $refreshExpiresAt,
+                'source'             => $source,
+                'ip_address'         => $ipAddress,
             ]);
         } catch (\Throwable $e) {
             \XF::logException($e, false, 'TokenRegistry::record failed: ');

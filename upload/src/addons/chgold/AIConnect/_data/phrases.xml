@@ -60,6 +60,7 @@ For documentation: {infoUrl}]]></phrase>
   <phrase title="aiconnect_my_tokens_revoked_success" version_id="1023400" version_string="1.2.34"><![CDATA[Token revoked successfully.]]></phrase>
   <phrase title="aiconnect_my_tokens_state_active" version_id="1023400" version_string="1.2.34"><![CDATA[Active]]></phrase>
   <phrase title="aiconnect_my_tokens_state_inactive" version_id="1023400" version_string="1.2.34"><![CDATA[Inactive]]></phrase>
+  <phrase title="aiconnect_my_tokens_state_renewable" version_id="1023500" version_string="1.2.35"><![CDATA[Renewable]]></phrase>
   <phrase title="aiconnect_my_tokens_state_revoked" version_id="1023400" version_string="1.2.34"><![CDATA[Revoked]]></phrase>
   <phrase title="aiconnect_my_tokens_state_unused" version_id="1023400" version_string="1.2.34"><![CDATA[Not used yet]]></phrase>
   <phrase title="aiconnect_my_tokens_title" version_id="1023400" version_string="1.2.34"><![CDATA[My AI Connect Tokens]]></phrase>
@@ -102,6 +103,7 @@ For documentation: {infoUrl}]]></phrase>
   <phrase title="aiconnect_tokens_filter_active" version_id="1023100" version_string="1.2.31"><![CDATA[Active only]]></phrase>
   <phrase title="aiconnect_tokens_filter_all" version_id="1023100" version_string="1.2.31"><![CDATA[All]]></phrase>
   <phrase title="aiconnect_tokens_filter_inactive" version_id="1023400" version_string="1.2.34"><![CDATA[Inactive (30+ days)]]></phrase>
+  <phrase title="aiconnect_tokens_filter_renewable" version_id="1023500" version_string="1.2.35"><![CDATA[Renewable]]></phrase>
   <phrase title="aiconnect_tokens_filter_revoked" version_id="1023100" version_string="1.2.31"><![CDATA[Revoked only]]></phrase>
   <phrase title="aiconnect_tokens_filter_unused" version_id="1023400" version_string="1.2.34"><![CDATA[Unused (never used)]]></phrase>
   <phrase title="aiconnect_tokens_invalid_id" version_id="1023100" version_string="1.2.31"><![CDATA[Invalid token ID.]]></phrase>

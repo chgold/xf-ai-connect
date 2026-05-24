@@ -122,7 +122,7 @@ class OAuthServer extends AbstractService
             'created_date' => $time
         ]);
 
-        $this->recordInRegistry($accessToken, $userId, $clientId, $scopes, $expiresDate, $source);
+        $this->recordInRegistry($accessToken, $userId, $clientId, $scopes, $expiresDate, $source, $refreshTokenExpiresDate);
 
         return [
             'access_token' => $accessToken,
@@ -143,7 +143,8 @@ class OAuthServer extends AbstractService
         string $clientId,
         array $scopes,
         int $expiresDate,
-        string $source
+        string $source,
+        ?int $refreshExpiresDate = null
     ): void {
         try {
             $request = \XF::app()->request();
@@ -151,7 +152,16 @@ class OAuthServer extends AbstractService
 
             /** @var \chgold\AIConnect\Repository\TokenRegistry $registry */
             $registry = \XF::repository('chgold\AIConnect:TokenRegistry');
-            $registry->record($accessToken, $userId, $clientId, $scopes, $expiresDate, $source, $ip);
+            $registry->record(
+                $accessToken,
+                $userId,
+                $clientId,
+                $scopes,
+                $expiresDate,
+                $source,
+                $ip,
+                $refreshExpiresDate
+            );
         } catch (\Throwable $e) {
             \XF::logException($e, false, 'OAuthServer::recordInRegistry failed: ');
         }
