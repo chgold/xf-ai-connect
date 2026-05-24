@@ -13,6 +13,6 @@
   <route route_type="api" route_prefix="aiconnect-tools" controller="chgold\AIConnect:Tools"/>
   <route route_type="public" route_prefix="ai-connect" controller="chgold\AIConnect:InfoPage"/>
   <route route_type="public" route_prefix="ai-connect-tokens" controller="chgold\AIConnect:TokenManager" context="aiConnectMyTokens"/>
-  <route route_type="public" route_prefix="ai-connect-tokens" sub_name="revoke" format="revoke/:int&lt;token_id&gt;/" controller="chgold\AIConnect:TokenManager" context="aiConnectMyTokensRevoke"/>
+  <route route_type="public" route_prefix="ai-connect-tokens" sub_name="revoke" format="revoke/:int&lt;id&gt;/" controller="chgold\AIConnect:TokenManager" context="aiConnectMyTokensRevoke" action_prefix="revoke"/>
   <route route_type="public" route_prefix="ai-connect-tokens" sub_name="revokeAll" format="revoke-all/" controller="chgold\AIConnect:TokenManager" context="aiConnectMyTokensRevokeAll"/>
 </routes>

@@ -58,7 +58,7 @@ class TokenManager extends AbstractController
     public function actionRevoke(ParameterBag $params)
     {
         $visitor = \XF::visitor();
-        $tokenId = (int)$params->token_id;
+        $tokenId = (int)($params->id ?: $params->token_id);
 
         if (!$tokenId) {
             return $this->error(\XF::phrase('aiconnect_tokens_invalid_id'));
