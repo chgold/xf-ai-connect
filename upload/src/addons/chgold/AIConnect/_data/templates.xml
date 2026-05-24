@@ -353,7 +353,6 @@
                 <button class="btn btn-approve" id="generateTokenBtn" type="button" style="padding: 14px 32px; font-size: 16px; background: linear-gradient(135deg, #6c63ff, #4834d4); border: none; border-radius: 8px; color: white; cursor: pointer; font-weight: 600;">&#x26A1; Generate Token &amp; Prompt</button>
                 <p id="tokenStatus" style="color: #aaa; font-size: 13px; margin-top: 8px;"></p>
                 <p style="color: #f59e0b; font-size: 12px; margin-top: 8px;">⚠️ This token grants access as <strong>you</strong>. Anyone who has it can act on your behalf. Do not share it with anyone you do not trust.</p>
-                <p style="margin-top:10px;"><a href="{{ link('ai-connect-tokens') }}" style="color:#6b7280;font-size:14px;font-weight:500;text-decoration:underline;">📋 {{ phrase('aiconnect_my_tokens_manage_link') }}</a></p>
             </div>
             <div id="tokenPromptBox" class="prompt-box" style="display:none; margin-bottom: 32px;">
                 <button class="copy-btn" id="copyTokenBtn" type="button">
@@ -362,7 +361,6 @@
                 </button>
                 <pre id="tokenPromptText"></pre>
             </div>
-            <div style="text-align:center;margin-top:14px;"><a href="{{ link('ai-connect-tokens') }}" style="color:#6b7280;font-size:14px;font-weight:500;text-decoration:underline;">📋 {{ phrase('aiconnect_my_tokens_manage_link') }}</a></div>
             <xf:elseif is="$xf.visitor.user_id" />
             <div style="text-align:center; margin-bottom: 24px;">
                 <p style="color: #9ca3af; font-size: 14px; margin: 0;">You do not have permission to use AI Connect tools. Contact an administrator to request access.</p>
@@ -423,7 +421,6 @@ Documentation: {$infoUrl}</pre>
                     <svg class="step-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
                     <h3>Generate Token</h3>
                     <p>Click the button above to generate a secure access token for your AI agent.</p>
-                    <p style="margin-top:6px;"><a href="{{ link('ai-connect-tokens') }}" style="color:#9ca3af;font-size:13px;text-decoration:none;border-bottom:1px dotted #6b7280;">📋 {{ phrase('aiconnect_my_tokens_manage_link') }}</a></p>
                 </div>
                 <div class="step-card">
                     <div class="step-num">2</div>

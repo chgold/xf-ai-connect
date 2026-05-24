@@ -116,6 +116,8 @@ For documentation: {infoUrl}]]></phrase>
   <phrase title="invalid_client" version_id="1011400" version_string="1.1.14"><![CDATA[Error: Invalid OAuth client.]]></phrase>
   <phrase title="invalid_redirect_uri" version_id="1011400" version_string="1.1.14"><![CDATA[Error: Invalid redirect URI.]]></phrase>
   <phrase title="invalid_scope" version_id="1011400" version_string="1.1.14"><![CDATA[Error: Invalid scope requested.]]></phrase>
+  <phrase title="nav.ai_connect" version_id="1023400" version_string="1.2.34"><![CDATA[AI Connect]]></phrase>
+  <phrase title="nav.ai_connect_my_tokens" version_id="1023400" version_string="1.2.34"><![CDATA[My AI Tokens]]></phrase>
   <phrase title="option.aiconnect_nav_bottom" version_id="1011600" version_string="1.1.16"><![CDATA[Show next to RSS button (footer)]]></phrase>
   <phrase title="option.aiconnect_nav_top" version_id="1012100" version_string="1.2.1"><![CDATA[Show AI Connect link to guests and visitors without tool access]]></phrase>
   <phrase title="option.aiconnect_translation_provider" version_id="1012900" version_string="1.1.29"><![CDATA[Translation provider]]></phrase>
