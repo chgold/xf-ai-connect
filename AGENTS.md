@@ -55,6 +55,33 @@ sudo -u xenforo-dev opencode
 
 ---
 
+## Token Management (חובה)
+
+תוסף זה חייב לעמוד ב-SPEC: **Token Management UI & Lifecycle v1.0** (`/workspace/.specs/TOKEN-MANAGEMENT-SPEC.md`).
+
+דרישות מינימום:
+- `xf_chgold_aiconnect_token_registry` table עם prefix-only storage (16 chars)
+- `last_used_at`, `last_used_ip`, `last_used_ua` — מתעדכנים בכל בקשה דרך `markUsed`
+- User-facing nav `My AI Tokens` תחת `AI Connect` (מותנה ב-`hasAiConnectActiveTokens()`)
+- 6 פילטרים: Active / Renewable / Unused / Inactive / Revoked / All
+- Cascade revoke ל-`xf_ai_connect_oauth_tokens` (kills refresh_token too) — חובה אבטחתית
+- Bulk revoke filter-aware
+- Lazy cleanup (24h gate) מופעל אחרי auth מוצלח
+
+קבצים עיקריים:
+| קובץ | תפקיד |
+|---|---|
+| `Repository/TokenRegistry.php` | כל פעולות הregistry + cascade |
+| `Service/OAuthServer.php` | Bearer auth — קורא markUsed + cleanup |
+| `Pub/Controller/TokenManager.php` | User-facing controller |
+| `Admin/Controller/Tokens.php` | Admin UI עם bulk actions |
+| `Helper/Nav.php` | hasActiveTokens helper |
+| `Setup.php` | Migrations (1023400/1023500/1023501/1023502) |
+
+ראה reference implementation v1.2.35.2.
+
+---
+
 ## כללי עבודה
 
 1. **חובה להריץ בדיקה לאחר כל שינוי:**

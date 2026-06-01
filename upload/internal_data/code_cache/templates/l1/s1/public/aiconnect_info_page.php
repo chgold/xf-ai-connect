@@ -1,0 +1,458 @@
+<?php
+// FROM HASH: 5a6cb05136cb0fbde1f39c5f9d152358
+return array(
+'code' => function($__templater, array $__vars, $__extensions = null)
+{
+	$__finalCompiled = '';
+	$__finalCompiled .= '<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Connect — ' . $__templater->escape($__vars['forumTitle']) . '</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <style>
+        :root {
+            --navy: #1a1a2e;
+            --navy-light: #16213e;
+            --primary: #007bff;
+            --accent: #6c63ff;
+            --success: #28a745;
+            --text: #1a1a1a;
+            --text-muted: #64748b;
+            --bg: #ffffff;
+            --code-bg: #0f172a;
+            --code-text: #e2e8f0;
+            --radius: 16px;
+            --radius-sm: 8px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: \'DM Sans\', -apple-system, BlinkMacSystemFont, sans-serif;
+            color: var(--text);
+            background: var(--bg);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .hero {
+            background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 50%, #0a1628 100%);
+            color: white;
+            padding: 80px 24px 64px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .hero::before {
+            content: \'\';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 30% 40%, rgba(108,99,255,0.15) 0%, transparent 50%),
+                        radial-gradient(circle at 70% 60%, rgba(0,123,255,0.1) 0%, transparent 50%);
+            animation: heroFloat 20s ease-in-out infinite;
+        }
+        @keyframes heroFloat {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(-2%, 2%); }
+        }
+        .hero-content { position: relative; z-index: 1; max-width: 640px; margin: 0 auto; }
+        .hero-icon { width: 72px; height: 72px; margin: 0 auto 24px; color: var(--accent); }
+        .hero h1 { font-size: 38px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 10px; }
+        .hero h1 span {
+            background: linear-gradient(135deg, #a5b4fc, var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .hero .subtitle { font-size: 16px; opacity: 0.65; font-weight: 400; }
+
+        .main { max-width: 720px; margin: 0 auto; padding: 0 24px; }
+
+        .about {
+            margin-top: -32px;
+            position: relative;
+            z-index: 2;
+            background: white;
+            border-radius: var(--radius);
+            padding: 32px;
+            box-shadow: 0 4px 32px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04);
+            border: 1px solid rgba(0,0,0,0.04);
+        }
+        .about h2 { font-size: 22px; font-weight: 700; margin-bottom: 12px; }
+        .about p { font-size: 15px; line-height: 1.75; color: var(--text-muted); }
+
+        .prompt-section { margin-top: 48px; }
+        .prompt-section h2 { font-size: 22px; font-weight: 700; margin-bottom: 16px; text-align: center; }
+        .prompt-box {
+            position: relative;
+            background: var(--code-bg);
+            border-radius: var(--radius);
+            padding: 28px;
+            padding-top: 56px;
+            box-shadow: 0 8px 40px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.06);
+        }
+        .prompt-box::before {
+            content: \'\';
+            position: absolute;
+            inset: -1px;
+            border-radius: var(--radius);
+            padding: 1px;
+            background: linear-gradient(135deg, rgba(108,99,255,0.3), transparent 60%);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+        }
+        .prompt-box pre {
+            font-family: \'JetBrains Mono\', \'Fira Code\', monospace;
+            font-size: 13px;
+            line-height: 1.75;
+            color: var(--code-text);
+            white-space: pre-wrap;
+            word-break: break-word;
+            margin: 0;
+        }
+        .copy-btn {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 18px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-family: \'DM Sans\', sans-serif;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .copy-btn:hover { background: #0069d9; transform: translateY(-1px); }
+        .copy-btn.copied { background: var(--success); }
+        .copy-btn svg { width: 14px; height: 14px; }
+
+        .steps { margin-top: 56px; margin-bottom: 48px; }
+        .steps h2 { font-size: 22px; font-weight: 700; margin-bottom: 28px; text-align: center; }
+        .steps-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+        .step-card {
+            background: white;
+            border-radius: var(--radius);
+            padding: 28px 20px;
+            text-align: center;
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s;
+        }
+        .step-card:hover {
+            border-color: var(--accent);
+            box-shadow: 0 4px 20px rgba(108,99,255,0.1);
+            transform: translateY(-2px);
+        }
+        .step-num {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: white;
+            font-weight: 700;
+            font-size: 16px;
+            margin-bottom: 16px;
+        }
+        .step-icon { width: 28px; height: 28px; color: var(--accent); margin-bottom: 12px; }
+        .step-card h3 { font-size: 15px; font-weight: 600; margin-bottom: 8px; }
+        .step-card p { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+
+        .docs-cta { text-align: center; margin-bottom: 56px; }
+        .docs-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 28px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: white;
+            text-decoration: none;
+            border-radius: var(--radius-sm);
+            font-family: \'DM Sans\', sans-serif;
+            font-weight: 500;
+            font-size: 15px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 16px rgba(108,99,255,0.25);
+        }
+        .docs-link:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(108,99,255,0.35); }
+        .docs-link svg { width: 16px; height: 16px; }
+
+        .footer {
+            text-align: center;
+            padding: 24px;
+            border-top: 1px solid #e2e8f0;
+            color: var(--text-muted);
+            font-size: 12px;
+        }
+        .footer a { color: var(--accent); text-decoration: none; }
+
+        @media (max-width: 640px) {
+            .hero { padding: 56px 20px 48px; }
+            .hero h1 { font-size: 28px; }
+            .hero-icon { width: 56px; height: 56px; }
+            .steps-grid { grid-template-columns: 1fr; gap: 16px; }
+            .prompt-box { padding: 20px; padding-top: 52px; }
+            .prompt-box pre { font-size: 12px; }
+            .about { margin-top: -20px; padding: 24px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="hero">
+        <div class="hero-content">
+            <img src="' . $__templater->func('base_url', array('js/aiconnect/icon.png', ), true) . '" class="hero-icon" alt="AI Connect" />
+            <h1><span>AI Connect</span></h1>
+            <p class="subtitle">' . $__templater->escape($__vars['forumTitle']) . '</p>
+        </div>
+    </div>
+
+    <div class="main">
+        <div class="about">
+            <h2>What is AI Connect?</h2>
+            <p>AI Connect bridges your forum with AI assistants like ChatGPT, Claude, and Gemini. It gives AI agents secure, permission-aware access to search, read, and interact with your community &mdash; all through a standardized protocol with OAuth&nbsp;2.0 authentication.</p>
+        </div>
+
+        <div class="prompt-section">
+            <h2>Connect Your AI</h2>
+            ';
+	if ($__vars['xf']['visitor']['user_id'] AND $__templater->method($__vars['xf']['visitor'], 'hasPermission', array('aiconnect', 'useTools', ))) {
+		$__finalCompiled .= '
+            <div style="text-align:center; margin-bottom: 24px;">
+                <button class="btn btn-approve" id="generateTokenBtn" type="button" style="padding: 14px 32px; font-size: 16px; background: linear-gradient(135deg, #6c63ff, #4834d4); border: none; border-radius: 8px; color: white; cursor: pointer; font-weight: 600;">&#x26A1; Generate Token &amp; Prompt</button>
+                <p id="tokenStatus" style="color: #aaa; font-size: 13px; margin-top: 8px;"></p>
+                <p style="color: #f59e0b; font-size: 12px; margin-top: 8px;">⚠️ This token grants access as <strong>you</strong>. Anyone who has it can act on your behalf. Do not share it with anyone you do not trust.</p>
+            </div>
+            <div id="tokenPromptBox" class="prompt-box" style="display:none; margin-bottom: 32px;">
+                <button class="copy-btn" id="copyTokenBtn" type="button">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" stroke-width="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" stroke-width="2"/></svg>
+                    <span>Copy</span>
+                </button>
+                <pre id="tokenPromptText"></pre>
+            </div>
+            ';
+	} else if ($__vars['xf']['visitor']['user_id']) {
+		$__finalCompiled .= '
+            <div style="text-align:center; margin-bottom: 24px;">
+                <p style="color: #9ca3af; font-size: 14px; margin: 0;">You do not have permission to use AI Connect tools. Contact an administrator to request access.</p>
+            </div>
+            ';
+	} else {
+		$__finalCompiled .= '
+            <div style="text-align:center; margin-bottom: 24px;">
+                <a href="' . $__templater->func('link', array('login', ), true) . '" style="padding: 14px 32px; font-size: 16px; background: #555; border-radius: 8px; color: white; text-decoration: none; display: inline-block;">Log in to generate a token</a>
+            </div>
+            ';
+	}
+	$__finalCompiled .= '
+            ';
+	if ((!$__vars['xf']['visitor']['user_id']) OR $__templater->method($__vars['xf']['visitor'], 'hasPermission', array('aiconnect', 'useTools', ))) {
+		$__finalCompiled .= '
+            <details style="margin-top: 16px;">
+            <summary style="cursor: pointer; color: var(--accent); font-size: 14px;">Advanced: OAuth Prompt for CLI Agents</summary>
+            <div style="margin-top: 12px;">
+            <h2>Quick Start Prompt</h2>
+            <div class="prompt-box">
+                <button class="copy-btn" id="copyBtn" type="button">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" stroke-width="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" stroke-width="2"/></svg>
+                    <span>Copy</span>
+                </button>
+                <pre id="promptText">You have access to ' . $__templater->escape($__vars['forumTitle']) . ' via AI Connect.
+
+Do ALL of the following immediately and automatically — no asking for permission at each step:
+
+1. Fetch the manifest right now:
+   GET ' . $__templater->escape($__vars['manifestUrl']) . '
+
+2. Start the auth session — call this URL using web_fetch (GET):
+   GET ' . $__templater->escape($__vars['tokenUrl']) . '/start?client_id=claude&_t=CURRENT_UNIX_TIMESTAMP (replace CURRENT_UNIX_TIMESTAMP with current epoch seconds to avoid caching)
+   You will receive: session_id, auth_url, poll_url
+
+3. Show the auth_url to the user and ask them to open it in their browser, log in, and approve.
+
+4. Once the user confirms they approved — immediately call the poll_url using web_fetch (GET).
+   If response has status "pending", wait 5 seconds and try again.
+   When you receive access_token in the response — you are connected!
+
+5. Verify the connection — call getCurrentUser using web_fetch GET (read-only tools support GET):
+   GET ' . $__templater->escape($__vars['toolsUrl']) . '?token={access_token}&name=xenforo.getCurrentUser&args={}
+
+   READ tools (GET supported): searchThreads, getThread, searchPosts, getPost, getCurrentUser, getSupportedLanguages
+   GET ' . $__templater->escape($__vars['toolsUrl']) . '?token={access_token}&name=xenforo.searchThreads&args={"search":"keyword","limit":10}
+
+   Translation tool (POST only — use Bearer token):
+   curl -X POST "' . $__templater->escape($__vars['toolsUrl']) . '" -H "Authorization: Bearer {access_token}" -H "Content-Type: application/json" -d "{\\"name\\":\\"translation.translate\\",\\"arguments\\":{\\"text\\":\\"Hello\\",\\"target_lang\\":\\"he\\"}}"
+
+Documentation: ' . $__templater->escape($__vars['infoUrl']) . '</pre>
+            </div>
+            </div>
+            </details>
+            ';
+	}
+	$__finalCompiled .= '
+        </div>
+
+        <div class="steps">
+            <h2>How It Works</h2>
+            <div class="steps-grid">
+                <div class="step-card">
+                    <div class="step-num">1</div>
+                    <svg class="step-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                    <h3>Generate Token</h3>
+                    <p>Click the button above to generate a secure access token for your AI agent.</p>
+                </div>
+                <div class="step-card">
+                    <div class="step-num">2</div>
+                    <svg class="step-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+                    <h3>Paste to Your AI</h3>
+                    <p>Paste it into ChatGPT, Claude, Gemini, or any AI assistant that supports tools.</p>
+                </div>
+                <div class="step-card">
+                    <div class="step-num">3</div>
+                    <svg class="step-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    <h3>Start Exploring</h3>
+                    <p>Your AI can now search, read, and interact with forum content on your behalf.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="docs-cta">
+            <a href="' . $__templater->escape($__vars['infoUrl']) . '" class="docs-link" target="_blank" rel="noopener">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                Full Documentation
+            </a>
+        </div>
+    </div>
+
+    <div class="footer">
+        Powered by <a href="' . $__templater->escape($__vars['infoUrl']) . '" target="_blank" rel="noopener">AI Connect</a>
+    </div>
+
+    <script>
+    (function() {
+        var btn = document.getElementById(\'copyBtn\');
+        var btnLabel = btn.querySelector(\'span\');
+
+        function fallbackCopy(text) {
+            var ta = document.createElement(\'textarea\');
+            ta.value = text;
+            ta.style.cssText = \'position:fixed;top:-9999px;left:-9999px\';
+            document.body.appendChild(ta);
+            ta.focus();
+            ta.select();
+            try { document.execCommand(\'copy\'); } catch(e) {}
+            document.body.removeChild(ta);
+        }
+
+        btn.addEventListener(\'click\', function() {
+            var text = document.getElementById(\'promptText\').textContent;
+            var self = this;
+            function markCopied() {
+                self.classList.add(\'copied\');
+                btnLabel.textContent = \'Copied!\';
+                setTimeout(function() {
+                    self.classList.remove(\'copied\');
+                    btnLabel.textContent = \'Copy\';
+                }, 2500);
+            }
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(text).then(markCopied).catch(function() {
+                    fallbackCopy(text);
+                    markCopied();
+                });
+            } else {
+                fallbackCopy(text);
+                markCopied();
+            }
+        });
+    })();
+    </script>
+    <script>
+    (function() {
+        var genBtn = document.getElementById("generateTokenBtn");
+        if (!genBtn) return;
+
+        var tokenBox = document.getElementById("tokenPromptBox");
+        var tokenPre = document.getElementById("tokenPromptText");
+        var statusEl = document.getElementById("tokenStatus");
+        var copyTokenBtn = document.getElementById("copyTokenBtn");
+
+        genBtn.addEventListener("click", function() {
+            genBtn.disabled = true;
+            statusEl.textContent = "Generating token...";
+
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", XF.config.url.basePath + "ai-connect/generate-token", true);
+            xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+            xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    try {
+                        var data = JSON.parse(xhr.responseText);
+                        if (data.access_token) {
+                            var t = data.access_token;
+                            // Prompt is built server-side with permission-filtered tools.
+                            // data.prompt_text contains the full personalised text.
+                            tokenPre.textContent = data.prompt_text || "";
+                            tokenBox.style.display = "block";
+                            statusEl.textContent = "Token generated! Copy the prompt below and paste it to your AI agent.";
+                            statusEl.style.color = "#4ade80";
+                            genBtn.textContent = "\\u21BB Regenerate Token";
+                            genBtn.disabled = false;
+                        } else {
+                            statusEl.textContent = "Error: " + (data.errors ? data.errors[0].message : "Unknown error");
+                            statusEl.style.color = "#f87171";
+                            genBtn.disabled = false;
+                        }
+                    } catch(e) {
+                        statusEl.textContent = "Error parsing response: " + e.message;
+                        statusEl.style.color = "#f87171";
+                        genBtn.disabled = false;
+                    }
+                } else {
+                    statusEl.textContent = "Error: HTTP " + xhr.status;
+                    statusEl.style.color = "#f87171";
+                    genBtn.disabled = false;
+                }
+            };
+            xhr.send("_xfToken=" + encodeURIComponent(XF.config.csrf) + "&_xfResponseType=json");
+        });
+
+        if (copyTokenBtn) {
+            copyTokenBtn.addEventListener("click", function() {
+                var text = tokenPre.textContent;
+                if (navigator.clipboard) {
+                    navigator.clipboard.writeText(text).then(function() {
+                        copyTokenBtn.querySelector("span").textContent = "Copied!";
+                    });
+                } else {
+                    var ta = document.createElement("textarea");
+                    ta.value = text;
+                    document.body.appendChild(ta);
+                    ta.select();
+                    document.execCommand("copy");
+                    document.body.removeChild(ta);
+                    copyTokenBtn.querySelector("span").textContent = "Copied!";
+                }
+            });
+        }
+    })();
+    </script>
+</body>
+</html>';
+	return $__finalCompiled;
+}
+);

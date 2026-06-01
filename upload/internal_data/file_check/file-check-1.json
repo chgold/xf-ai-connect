@@ -1,0 +1,24 @@
+{
+    "missing": [],
+    "inconsistent": {
+        "chgold/AIConnect": [
+            "src/addons/chgold/AIConnect/_data/code_event_listeners.xml",
+            "src/addons/chgold/AIConnect/_data/phrases_ar.xml",
+            "src/addons/chgold/AIConnect/_data/phrases_de_DE.xml",
+            "src/addons/chgold/AIConnect/_data/phrases_es_ES.xml",
+            "src/addons/chgold/AIConnect/_data/phrases_fr_FR.xml",
+            "src/addons/chgold/AIConnect/_data/phrases_he_IL.xml",
+            "src/addons/chgold/AIConnect/_data/phrases_it_IT.xml",
+            "src/addons/chgold/AIConnect/_data/phrases_ja.xml",
+            "src/addons/chgold/AIConnect/_data/phrases_nl_NL.xml",
+            "src/addons/chgold/AIConnect/_data/phrases_pt_BR.xml",
+            "src/addons/chgold/AIConnect/_data/phrases_ru_RU.xml",
+            "src/addons/chgold/AIConnect/_data/phrases_zh_CN.xml",
+            "src/addons/chgold/AIConnect/_data/routes.xml",
+            "src/addons/chgold/AIConnect/_data/templates.xml"
+        ]
+    },
+    "total_missing": 0,
+    "total_inconsistent": 14,
+    "total_checked": 13775
+}

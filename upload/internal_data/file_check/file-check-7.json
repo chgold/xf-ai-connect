@@ -1,0 +1,26 @@
+{
+    "missing": [],
+    "inconsistent": {
+        "chgold/AIConnect": [
+            "src/addons/chgold/AIConnect/addon.json",
+            "src/addons/chgold/AIConnect/Api/Controller/Tools.php",
+            "src/addons/chgold/AIConnect/Listener/ApiAuth.php",
+            "src/addons/chgold/AIConnect/Pub/Controller/InfoPage.php",
+            "src/addons/chgold/AIConnect/Service/BearerAuth.php",
+            "src/addons/chgold/AIConnect/Service/Manifest.php",
+            "src/addons/chgold/AIConnect/vendor/autoload.php",
+            "src/addons/chgold/AIConnect/vendor/composer/autoload_static.php",
+            "src/addons/chgold/AIConnect/vendor/composer/ClassLoader.php",
+            "src/addons/chgold/AIConnect/vendor/composer/installed.php",
+            "src/addons/chgold/AIConnect/vendor/composer/InstalledVersions.php",
+            "src/addons/chgold/AIConnect/vendor/composer/platform_check.php",
+            "src/addons/chgold/AIConnect/vendor/firebase/php-jwt/src/CachedKeySet.php",
+            "src/addons/chgold/AIConnect/vendor/firebase/php-jwt/src/JWT.php",
+            "src/addons/chgold/AIConnect/vendor/firebase/php-jwt/src/JWTExceptionWithPayloadInterface.php",
+            "src/addons/chgold/AIConnect/_data/templates.xml"
+        ]
+    },
+    "total_missing": 0,
+    "total_inconsistent": 16,
+    "total_checked": 13893
+}

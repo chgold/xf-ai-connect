@@ -1,0 +1,27 @@
+{
+    "legacy_addon_id": "",
+    "title": "AI Connect Pro for XenForo",
+    "description": "Pro extension for AI Connect - write tools: create threads, reply, edit posts, and more",
+    "version_id": 1000500,
+    "version_string": "1.0.5",
+    "dev": "chgold",
+    "dev_url": "https://ai-connect.gold-t.co.il/",
+    "faq_url": "",
+    "support_url": "https://ai-connect.gold-t.co.il/",
+    "extra_urls": [],
+    "require": {
+        "php": [
+            "7.2.0",
+            "PHP 7.2.0+"
+        ],
+        "XF": [
+            "2020000",
+            "XenForo 2.2.0+"
+        ],
+        "chgold/AIConnect": [
+            "1010900",
+            "AI Connect 1.1.9+"
+        ]
+    },
+    "icon": "icon.png"
+}

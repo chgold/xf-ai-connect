@@ -1,0 +1,30 @@
+# Composer
+/vendor/
+composer.lock
+
+# Environment
+.env
+.env.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# XenForo specific
+_data/
+!_data/code_event_listeners.xml
+_output/
+_releases/
+
+# Build files
+hashes.json
+
+# Logs
+*.log
