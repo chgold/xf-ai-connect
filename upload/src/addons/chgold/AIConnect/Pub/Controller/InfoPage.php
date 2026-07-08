@@ -29,9 +29,9 @@ class InfoPage extends AbstractController
         $baseUrl = rtrim($scheme . '://' . $host, '/');
         $forumTitle = $options->boardTitle ?? \XF::phrase('untitled');
 
-        $manifestUrl       = $baseUrl . '/api/ai-connect/manifest';
+        $manifestUrl       = $baseUrl . '/api/aiconnect-manifest';
         $authorizeUrl      = $baseUrl . '/oauth.php';
-        $infoUrl           = 'https://ai-connect.gold-t.co.il/';
+        $infoUrl           = 'https://plugins.webmcp-master.ai/xenforo';
 
         $viewParams = [
             'forumTitle'    => $forumTitle,
@@ -143,7 +143,9 @@ class InfoPage extends AbstractController
     ): string {
         $options     = \XF::options();
         $hostname    = parse_url($baseUrl, PHP_URL_HOST) ?: 'forum';
-        $siteKey     = preg_replace('/[^a-zA-Z0-9_-]/', '_', $hostname);
+        $pathPart    = rtrim(parse_url($baseUrl, PHP_URL_PATH) ?? '', '/');
+        $siteNameMcp = $pathPart !== '' ? $hostname . $pathPart : $hostname;
+        $siteKey     = preg_replace('/[^a-zA-Z0-9_-]/', '_', $siteNameMcp);
         $siteName    = $options->boardTitle ?? 'Forum';
         $toolUrl     = $baseUrl . '/api/aiconnect-tools';
         $manifestUrl = $baseUrl . '/api/aiconnect-manifest';
@@ -177,9 +179,10 @@ class InfoPage extends AbstractController
 
         // --- MCP section ---
         $lines[] = '## MCP (Recommended — Claude Desktop)';
-        $lines[] = 'Call webmcp_addSite with these parameters:';
-        $lines[] = '  name:          "' . $hostname . '"';
+        $lines[] = 'Call servio_addSite (or webmcp_addSite for backward compat) with these parameters:';
+        $lines[] = '  name:          "' . $siteNameMcp . '"';
         $lines[] = '  manifest_url:  "' . $manifestUrl . '"';
+        $lines[] = '  token_url:     "' . $baseUrl . '/api/aiconnect-oauth"';
         $lines[] = '  token:         "Bearer ' . $accessToken . '"';
         $lines[] = '  refresh_token: "' . $refreshToken . '"';
         $lines[] = '';
@@ -257,7 +260,7 @@ class InfoPage extends AbstractController
         $lines[] = 'IMPORTANT: Do NOT use webmcp tool search — it may return tools from other sites.';
         $lines[] = 'Call the tools listed above by their EXACT full name. Start with getCurrentUser.';
         $lines[] = "\u26a0\ufe0f Security note: This token acts on behalf of the user who generated it. Handle it with care.";
-        $lines[] = 'Documentation: https://ai-connect.gold-t.co.il/';
+        $lines[] = 'Documentation: https://plugins.webmcp-master.ai/xenforo';
 
         return implode("\n", $lines);
     }
