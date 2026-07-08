@@ -31,7 +31,7 @@ class InfoPage extends AbstractController
 
         $manifestUrl       = $baseUrl . '/api/aiconnect-manifest';
         $authorizeUrl      = $baseUrl . '/oauth.php';
-        $infoUrl           = 'https://plugins.webmcp-master.ai/xenforo';
+        $infoUrl           = 'https://plugins.goldnat.ai/xenforo/guide';
 
         $viewParams = [
             'forumTitle'    => $forumTitle,
@@ -178,7 +178,7 @@ class InfoPage extends AbstractController
         $lines[] = '';
 
         // --- MCP section ---
-        $lines[] = '## MCP (Recommended — Claude Desktop)';
+        $lines[] = '## Add site (goldnat.ai recommended)';
         $lines[] = 'Call servio_addSite (or webmcp_addSite for backward compat) with these parameters:';
         $lines[] = '  name:          "' . $siteNameMcp . '"';
         $lines[] = '  manifest_url:  "' . $manifestUrl . '"';
@@ -260,7 +260,7 @@ class InfoPage extends AbstractController
         $lines[] = 'IMPORTANT: Do NOT use webmcp tool search — it may return tools from other sites.';
         $lines[] = 'Call the tools listed above by their EXACT full name. Start with getCurrentUser.';
         $lines[] = "\u26a0\ufe0f Security note: This token acts on behalf of the user who generated it. Handle it with care.";
-        $lines[] = 'Documentation: https://plugins.webmcp-master.ai/xenforo';
+        $lines[] = 'Documentation: https://plugins.goldnat.ai/xenforo/guide';
 
         return implode("\n", $lines);
     }
