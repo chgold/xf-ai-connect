@@ -4,7 +4,8 @@ namespace chgold\AIConnectPro\License;
 
 class Validator
 {
-    private const API_URL     = 'https://gold-t.co.il/plugins-manager/api/license.php';
+    private const API_URL     = 'https://goldnat.ai/api/licenses/public/validate';
+    private const EXPECTED_SLUG = 'xenforo-addon-pro';
     private const OPTION_KEY  = 'aiconnect_pro_license_key';
     private const STATUS_KEY  = 'aiconnect_pro_license_status';
     private const CHECKED_KEY = 'aiconnect_pro_license_checked';
@@ -23,7 +24,13 @@ class Validator
     public static function isValid(): bool
     {
         $status = self::getStatus();
-        return in_array($status['status'] ?? '', ['valid', 'valid_no_updates'], true);
+        // error_cached is the fail-open network-blip verdict (no slug present).
+        if (($status['status'] ?? '') === 'error_cached') {
+            return true;
+        }
+        // Require matching plugin_slug so another plugin's license can't unlock this one.
+        return in_array($status['status'] ?? '', ['valid', 'valid_no_updates'], true)
+            && ($status['plugin_slug'] ?? '') === self::EXPECTED_SLUG;
     }
 
     public static function hasUpdates(): bool
@@ -47,7 +54,6 @@ class Validator
         $domain = self::getCurrentDomain();
 
         $response = self::apiCall([
-            'action'        => 'validate',
             'license_key'   => $key,
             'domain'        => $domain,
             'addon_version' => \XF::$versionId,
