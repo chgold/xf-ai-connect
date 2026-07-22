@@ -6,13 +6,57 @@ use chgold\AIConnect\Module\ModuleBase;
 
 class ProModule extends ModuleBase
 {
+    use ProModerationTrait;
+    use ProWritingTrait;
+    use ProEngagementTrait;
+    use ProProfileTrait;
+    use ProConversationTrait;
+    use ProMediaTrait;
+    use ProAutomationTrait;
+
     protected $moduleName = 'xenforo_pro';
 
     /** All Pro tools require the 'pro' package permission (use_package_pro). */
     protected $packageId = 'pro';
 
+    /**
+     * Shared guard: every write/delete Pro tool must hold the 'write' scope.
+     * Returns an error array to short-circuit on, or null when allowed.
+     */
+    protected function requireWrite()
+    {
+        if (!\XF::service('chgold\AIConnect:BearerAuth')->checkScope('write')) {
+            return $this->error('insufficient_scope', 'The "write" scope is required for this operation');
+        }
+        return null;
+    }
+
+    /**
+     * Shared guard for administrative tools: requires BOTH the 'admin' token
+     * scope AND the acting user actually being a XenForo admin. Returns an error
+     * array to short-circuit on, or null when allowed.
+     */
+    protected function requireAdmin()
+    {
+        if (!\XF::service('chgold\AIConnect:BearerAuth')->checkScope('admin')) {
+            return $this->error('insufficient_scope', 'The "admin" scope is required for this operation');
+        }
+        if (!\XF::visitor()->is_admin) {
+            return $this->error('no_permission', 'This operation requires an administrator account');
+        }
+        return null;
+    }
+
     protected function registerTools()
     {
+        $this->registerModerationTools();
+        $this->registerWritingTools();
+        $this->registerEngagementTools();
+        $this->registerProfileTools();
+        $this->registerConversationTools();
+        $this->registerMediaTools();
+        $this->registerAutomationTools();
+
         $this->registerTool('getForumList', [
             'description' => 'Get list of all accessible forums/nodes',
             'input_schema' => [

@@ -1,18 +1,27 @@
 {
     "legacy_addon_id": "",
     "title": "AI Connect Pro for XenForo",
-    "description": "Pro extension for AI Connect - write tools: create threads, reply, edit posts, and more",
-    "version_id": 1000600,
-    "version_string": "1.0.6",
+    "description": "Pro extension for AI Connect - 66 write/moderation/engagement/media/admin tools for AI agents",
+    "version_id": 1000800,
+    "version_string": "1.0.8",
     "dev": "chgold",
     "dev_url": "https://plugins.webmcp-master.ai/xenforo",
     "faq_url": "",
     "support_url": "https://plugins.webmcp-master.ai/xenforo",
     "extra_urls": [],
     "require": {
-        "php": ["7.2.0", "PHP 7.2.0+"],
-        "XF": ["2020000", "XenForo 2.2.0+"],
-        "chgold/AIConnect": ["1010900", "AI Connect 1.1.9+"]
+        "php": [
+            "7.2.0",
+            "PHP 7.2.0+"
+        ],
+        "XF": [
+            "2020000",
+            "XenForo 2.2.0+"
+        ],
+        "chgold/AIConnect": [
+            "1010900",
+            "AI Connect 1.1.9+"
+        ]
     },
     "icon": "icon.png"
 }
