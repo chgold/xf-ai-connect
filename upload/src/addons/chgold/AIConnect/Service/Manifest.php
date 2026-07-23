@@ -86,8 +86,7 @@ class Manifest extends AbstractService
             }
 
             // Tier 3 — per-tool check (only if the permission is registered)
-            $rawPermId = 'tool_' . $moduleName . '_' . $toolName;
-            $permId    = strlen($rawPermId) <= 25 ? $rawPermId : substr($rawPermId, 0, 25);
+            $permId = \chgold\AIConnect\Helper\Permission::toolPermId($moduleName, $toolName);
             if (isset($registeredPerms[$permId]) && !$visitor->hasPermission('aiconnect', $permId)) {
                 continue;
             }

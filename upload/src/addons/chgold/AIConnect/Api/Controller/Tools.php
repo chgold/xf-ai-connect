@@ -190,8 +190,7 @@ class Tools extends AbstractController
         }
 
         // 3. Per-tool permission (only if the permission is registered in xf_permission)
-        $rawPermId = 'tool_' . $moduleName . '_' . $toolName;
-        $permId    = strlen($rawPermId) <= 25 ? $rawPermId : substr($rawPermId, 0, 25);
+        $permId = \chgold\AIConnect\Helper\Permission::toolPermId($moduleName, $toolName);
 
         $exists = \XF::db()->fetchOne(
             'SELECT permission_id FROM xf_permission

@@ -571,9 +571,7 @@ class Setup extends AbstractSetup
 
         foreach ($toolDefs as $moduleName => $tools) {
             foreach ($tools as $toolName => $label) {
-                // xf_permission.permission_id is varbinary(25) — truncate if needed
-                $rawPermId = 'tool_' . $moduleName . '_' . $toolName;
-                $permId    = strlen($rawPermId) <= 25 ? $rawPermId : substr($rawPermId, 0, 25);
+                $permId    = \chgold\AIConnect\Helper\Permission::toolPermId($moduleName, $toolName);
                 $phraseKey = 'permission.aiconnect_' . $permId;
 
                 // 1. Register the permission in xf_permission (once)
@@ -729,8 +727,7 @@ class Setup extends AbstractSetup
             $modules = $packageConfig['modules'] ?? [];
             foreach ($modules as $moduleName => $tools) {
                 foreach ($tools as $toolName => $toolLabel) {
-                    $rawPermId = 'tool_' . $moduleName . '_' . $toolName;
-                    $permId    = strlen($rawPermId) <= 25 ? $rawPermId : substr($rawPermId, 0, 25);
+                    $permId    = \chgold\AIConnect\Helper\Permission::toolPermId($moduleName, $toolName);
                     $phraseKey = 'permission.aiconnect_' . $permId;
 
                     $permExists = $db->fetchOne(
