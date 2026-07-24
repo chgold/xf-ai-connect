@@ -2,12 +2,12 @@
     "legacy_addon_id": "",
     "title": "AI Connect Pro for XenForo",
     "description": "Pro extension for AI Connect - 66 write/moderation/engagement/media/admin tools for AI agents",
-    "version_id": 1000900,
-    "version_string": "1.0.9",
+    "version_id": 1001000,
+    "version_string": "1.0.10",
     "dev": "chgold",
-    "dev_url": "https://plugins.webmcp-master.ai/xenforo",
+    "dev_url": "https://plugins.goldnat.ai/xenforo",
     "faq_url": "",
-    "support_url": "https://plugins.webmcp-master.ai/xenforo",
+    "support_url": "https://plugins.goldnat.ai/xenforo",
     "extra_urls": [],
     "require": {
         "php": [
