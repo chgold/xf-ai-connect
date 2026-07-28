@@ -290,8 +290,12 @@ trait ProModerationTrait
             return $this->error('not_found', 'Post not found');
         }
         $thread = $post->Thread;
-        if (!$thread || !$thread->canMarkSolution()) {
-            return $this->error('no_permission', 'You cannot mark a solution on this thread');
+        if (!$thread) {
+            return $this->error('not_found', 'Thread not found');
+        }
+        $permError = null;
+        if (!$post->canMarkAsQuestionSolution($permError)) {
+            return $this->error('no_permission', $permError ?: 'You cannot mark a solution on this thread');
         }
         $marker = \XF::service('XF:ThreadQuestion\MarkSolution', $thread);
         $current = $thread->Question ? $thread->Question->solution_post_id : 0;
