@@ -58,7 +58,7 @@ class Validator
         }
 
         $last = (int)\XF::options()->{self::CHECKED_KEY};
-        if (!$force && $last && (time() - $last) < 604800) {
+        if (!$force && $last && (time() - $last) < 86400) {
             return self::getStatus();
         }
 
