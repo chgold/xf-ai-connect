@@ -25,6 +25,16 @@ class License extends AbstractController
     public function actionCheck(ParameterBag $params)
     {
         $this->assertPostOnly();
+
+        // Persist the key the admin entered in the license form before validating,
+        // so Validator::check() reads the freshly-saved key.
+        $key = $this->filter('options', 'array')['aiconnect_pro_license_key'] ?? null;
+        if ($key !== null) {
+            $this->repository('XF:Option')->updateOptions([
+                'aiconnect_pro_license_key' => trim((string)$key),
+            ]);
+        }
+
         $status = \chgold\AIConnectPro\License\Validator::check(true);
 
         $label = match ($status['status'] ?? '') {

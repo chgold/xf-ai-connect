@@ -12,13 +12,24 @@ class Validator
 
     public static function getLicenseKey(): string
     {
-        return (string)\XF::options()->{self::OPTION_KEY};
+        return (string)self::readOption(self::OPTION_KEY);
     }
 
     public static function getStatus(): array
     {
-        $cached = \XF::options()->{self::STATUS_KEY};
+        $cached = self::readOption(self::STATUS_KEY);
         return $cached ? json_decode($cached, true) : [];
+    }
+
+    /**
+     * Read an option defensively — before the first license check (or on a fresh
+     * install) the option may not be registered yet, and XF\Options throws an
+     * E_WARNING on an undefined key, which would break Pro tool loading.
+     */
+    private static function readOption(string $key): string
+    {
+        $options = \XF::options();
+        return $options->offsetExists($key) ? (string)$options->{$key} : '';
     }
 
     public static function isValid(): bool
