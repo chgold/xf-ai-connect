@@ -44,6 +44,56 @@ class Validator
             && ($status['plugin_slug'] ?? '') === self::EXPECTED_SLUG;
     }
 
+    /**
+     * Bundles granted by the current license (see BUNDLES-LICENSE-SPEC.md).
+     *
+     * Return semantics — feed straight into `in_array($bundle, $bundles, true)`
+     * plus a `'*'` sentinel check:
+     *   - ["*"]              → license grants every bundle. Default fallback for
+     *                          fail-open (`error_cached`) and for old cached
+     *                          verdicts that predate this field so upgrading
+     *                          customers are never silently downgraded.
+     *   - ["moderation",...] → license grants ONLY these bundles.
+     *   - []                 → no bundles (no valid license, or explicit empty).
+     *
+     * Called by ProModule::registerTools() to gate trait loading.
+     */
+    public static function getBundles(): array
+    {
+        // AICONNECT_EDITION=pro dev override → grant all bundles unconditionally.
+        if (strtolower((string)(getenv('AICONNECT_EDITION') ?: '')) === 'pro') {
+            return ['*'];
+        }
+        $status = self::getStatus();
+        // Fail-open on network blip: keep the customer at full access.
+        if (($status['status'] ?? '') === 'error_cached') {
+            return ['*'];
+        }
+        // Not a valid license for THIS plugin → no bundles.
+        if (!self::isValid()) {
+            return [];
+        }
+        // Old cache without the bundles field → assume full access (backward-compat).
+        if (!array_key_exists('bundles', $status)) {
+            return ['*'];
+        }
+        $bundles = $status['bundles'];
+        if (!is_array($bundles)) {
+            return ['*'];
+        }
+        return $bundles;
+    }
+
+    /**
+     * Convenience check: does the current license grant a specific bundle?
+     * The '*' wildcard grants everything.
+     */
+    public static function hasBundle(string $bundle): bool
+    {
+        $b = self::getBundles();
+        return in_array('*', $b, true) || in_array($bundle, $b, true);
+    }
+
     public static function hasUpdates(): bool
     {
         return (self::getStatus()['status'] ?? '') === 'valid';

@@ -49,13 +49,35 @@ class ProModule extends ModuleBase
 
     protected function registerTools()
     {
-        $this->registerModerationTools();
-        $this->registerWritingTools();
-        $this->registerEngagementTools();
-        $this->registerProfileTools();
-        $this->registerConversationTools();
-        $this->registerMediaTools();
-        $this->registerAutomationTools();
+        // Bundle-per-trait gating (BUNDLES-LICENSE-SPEC.md v1.0).
+        // The license grants a list of bundle keys; each trait registers its
+        // tools only when the current license includes its bundle. The '*'
+        // wildcard (default backward-compat verdict) unlocks everything.
+        $has = static function (string $bundle): bool {
+            return \chgold\AIConnectPro\License\Validator::hasBundle($bundle);
+        };
+
+        if ($has('moderation')) {
+            $this->registerModerationTools();
+        }
+        if ($has('writing')) {
+            $this->registerWritingTools();
+        }
+        if ($has('engagement')) {
+            $this->registerEngagementTools();
+        }
+        if ($has('profile')) {
+            $this->registerProfileTools();
+        }
+        if ($has('conversation')) {
+            $this->registerConversationTools();
+        }
+        if ($has('media')) {
+            $this->registerMediaTools();
+        }
+        if ($has('automation')) {
+            $this->registerAutomationTools();
+        }
 
         $this->registerTool('getForumList', [
             'description' => 'Get list of all accessible forums/nodes',
