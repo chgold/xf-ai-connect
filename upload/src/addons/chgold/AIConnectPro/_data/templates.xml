@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates>
+  <template type="admin" title="aiconnect_pro_license" version_id="1000400" version_string="1.0.4"><![CDATA[<xf:title>AI Connect Pro — License</xf:title>
+<xf:breadcrumb href="{{ link('addons') }}">AI Connect Pro</xf:breadcrumb>
+
+<xf:form action="{{ link('aiconnect-pro/license/check') }}" ajax="true">
+    <div class="block">
+        <div class="block-container">
+            <h2 class="block-header">License Status</h2>
+            <div class="block-body">
+
+                <xf:if is="$msg">
+                    <xf:if is="$msgType == 'success'">
+                        <div class="blockMessage blockMessage--success">{{ $msg }}</div>
+                    <xf:else />
+                        <div class="blockMessage blockMessage--error">{{ $msg }}</div>
+                    </xf:if>
+                </xf:if>
+
+                <xf:if is="$status AND $status.valid">
+                    <div class="blockMessage blockMessage--success">
+                        <xf:if is="$status.status == 'valid'">
+                            ✅ <strong>Active</strong> — updates valid until {{ date('Y-m-d', strtotime($status.updates_expire_at)) }}
+                        <xf:else />
+                            ✅ <strong>Perpetual</strong> — license valid forever. Updates expired {{ date('Y-m-d', strtotime($status.updates_expire_at)) }}.
+                            <a href="https://gold-t.co.il/renew" target="_blank">Renew updates →</a>
+                        </xf:if>
+                        <br><small>Registered domain: <code>{{ $status.licensed_domain }}</code></small>
+                    </div>
+                <xf:elseif is="$status AND !$status.valid" />
+                    <div class="blockMessage blockMessage--error">
+                        <xf:if is="$status.status == 'invalid_domain'">
+                            ❌ Domain mismatch — license is registered to <code>{{ $status.licensed_domain }}</code>.
+                            <a href="https://gold-t.co.il/license-reset" target="_blank">Reset domain →</a>
+                        <xf:elseif is="$status.status == 'invalid_key'" />
+                            ❌ License key not found. Verify your key is correct.
+                        <xf:elseif is="$status.status == 'suspended'" />
+                            ❌ License suspended. Contact <a href="mailto:support@gold-t.co.il">support@gold-t.co.il</a>.
+                        <xf:elseif is="$status.status == 'no_license'" />
+                            ⚠️ No license key entered. Enter your key below and click "Check License".
+                        <xf:else />
+                            ⚠️ Could not reach license server. Will retry automatically next week.
+                        </xf:if>
+                    </div>
+                </xf:if>
+
+                <dl class="formRow">
+                    <dt class="formRow-label">License Key</dt>
+                    <dd class="formRow-input">
+                        <input type="text" name="options[aiconnect_pro_license_key]" value="{{ $license_key }}"
+                               class="input--text" placeholder="XFPRO-XXXX-XXXX-XXXX-XXXX" style="width:100%;max-width:400px">
+                        <div class="formRow-explain">
+                            Found in your purchase confirmation email.
+                            <a href="https://gold-t.co.il/license-reset" target="_blank">Transfer to new domain</a>
+                        </div>
+                    </dd>
+                </dl>
+
+            </div>
+            <div class="block-footer">
+                <button type="submit" class="button button--primary">Check &amp; Save License</button>
+                <a href="{{ link('options', null, {'group': 'aiconnect_pro_license'}) }}" class="button">Advanced Options</a>
+            </div>
+        </div>
+    </div>
+</xf:form>
+]]></template>
+</templates>
