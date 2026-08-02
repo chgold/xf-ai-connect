@@ -112,7 +112,7 @@ trait ProEngagementTrait
             return $this->error('not_found', 'Post not found');
         }
         $error = null;
-        if (!$post->canVoteOnPost($error)) {
+        if (!$post->canVoteOnContent($error)) {
             return $this->error('no_permission', $error ?: 'You cannot vote on this post');
         }
         $voteType = $vote === 'up' ? ContentVote::VOTE_UP : ContentVote::VOTE_DOWN;

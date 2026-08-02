@@ -319,8 +319,20 @@ trait ProModerationTrait
         if (!$thread->canChangeType()) {
             return $this->error('no_permission', 'You cannot change the type of this thread');
         }
+        // setDiscussionTypeDataRaw alone stores extra type data but does NOT
+        // switch the discussion_type itself. Use the API-flavored setter, which
+        // both changes the type and validates it against the target type's rules.
         $service = \XF::service('XF:Thread\ChangeType', $thread);
-        $service->setDiscussionTypeDataRaw(['discussion_type' => $params['discussion_type']]);
+        $request = \XF::app()->request();
+        $ok      = $service->setDiscussionTypeAndDataForApi(
+            (string) $params['discussion_type'],
+            $request,
+            [],
+            true
+        );
+        if (!$ok) {
+            return $this->error('invalid_type', 'Cannot convert to that discussion type');
+        }
         if (!$service->validate($errors)) {
             return $this->error('validation_failed', implode(' ', $errors));
         }

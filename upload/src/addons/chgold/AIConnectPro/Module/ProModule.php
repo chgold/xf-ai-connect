@@ -6,6 +6,7 @@ use chgold\AIConnect\Module\ModuleBase;
 
 class ProModule extends ModuleBase
 {
+    use ProCoreTrait;
     use ProModerationTrait;
     use ProWritingTrait;
     use ProEngagementTrait;
@@ -53,9 +54,18 @@ class ProModule extends ModuleBase
         // The license grants a list of bundle keys; each trait registers its
         // tools only when the current license includes its bundle. The '*'
         // wildcard (default backward-compat verdict) unlocks everything.
-        $has = static function (string $bundle): bool {
-            return \chgold\AIConnectPro\License\Validator::hasBundle($bundle);
+        $bundles = \chgold\AIConnectPro\License\Validator::getBundles();
+        $has = static function (string $bundle) use ($bundles): bool {
+            return in_array('*', $bundles, true) || in_array($bundle, $bundles, true);
         };
+
+        // 'core' — identity/lookup helpers every other bundle depends on.
+        // Loaded whenever ANY paid bundle is active so a customer who buys
+        // "moderation only" still gets getMe/findUserByName (otherwise
+        // moderation calls that reference a user id would be dead in the water).
+        if (!empty($bundles)) {
+            $this->registerCoreTools();
+        }
 
         if ($has('moderation')) {
             $this->registerModerationTools();
