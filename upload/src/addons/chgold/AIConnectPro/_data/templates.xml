@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <templates>
-  <template type="admin" title="aiconnect_pro_license" version_id="1000400" version_string="1.0.4"><![CDATA[<xf:title>AI Connect Pro — License</xf:title>
+  <template type="admin" title="aiconnect_pro_license" version_id="1001700" version_string="1.0.17"><![CDATA[<xf:title>AI Connect Pro — License</xf:title>
 <xf:breadcrumb href="{{ link('addons') }}">AI Connect Pro</xf:breadcrumb>
 
 <xf:form action="{{ link('aiconnect-pro/license/check') }}" ajax="true">
