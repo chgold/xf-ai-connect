@@ -16,7 +16,7 @@
     "src/addons/chgold/AIConnectPro/README.md": "678cc1da3117964a0149097f6bd4d82e9a8d46cde4472441fa660f3ffe4ab1a0",
     "src/addons/chgold/AIConnectPro/Setup.php": "0babac525408bb3cff9a7e51ca3c72a62796ec2cfc9db5de5edb0f3f2940bb9d",
     "src/addons/chgold/AIConnectPro/_data/activity_summary_definitions.xml": "99d8c2563a31320d66f958fc8bda78613545f5f7959bb3cf5318805e3a3c39d2",
-    "src/addons/chgold/AIConnectPro/_data/admin_navigation.xml": "7be476accd4e3c74d74e2c09749d1ac313d69dc8ac841b549b02c56deacfd2ea",
+    "src/addons/chgold/AIConnectPro/_data/admin_navigation.xml": "064ec797484ac00d5ee37367b50b06846d11f480d00550997712707f8fdac8c0",
     "src/addons/chgold/AIConnectPro/_data/admin_permission.xml": "ec6fb97cebf0bceb24f1ed1d5778c1db54eeb7535fbb3e31d824840e7aa9ff87",
     "src/addons/chgold/AIConnectPro/_data/advertising_positions.xml": "d2f7cbe844bb1df3cf878d22ff6306249245c8ff6b0b87b9b729744bec538261",
     "src/addons/chgold/AIConnectPro/_data/api_scopes.xml": "6793eaf758f140e8137187ba20e65f4faccf53410433ae3ad7a8b3b38cb6b3b7",
@@ -31,8 +31,8 @@
     "src/addons/chgold/AIConnectPro/_data/help_pages.xml": "a8a0c0b06cdc550438bc8a8d385af3e1e5ab3459877dfb934c1c31be59c89163",
     "src/addons/chgold/AIConnectPro/_data/member_stats.xml": "89fb2b93ff1eca7a1f6f752248edf6090dfd24037db1446fd18ff7143f08124d",
     "src/addons/chgold/AIConnectPro/_data/navigation.xml": "f75e1c03a45a360bbdfcd0567121665082315068475d5b0feb8b1acbb1688651",
-    "src/addons/chgold/AIConnectPro/_data/option_groups.xml": "154d7a89664b243d0bd8227c22e241f934bf7e196c83230ee23d3c0c4fba1333",
-    "src/addons/chgold/AIConnectPro/_data/options.xml": "1cea29aa5671733d85c8fc6f7c66128eacbca5643cbb38585eb82002879b51a4",
+    "src/addons/chgold/AIConnectPro/_data/option_groups.xml": "3025e4d45acabac9708754bfd4b9e4b0f54b4b85970957eae4bcce4e46b3c8eb",
+    "src/addons/chgold/AIConnectPro/_data/options.xml": "86ccebe7f9da030947d6a175071a89d3a071e963e112e06d45c17c5ccf8c28d3",
     "src/addons/chgold/AIConnectPro/_data/permission_interface_groups.xml": "25cc662af67d88338f8fe97cfa8f1700b5ef1b8a6b5c487a20969fd2a571e9b1",
     "src/addons/chgold/AIConnectPro/_data/permissions.xml": "699031d4e66acdcd0794f332e7985cc692e7dda7b095917bcadad326d228ed69",
     "src/addons/chgold/AIConnectPro/_data/phrases.xml": "afac6f4172c6a914f4816296e1dd105d2f9a03a7b41b506bbacdd236b00c4e58",
@@ -43,7 +43,7 @@
     "src/addons/chgold/AIConnectPro/_data/templates.xml": "a52e9d9373604b917217fcba2b74bd9b3567a8bb3f5f6a53c542426030f02d74",
     "src/addons/chgold/AIConnectPro/_data/widget_definitions.xml": "37e46965256430f24004c2e7f08ba08f9b0d1cbcc4d70e84b3f4e3ffb713e64b",
     "src/addons/chgold/AIConnectPro/_data/widget_positions.xml": "a29cee66134f6bc5d75ed9df1eef21096c24401915c5b5c774389c3d7bb2d5b3",
-    "src/addons/chgold/AIConnectPro/addon.json": "3b226c1ba55873abe8da3525415f080f79958d1441e4e8f8f149b963c4d6ef4f",
+    "src/addons/chgold/AIConnectPro/addon.json": "e75360b8ff7c19a176b0c990726bdbeedd4cefaeeefaabdf935d9bbac1caf19e",
     "src/addons/chgold/AIConnectPro/icon.png": "1a9a2f864835425c7871ad3b0ccf045dc9768db7283833fb5ac50ad50e017c1b",
     "src/addons/chgold/AIConnectPro/phpcs.xml": "94e814dde4c2a3e2c0c887294d534e12f9ddd583e810f64cbc394801db3c5773"
 }
