@@ -305,13 +305,13 @@ class TokenRegistry extends Repository
                 $cutoff
             );
             $time = \XF::$time;
-            $db->query(
+            $stmt = $db->query(
                 'UPDATE xf_chgold_aiconnect_token_registry
                  SET revoked_at = ?, revoked_by = ?
                  WHERE last_used_at IS NULL AND issued_at < ? AND revoked_at IS NULL',
                 [$time, $revokedBy ?? 0, $cutoff]
             );
-            $affected = (int)$db->affectedRows();
+            $affected = (int)$stmt->rowsAffected();
             if ($affected > 0) {
                 $this->cascadeRevokeOAuthRows($prefixes, $time);
             }
@@ -338,13 +338,13 @@ class TokenRegistry extends Repository
                 $cutoff
             );
             $time = \XF::$time;
-            $db->query(
+            $stmt = $db->query(
                 'UPDATE xf_chgold_aiconnect_token_registry
                  SET revoked_at = ?, revoked_by = ?
                  WHERE last_used_at IS NOT NULL AND last_used_at < ? AND revoked_at IS NULL',
                 [$time, $revokedBy ?? 0, $cutoff]
             );
-            $affected = (int)$db->affectedRows();
+            $affected = (int)$stmt->rowsAffected();
             if ($affected > 0) {
                 $this->cascadeRevokeOAuthRows($prefixes, $time);
             }
@@ -393,13 +393,13 @@ class TokenRegistry extends Repository
                  WHERE last_used_at IS NULL AND issued_at < ? AND revoked_at IS NULL',
                 $now - 30 * 86400
             );
-            $db->query(
+            $stmt = $db->query(
                 'UPDATE xf_chgold_aiconnect_token_registry
                  SET revoked_at = ?, revoked_by = 0
                  WHERE last_used_at IS NULL AND issued_at < ? AND revoked_at IS NULL',
                 [$now, $now - 30 * 86400]
             );
-            $results['unused'] = $db->affectedRows();
+            $results['unused'] = (int)$stmt->rowsAffected();
             if ($results['unused'] > 0) {
                 $this->cascadeRevokeOAuthRows($prefixes1, $now);
             }
@@ -410,13 +410,13 @@ class TokenRegistry extends Repository
                  WHERE last_used_at IS NOT NULL AND last_used_at < ? AND revoked_at IS NULL',
                 $now - 180 * 86400
             );
-            $db->query(
+            $stmt = $db->query(
                 'UPDATE xf_chgold_aiconnect_token_registry
                  SET revoked_at = ?, revoked_by = 0
                  WHERE last_used_at IS NOT NULL AND last_used_at < ? AND revoked_at IS NULL',
                 [$now, $now - 180 * 86400]
             );
-            $results['inactive'] = $db->affectedRows();
+            $results['inactive'] = (int)$stmt->rowsAffected();
             if ($results['inactive'] > 0) {
                 $this->cascadeRevokeOAuthRows($prefixes2, $now);
             }
@@ -427,24 +427,24 @@ class TokenRegistry extends Repository
                  WHERE revoked_at IS NULL AND expires_at < ?',
                 $now - 90 * 86400
             );
-            $db->query(
+            $stmt = $db->query(
                 'UPDATE xf_chgold_aiconnect_token_registry
                  SET revoked_at = ?, revoked_by = 0
                  WHERE revoked_at IS NULL AND expires_at < ?',
                 [$now, $now - 90 * 86400]
             );
-            $results['expired'] = $db->affectedRows();
+            $results['expired'] = (int)$stmt->rowsAffected();
             if ($results['expired'] > 0) {
                 $this->cascadeRevokeOAuthRows($prefixes3, $now);
             }
 
             // Rule 4: revoked > 365 days ago → hard DELETE (no cascade needed)
-            $db->query(
+            $stmt = $db->query(
                 'DELETE FROM xf_chgold_aiconnect_token_registry
                  WHERE revoked_at IS NOT NULL AND revoked_at < ?',
                 [$now - 365 * 86400]
             );
-            $results['deleted'] = $db->affectedRows();
+            $results['deleted'] = (int)$stmt->rowsAffected();
 
             // Persist the timestamp of this run
             $db->query(
