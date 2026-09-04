@@ -10,12 +10,14 @@ class Manifest extends AbstractController
     {
         $manifestService = \XF::service('chgold\AIConnect:Manifest');
 
-        $coreModule        = new \chgold\AIConnect\Module\CoreModule($manifestService);
-        $translationModule = new \chgold\AIConnect\Module\TranslationModule($manifestService);
+        $coreModule         = new \chgold\AIConnect\Module\CoreModule($manifestService);
+        $translationModule  = new \chgold\AIConnect\Module\TranslationModule($manifestService);
+        $conversationModule = new \chgold\AIConnect\Module\ConversationModule($manifestService);
 
         $modules = [
-            $coreModule->getModuleName()        => $coreModule,
-            $translationModule->getModuleName() => $translationModule,
+            $coreModule->getModuleName()         => $coreModule,
+            $translationModule->getModuleName()  => $translationModule,
+            $conversationModule->getModuleName() => $conversationModule,
         ];
 
         \XF::fire('ai_connect_modules_init', [&$modules, $manifestService], 'chgold/AIConnect');

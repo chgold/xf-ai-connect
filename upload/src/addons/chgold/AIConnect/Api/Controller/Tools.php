@@ -21,9 +21,11 @@ class Tools extends AbstractController
         $manifestService = \XF::service('chgold\AIConnect:Manifest');
         $coreModule = new \chgold\AIConnect\Module\CoreModule($manifestService);
         $translationModule = new \chgold\AIConnect\Module\TranslationModule($manifestService);
+        $conversationModule = new \chgold\AIConnect\Module\ConversationModule($manifestService);
 
         $this->modules[$coreModule->getModuleName()] = $coreModule;
         $this->modules[$translationModule->getModuleName()] = $translationModule;
+        $this->modules[$conversationModule->getModuleName()] = $conversationModule;
 
         \XF::fire('ai_connect_modules_init', [&$this->modules, $manifestService], 'chgold/AIConnect');
     }
@@ -75,7 +77,7 @@ class Tools extends AbstractController
     }
 
     protected static $readOnlyTools = [
-        'xenforo' => ['searchThreads', 'getThread', 'searchPosts', 'getPost', 'getCurrentUser'],
+        'xenforo' => ['searchThreads', 'getThread', 'searchPosts', 'getPost', 'getCurrentUser', 'getForumStats'],
         'translation' => ['getSupportedLanguages'],
     ];
 
@@ -176,10 +178,18 @@ class Tools extends AbstractController
             return false;
         }
 
-        // 2. Package switch (only if the module belongs to a package)
+        // 2. Package switch (only if the module belongs to a package).
+        // Resolved PER TOOL: a module may split its tools across several
+        // packages (the Pro module gives each bundle its own master switch), so
+        // checking one module-wide package would test a switch that no longer
+        // governs this tool — and, once that switch is removed, would refuse
+        // every tool in the module. Must stay in step with the identical
+        // resolution in Service\Manifest::filterAccessibleTools().
         $module = $this->modules[$moduleName] ?? null;
         if ($module !== null && method_exists($module, 'getPackageId')) {
-            $packageId = $module->getPackageId();
+            $packageId = method_exists($module, 'getPackageIdForTool')
+                ? $module->getPackageIdForTool($toolName)
+                : $module->getPackageId();
             if ($packageId !== null) {
                 $rawPkg = 'use_package_' . $packageId;
                 $pkgPerm = strlen($rawPkg) <= 25 ? $rawPkg : substr($rawPkg, 0, 25);
