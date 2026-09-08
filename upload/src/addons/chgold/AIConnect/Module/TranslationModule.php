@@ -56,6 +56,7 @@ class TranslationModule extends ModuleBase
             'input_schema' => [
                 'type' => 'object',
                 'properties' => new \stdClass(),
+                'additionalProperties' => false,
             ],
         ]);
     }

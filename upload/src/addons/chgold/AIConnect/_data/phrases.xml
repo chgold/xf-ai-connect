@@ -133,6 +133,13 @@ For documentation: {infoUrl}]]></phrase>
   <phrase title="option_group.aiconnect_settings" version_id="1012900" version_string="1.1.29" global_cache="1"><![CDATA[AI Connect — Settings]]></phrase>
   <phrase title="option_group_description.aiconnect_navigation" version_id="1011600" version_string="1.1.16"><![CDATA[Control where the AI Connect link appears on your forum.]]></phrase>
   <phrase title="option_group_description.aiconnect_settings" version_id="1012900" version_string="1.1.29"><![CDATA[Configure how AI agents interact with your forum.]]></phrase>
+  <phrase title="permission.aiconnect_t_369ab7fab0c3" version_id="1021100" version_string="1.2.11"><![CDATA[Tool: Get current user info]]></phrase>
+  <phrase title="permission.aiconnect_t_79c240fd40eb" version_id="1021100" version_string="1.2.11"><![CDATA[Tool: Translate text]]></phrase>
+  <phrase title="permission.aiconnect_t_953578a71b18" version_id="1021100" version_string="1.2.11"><![CDATA[Tool: Get thread by ID]]></phrase>
+  <phrase title="permission.aiconnect_t_cd9e3071dd7f" version_id="1021100" version_string="1.2.11"><![CDATA[Tool: Get supported languages]]></phrase>
+  <phrase title="permission.aiconnect_t_d9cb8e936e7b" version_id="1021100" version_string="1.2.11"><![CDATA[Tool: Search posts]]></phrase>
+  <phrase title="permission.aiconnect_t_dabcbc75b143" version_id="1021100" version_string="1.2.11"><![CDATA[Tool: Search threads]]></phrase>
+  <phrase title="permission.aiconnect_t_f8a2e49e6c22" version_id="1021100" version_string="1.2.11"><![CDATA[Tool: Get post by ID]]></phrase>
   <phrase title="permission.aiconnect_tool_translation_getSuppo" version_id="1021100" version_string="1.2.11"><![CDATA[Tool: Get supported languages]]></phrase>
   <phrase title="permission.aiconnect_tool_translation_translat" version_id="1021100" version_string="1.2.11"><![CDATA[Tool: Translate text]]></phrase>
   <phrase title="permission.aiconnect_tool_xenforo_getCurrentUs" version_id="1021100" version_string="1.2.11"><![CDATA[Tool: Get current user info]]></phrase>
@@ -140,7 +147,7 @@ For documentation: {infoUrl}]]></phrase>
   <phrase title="permission.aiconnect_tool_xenforo_getThread" version_id="1021100" version_string="1.2.11"><![CDATA[Tool: Get thread by ID]]></phrase>
   <phrase title="permission.aiconnect_tool_xenforo_searchPosts" version_id="1021100" version_string="1.2.11"><![CDATA[Tool: Search posts]]></phrase>
   <phrase title="permission.aiconnect_tool_xenforo_searchThread" version_id="1021100" version_string="1.2.11"><![CDATA[Tool: Search threads]]></phrase>
-  <phrase title="permission.aiconnect_useTools" version_id="1021200" version_string="1.2.12"><![CDATA[Use AI Connect tools (master switch)]]></phrase>
+  <phrase title="permission.aiconnect_useTools" version_id="1023600" version_string="1.2.36"><![CDATA[Use AI Connect tools (master switch for all tools)]]></phrase>
   <phrase title="permission.aiconnect_viewAiConnect" version_id="1022500" version_string="1.2.25"><![CDATA[View AI Connect (navigation links and info page)]]></phrase>
   <phrase title="permission.aiconnect_viewNavLink" version_id="1021000" version_string="1.2.10"><![CDATA[View AI Connect navigation links]]></phrase>
   <phrase title="permission_desc.aiconnect_viewAiConnect" version_id="1022500" version_string="1.2.25"><![CDATA[Controls visibility for guests only. Requires the "Show AI Connect link" option to be enabled in Admin CP → Options → AI Connect — Navigation. Has no effect when that option is disabled.]]></phrase>

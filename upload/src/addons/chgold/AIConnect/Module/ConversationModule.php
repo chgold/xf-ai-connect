@@ -5,6 +5,15 @@ namespace chgold\AIConnect\Module;
 /**
  * Conversation (direct message) module — exposes the visitor's private
  * conversations, their messages, and lets them start / reply to conversations.
+ *
+ * NOTE: The `execute_{shortName}` methods below are intentional. `ModuleBase::executeTool()`
+ * dispatches via `[$this, 'execute_' . $name]` (framework convention shared by all 13
+ * Module/Trait classes across AIConnect/AIConnectAdmin/AIConnectPro). Renaming them to
+ * camelCase would break dispatch. Snake_case is suppressed only for these dispatch handlers.
+ *
+ * phpcs:disable Squiz.NamingConventions.ValidFunctionName.NotCamelCaps
+ * phpcs:disable Squiz.NamingConventions.ValidFunctionName.MethodDoubleUnderscore
+ * phpcs:disable PSR1.Methods.CamelCapsMethodName.NotCamelCaps
  */
 class ConversationModule extends ModuleBase
 {
@@ -140,7 +149,10 @@ class ConversationModule extends ModuleBase
         $data = $this->formatConversation($convUser->Master, $convUser);
         $recipients = [];
         foreach ($convUser->Master->recipients as $userId => $recipient) {
-            $recipients[] = ['user_id' => (int) $userId, 'username' => (string) ($recipient->Recipient->username ?? '')];
+            $recipients[] = [
+                'user_id'  => (int) $userId,
+                'username' => (string) ($recipient->Recipient->username ?? ''),
+            ];
         }
         $data['recipients'] = $recipients;
         return $this->success($data);

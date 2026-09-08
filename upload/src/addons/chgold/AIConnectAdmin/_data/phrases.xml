@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<phrases>
+  <phrase title="permission.aiconnect_t_01171b452975" version_id="1000000" version_string="1.0.0"><![CDATA[deleteNode]]></phrase>
+  <phrase title="permission.aiconnect_t_0562df061abd" version_id="1000000" version_string="1.0.0"><![CDATA[createUser]]></phrase>
+  <phrase title="permission.aiconnect_t_0cc87f41d8cb" version_id="1000000" version_string="1.0.0"><![CDATA[createNode]]></phrase>
+  <phrase title="permission.aiconnect_t_8820344ca614" version_id="1000000" version_string="1.0.0"><![CDATA[updateUser]]></phrase>
+  <phrase title="permission.aiconnect_t_8da5eeea7433" version_id="1000000" version_string="1.0.0"><![CDATA[deleteUser]]></phrase>
+  <phrase title="permission.aiconnect_t_9874b9fbfc8e" version_id="1000000" version_string="1.0.0"><![CDATA[uploadUserAvatar]]></phrase>
+  <phrase title="permission.aiconnect_t_c42732ba49d9" version_id="1000000" version_string="1.0.0"><![CDATA[deleteUserAvatar]]></phrase>
+  <phrase title="permission.aiconnect_t_cedcb19dd078" version_id="1000000" version_string="1.0.0"><![CDATA[editNode]]></phrase>
+  <phrase title="permission.aiconnect_use_package_admin" version_id="1000000" version_string="1.0.0"><![CDATA[Use AI Connect Admin — Board Administration (package switch)]]></phrase>
+  <phrase title="permission_interface.aiconnect_pkg_admin" version_id="1000000" version_string="1.0.0"><![CDATA[AI Connect Admin — Board Administration]]></phrase>
+</phrases>

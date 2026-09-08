@@ -127,6 +127,25 @@ class InfoPage extends AbstractController
      * Tool metadata (hints, URL examples) is collected from each module's getToolPromptMeta().
      * Adding a new module automatically populates this prompt — no changes needed here.
      *
+     * SECURITY TODO: do NOT embed live access/refresh tokens in the onboarding
+     * prompt. This text is pasted into an agent, so it persists in chat history
+     * and logs, and is routinely shared by screenshot or copy-paste.
+     *
+     * The refresh token (xfr_) is the serious one. The protocol rotates refresh
+     * tokens, so whoever obtains one can keep renewing a chain of access of
+     * their own long after the original access token expired — and can also
+     * knock the real member offline by winning the rotation race. The access
+     * token (xfa_) expires within the hour but is still a secret.
+     *
+     * Planned fix: emit placeholders (YOUR_TOKEN / YOUR_REFRESH_TOKEN) and have
+     * the member paste their own, or deliver the tokens out of band. The same
+     * applies to the GET fallback examples below, which currently carry a live
+     * token in the query string; prefer an Authorization: Bearer header, which
+     * this add-on already accepts on GET.
+     *
+     * auth.token_url in the manifest is NOT a secret — it is a public protocol
+     * endpoint and can stay exactly as it is.
+     *
      * @param  string   $baseUrl         e.g. https://forum.example.com
      * @param  string   $accessToken     Bearer token just issued
      * @param  string[] $accessibleTools Filtered list of full tool names (e.g. ['xenforo.searchThreads', ...])
@@ -154,11 +173,28 @@ class InfoPage extends AbstractController
         // Each module declares its own hints and URL param examples via getToolPromptMeta().
         $toolMeta = [];
         foreach ($modules as $moduleName => $module) {
+            // Every registered tool gets a hint derived from its own input
+            // schema. The hand-written table below then overrides it where a
+            // curated wording exists, so nothing regresses — but a tool that
+            // nobody added to that table is no longer printed as a bare name
+            // with no sign that it takes arguments.
+            foreach (array_keys($module->getTools()) as $toolName) {
+                $toolMeta[$moduleName . '.' . $toolName] = [
+                    'hint'      => $module->buildSchemaHint($toolName),
+                    'urls'      => [],
+                    'post_body' => null,
+                ];
+            }
+
             foreach ($module->getToolPromptMeta() as $toolName => $meta) {
                 $fullName = $moduleName . '.' . $toolName;
                 // Build full URLs from the param strings the module provided
                 $urls = [];
                 foreach ($meta['url_params'] as $paramStr) {
+                    // SECURITY TODO: a live token in a query string is worse than in
+                    // a header — it lands in browser history, proxy logs and server
+                    // access logs. Use a YOUR_TOKEN placeholder and document the
+                    // Authorization: Bearer header instead, which GET already accepts.
                     $url = $toolUrl . '?token=' . $accessToken . '&name=' . $fullName;
                     if ($paramStr !== '') {
                         $url .= '&' . $paramStr;
@@ -183,6 +219,10 @@ class InfoPage extends AbstractController
         $lines[] = '  name:          "' . $siteNameMcp . '"';
         $lines[] = '  manifest_url:  "' . $manifestUrl . '"';
         $lines[] = '  token_url:     "' . $baseUrl . '/api/aiconnect-oauth"';
+        // SECURITY TODO: these two lines put LIVE credentials into text that ends
+        // up in chat history and logs. Replace with YOUR_TOKEN / YOUR_REFRESH_TOKEN
+        // placeholders and hand the real values over out of band. The refresh token
+        // is the dangerous one — see the note on buildPersonalizedPrompt().
         $lines[] = '  token:         "Bearer ' . $accessToken . '"';
         $lines[] = '  refresh_token: "' . $refreshToken . '"';
         $lines[] = '';
@@ -254,6 +294,7 @@ class InfoPage extends AbstractController
         $lines[] = 'When access_token expires (after 1 hour), refresh it:';
         $lines[] = '  POST ' . $baseUrl . '/api/aiconnect-oauth';
         $lines[] = '  Content-Type: application/json';
+        // SECURITY TODO: same live refresh token again, in the renewal example.
         $lines[] = '  {"grant_type":"refresh_token","refresh_token":"' . $refreshToken . '","client_id":"claude-ai"}';
         $lines[] = 'Response contains a new access_token + new refresh_token (old pair is revoked).';
         $lines[] = '';

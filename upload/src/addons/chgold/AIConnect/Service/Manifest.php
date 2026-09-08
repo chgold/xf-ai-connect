@@ -9,6 +9,20 @@ class Manifest extends AbstractService
     protected $tools = [];
 
     /**
+     * Declarative brief metrics — see docs-site/site-owners/manifest-format.md.
+     *
+     * Populated via registerBriefMetric() during module bootstrap and emitted as
+     * `manifest.brief.metrics` so goldnat.ai can collect scalar values on a
+     * schedule without a language model in the loop.
+     *
+     * @var array
+     */
+    protected $briefMetrics = [];
+
+    /** @var array */
+    protected $briefLists = [];
+
+    /**
      * Register a tool
      */
     public function registerTool($name, $config)
@@ -24,6 +38,68 @@ class Manifest extends AbstractService
         ];
 
         return true;
+    }
+
+    /**
+     * Register a declarative brief metric.
+     *
+     * Each entry names a TOOL, the ARGS to pass (with {{periodStart}},
+     * {{periodEnd}} and {{timezone}} substituted per collection), and a
+     * dotted VALUEPATH into the JSON response. The goldnat.ai collector
+     * calls the tool and reads the scalar at valuePath — no LLM in the loop.
+     *
+     * Contract from the spec (manifest-format.md, brief section):
+     *   - key          required. `^[a-z0-9]+(\.[a-z0-9_]+)+$`, 1–120 chars.
+     *   - tool         required. Manifest tool name w/o site prefix, 1–200 chars.
+     *   - args         optional. Constant object; supports {{...}} placeholders.
+     *   - valuePath    required. Dotted, keys & numeric indices only (no wildcards).
+     *   - unit         optional. Free-form ≤ 24 chars. ILS/USD/EUR/GBP → currency
+     *                  formatting; anything else → plain suffix. Omit for pure counts.
+     *   - granularity  optional. hour|day|week|month (default day).
+     *
+     * @return bool True on success, false if the entry was rejected.
+     */
+    public function registerBriefMetric(array $config): bool
+    {
+        if (empty($config['key']) || empty($config['tool']) || empty($config['valuePath'])) {
+            return false;
+        }
+        if (!preg_match('/^[a-z0-9]+(\.[a-z0-9_]+)+$/', (string) $config['key'])) {
+            return false;
+        }
+        if (count($this->briefMetrics) >= 50) {
+            return false;
+        }
+
+        $metric = [
+            'key'       => (string) $config['key'],
+            'tool'      => (string) $config['tool'],
+            'valuePath' => (string) $config['valuePath'],
+        ];
+        if (isset($config['args']) && is_array($config['args'])) {
+            $metric['args'] = $config['args'];
+        }
+        if (isset($config['unit']) && is_string($config['unit']) && $config['unit'] !== '') {
+            $metric['unit'] = substr($config['unit'], 0, 24);
+        }
+        if (
+            isset($config['granularity'])
+            && in_array($config['granularity'], ['hour', 'day', 'week', 'month'], true)
+        ) {
+            $metric['granularity'] = $config['granularity'];
+        }
+
+        // Later wins — allows extensions to override defaults for the same key.
+        $this->briefMetrics[$metric['key']] = $metric;
+        return true;
+    }
+
+    /**
+     * Get all registered brief metrics as a list.
+     */
+    public function getBriefMetrics(): array
+    {
+        return array_values($this->briefMetrics);
     }
 
     /**
@@ -72,10 +148,16 @@ class Manifest extends AbstractService
             }
             [$moduleName, $toolName] = $parts;
 
-            // Tier 2 — package check (only if module declares a packageId)
+            // Tier 2 — package check (only if module declares a packageId).
+            // Resolved PER TOOL: a module may spread its tools across several
+            // packages (the Pro module gives each bundle its own master switch),
+            // in which case testing one module-wide package would check a switch
+            // that no longer governs the tool.
             $module = $modules[$moduleName] ?? null;
             if ($module !== null && method_exists($module, 'getPackageId')) {
-                $packageId = $module->getPackageId();
+                $packageId = method_exists($module, 'getPackageIdForTool')
+                    ? $module->getPackageIdForTool($toolName)
+                    : $module->getPackageId();
                 if ($packageId !== null) {
                     $rawPkg  = 'use_package_' . $packageId;
                     $pkgPerm = strlen($rawPkg) <= 25 ? $rawPkg : substr($rawPkg, 0, 25);
@@ -152,6 +234,20 @@ class Manifest extends AbstractService
 
         if (!empty($this->tools)) {
             $manifest['tools'] = $this->getTools();
+        }
+
+        // Declarative brief metrics — see manifest-format.md (brief section).
+        // Only emitted when at least one entry was registered; invalid metrics
+        // never reach here (registerBriefMetric already rejected them).
+        if (!empty($this->briefMetrics) || !empty($this->briefLists)) {
+            $brief = [];
+            if (!empty($this->briefMetrics)) {
+                $brief['metrics'] = $this->getBriefMetrics();
+            }
+            if (!empty($this->briefLists)) {
+                $brief['lists'] = array_values($this->briefLists);
+            }
+            $manifest['brief'] = $brief;
         }
 
         // Expose the Pro plugin's advertised bundle keys so the license portal

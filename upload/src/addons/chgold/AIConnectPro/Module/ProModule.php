@@ -13,12 +13,107 @@ class ProModule extends ModuleBase
     use ProProfileTrait;
     use ProConversationTrait;
     use ProMediaTrait;
-    use ProAutomationTrait;
+    use ProDiscoveryTrait;
+    use ProUsersGroupsTrait;
+    use ProWatchedBookmarksTrait;
+    use ProActivityAnalyticsTrait;
 
     protected $moduleName = 'xenforo_pro';
 
     /** All Pro tools require the 'pro' package permission (use_package_pro). */
     protected $packageId = 'pro';
+
+    /**
+     * The eight bundles, in Admin CP display order, mapped to the trait method
+     * that registers each one. Single source of truth for bundle composition —
+     * used both by the licence gate (registerTools) and by the permission
+     * builder (getToolNamesByBundle), so the two can never drift apart.
+     *
+     * Keys MUST match the bundle keys the licence server returns.
+     */
+    public const BUNDLE_REGISTRARS = [
+        'core'                => ['label' => 'Core',                 'method' => 'registerCoreTools'],
+        'moderation'          => ['label' => 'Moderation',           'method' => 'registerModerationTools'],
+        'writing'             => ['label' => 'Writing',              'method' => 'registerWritingTools'],
+        'engagement'          => ['label' => 'Engagement',           'method' => 'registerEngagementTools'],
+        'profile'             => ['label' => 'Profile',              'method' => 'registerProfileTools'],
+        'conversation'        => ['label' => 'Conversation',         'method' => 'registerConversationTools'],
+        'media'               => ['label' => 'Media',                'method' => 'registerMediaTools'],
+        'discovery'           => ['label' => 'Discovery',            'method' => 'registerDiscoveryTools'],
+        'users_groups'        => ['label' => 'Users & Groups',       'method' => 'registerUsersGroupsTools'],
+        'watched_bookmarks'   => ['label' => 'Watched & Bookmarks',  'method' => 'registerWatchedBookmarksTools'],
+        'activity_analytics'  => ['label' => 'Activity & Analytics', 'method' => 'registerActivityAnalyticsTools'],
+    ];
+
+    /**
+     * Tool names grouped by bundle: [bundleKey => [toolName => humanLabel]].
+     *
+     * Determined by actually running each trait's registrar on a throwaway
+     * instance and diffing the registered tools, rather than by maintaining a
+     * hand-written list that would silently rot as tools are added.
+     *
+     * Tools registered directly by registerTools() (outside any trait) fall
+     * into 'core', so nothing is ever orphaned and left without a permission.
+     *
+     * @return array<string, array<string, string>>
+     */
+    public function getToolNamesByBundle(): array
+    {
+        $byBundle = [];
+        $seen     = [];
+
+        foreach (self::BUNDLE_REGISTRARS as $bundleKey => $info) {
+            $probe = new self(null);
+            // Reset so each probe reports only what THIS registrar adds.
+            $probe->tools = [];
+            $probe->{$info['method']}();
+
+            $names = [];
+            foreach ($probe->getToolNames() as $tool => $label) {
+                if (isset($seen[$tool])) {
+                    continue;
+                }
+                $seen[$tool] = true;
+                $names[$tool] = $label;
+            }
+            if ($names) {
+                $byBundle[$bundleKey] = $names;
+            }
+        }
+
+        // Anything registered outside a trait (e.g. getForumList/createThread
+        // added inline by registerTools) belongs with the always-on core set.
+        $all = (new self(null))->getToolNames();
+        foreach ($all as $tool => $label) {
+            if (!isset($seen[$tool])) {
+                $byBundle['core'][$tool] = $label;
+            }
+        }
+
+        return $byBundle;
+    }
+
+    /**
+     * The bundle that owns a given tool — each bundle has its own master
+     * permission (use_package_{bundle}), so the manifest must test the switch
+     * that actually governs this tool rather than a single module-wide one.
+     *
+     * Falls back to $packageId for anything unmapped, so a newly added tool is
+     * never silently ungated.
+     */
+    public function getPackageIdForTool(string $toolName): ?string
+    {
+        static $map = null;
+        if ($map === null) {
+            $map = [];
+            foreach ($this->getToolNamesByBundle() as $bundleKey => $tools) {
+                foreach (array_keys($tools) as $tool) {
+                    $map[$tool] = $bundleKey;
+                }
+            }
+        }
+        return $map[$toolName] ?? $this->packageId;
+    }
 
     /**
      * Shared guard: every write/delete Pro tool must hold the 'write' scope.
@@ -85,8 +180,17 @@ class ProModule extends ModuleBase
         if ($has('media')) {
             $this->registerMediaTools();
         }
-        if ($has('automation')) {
-            $this->registerAutomationTools();
+        if ($has('discovery')) {
+            $this->registerDiscoveryTools();
+        }
+        if ($has('users_groups')) {
+            $this->registerUsersGroupsTools();
+        }
+        if ($has('watched_bookmarks')) {
+            $this->registerWatchedBookmarksTools();
+        }
+        if ($has('activity_analytics')) {
+            $this->registerActivityAnalyticsTools();
         }
 
         $this->registerTool('getForumList', [
@@ -94,6 +198,7 @@ class ProModule extends ModuleBase
             'input_schema' => [
                 'type' => 'object',
                 'properties' => new \stdClass(),
+                'additionalProperties' => false,
             ],
         ]);
 
@@ -115,6 +220,10 @@ class ProModule extends ModuleBase
                         'type' => 'string',
                         'description' => 'Thread body (first post content)',
                     ],
+                    'attachment_hash' => [
+                        'type' => 'string',
+                        'description' => 'Temp hash returned by uploadAttachment, to attach those files to this thread',
+                    ],
                 ],
             ],
         ]);
@@ -133,6 +242,10 @@ class ProModule extends ModuleBase
                         'type' => 'string',
                         'description' => 'Reply content',
                     ],
+                    'attachment_hash' => [
+                        'type' => 'string',
+                        'description' => 'Temp hash returned by uploadAttachment, to attach those files to this reply',
+                    ],
                 ],
             ],
         ]);
@@ -150,6 +263,11 @@ class ProModule extends ModuleBase
                     'message' => [
                         'type' => 'string',
                         'description' => 'New post content',
+                    ],
+                    'attachment_hash' => [
+                        'type' => 'string',
+                        'description' => 'Temp hash from uploadAttachment. Must also cover the attachments the post '
+                            . 'already has, since any not included are treated as removed.',
                     ],
                 ],
             ],
@@ -257,6 +375,13 @@ class ProModule extends ModuleBase
         $creator = \XF::service('XF:Thread\Creator', $forum);
         $creator->setContent($params['title'], $params['message']);
 
+        // Attach files uploaded beforehand via uploadAttachment. Without this,
+        // an upload could be created but never bound to anything — the agent
+        // held a hash with no way to use it.
+        if (!empty($params['attachment_hash'])) {
+            $creator->setAttachmentHash((string) $params['attachment_hash']);
+        }
+
         if (!$creator->validate($errors)) {
             return $this->error('validation_failed', implode(' ', $errors));
         }
@@ -266,6 +391,7 @@ class ProModule extends ModuleBase
         return $this->success([
             'thread_id' => $thread->thread_id,
             'title' => $thread->title,
+            'attach_count' => (int) ($thread->FirstPost->attach_count ?? 0),
             'url' => \XF::app()->router('public')->buildLink('canonical:threads', $thread),
         ]);
     }
@@ -289,6 +415,11 @@ class ProModule extends ModuleBase
 
         $replier = \XF::service('XF:Thread\Replier', $thread);
         $replier->setMessage($params['message']);
+
+        // See createThread: binds files uploaded earlier via uploadAttachment.
+        if (!empty($params['attachment_hash'])) {
+            $replier->setAttachmentHash((string) $params['attachment_hash']);
+        }
 
         if (!$replier->validate($errors)) {
             return $this->error('validation_failed', implode(' ', $errors));
@@ -322,6 +453,12 @@ class ProModule extends ModuleBase
 
         $editor = \XF::service('XF:Post\Editor', $post);
         $editor->setMessage($params['message']);
+
+        // See createThread. On an edit the hash must carry the post's EXISTING
+        // attachments too, otherwise XenForo treats the omitted ones as removed.
+        if (!empty($params['attachment_hash'])) {
+            $editor->setAttachmentHash((string) $params['attachment_hash']);
+        }
 
         if (!$editor->validate($errors)) {
             return $this->error('validation_failed', implode(' ', $errors));

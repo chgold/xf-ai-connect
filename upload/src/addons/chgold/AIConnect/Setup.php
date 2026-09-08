@@ -533,17 +533,20 @@ class Setup extends AbstractSetup
                     'is_moderator'       => 0,
                     'addon_id'           => 'chgold/AIConnect',
                 ]);
-                self::compilePhrase('permission_interface.' . $groupId, $label);
             }
+            // Outside the !exists branch: the phrase must be repaired even when
+            // the group row already exists, since a compiled-only phrase from an
+            // earlier version is lost on any phrase rebuild.
+            self::persistPhrase('permission_interface.' . $groupId, $label);
         }
 
-        // Ensure static permission phrases are compiled (viewAiConnect, useTools).
+        // Ensure static permission phrases exist (viewAiConnect, useTools).
         $staticPhrases = [
             'permission.aiconnect_viewAiConnect' => 'View AI Connect (navigation links and info page)',
             'permission.aiconnect_useTools'      => 'Use AI Connect tools (master switch for all tools)',
         ];
         foreach ($staticPhrases as $phraseKey => $phraseText) {
-            self::compilePhrase($phraseKey, $phraseText);
+            self::persistPhrase($phraseKey, $phraseText);
         }
 
         // Migrate: fix display_order for interface groups (v1.2.13+) — place after XF built-in groups.
@@ -565,6 +568,45 @@ class Setup extends AbstractSetup
              SET interface_group_id = ?, display_order = ?
              WHERE permission_group_id = ? AND permission_id = ? AND interface_group_id != ?',
             ['aiconnect_tools', 5, 'aiconnect', 'useTools', 'aiconnect_tools']
+        );
+
+        // Repair: back-fill interface_group_id on any permission missing it.
+        //
+        // XF treats interface_group_id as a REQUIRED field on the permission
+        // entity. Rows that ended up without it made every subsequent add-on
+        // install/upgrade abort with:
+        //     "Please enter a value for the required field 'interface_group_id'"
+        // because XF re-validates the entire permission set during install.
+        // The practical effect was that NEITHER the old nor the new version
+        // could be installed — the site was stuck. Back-filling here makes the
+        // upgrade self-healing instead of requiring manual DB surgery.
+        $db->query(
+            'UPDATE xf_permission
+                SET interface_group_id = ?
+              WHERE permission_group_id = ?
+                AND (interface_group_id IS NULL OR interface_group_id = ?)',
+            ['aiconnect_tools', 'aiconnect', '']
+        );
+
+        // Repair: drop permissions from the superseded truncated-id scheme.
+        //
+        // Tool permission ids used to be 'tool_{module}_{tool}' blind-truncated
+        // to 25 chars; they are now 't_{hash}'. The old rows are dead weight,
+        // but they also BLOCK upgrades: XF refuses to remove an interface group
+        // while any permission still points at it, failing with
+        //     "You must delete all permissions within an interface group
+        //      before it can be deleted."
+        // Removing them here (and their now-orphaned entries) lets the add-on
+        // reorganise its interface groups on upgrade.
+        $db->query(
+            'DELETE FROM xf_permission
+              WHERE permission_group_id = ? AND permission_id LIKE ?',
+            ['aiconnect', 'tool\_%']
+        );
+        $db->query(
+            'DELETE FROM xf_permission_entry
+              WHERE permission_group_id = ? AND permission_id LIKE ?',
+            ['aiconnect', 'tool\_%']
         );
 
         $rebuild = false;
@@ -594,23 +636,7 @@ class Setup extends AbstractSetup
                 }
 
                 // 2. Register the phrase for Admin CP display
-                $phraseExists = $db->fetchOne(
-                    'SELECT title FROM xf_phrase WHERE language_id = 0 AND title = ?',
-                    [$phraseKey]
-                );
-
-                if (!$phraseExists) {
-                    $db->insert('xf_phrase', [
-                        'language_id'    => 0,
-                        'title'          => $phraseKey,
-                        'phrase_text'    => $label,
-                        'addon_id'       => 'chgold/AIConnect',
-                        'version_id'     => 1021100,
-                        'version_string' => '1.2.11',
-                        'global_cache'   => 0,
-                    ]);
-                    self::compilePhrase($phraseKey, $label);
-                }
+                self::persistPhrase($phraseKey, $label);
 
                 // 3. Default Allow for Registered users (group 2) — only if not yet set
                 $entryExists = $db->fetchOne(
@@ -679,8 +705,8 @@ class Setup extends AbstractSetup
                     'addon_id'           => $addonId,
                 ]);
             }
-            // Always compile phrase — idempotent, ensures Admin CP shows correct label
-            self::compilePhrase('permission_interface.' . $igId, $label);
+            // Always persist phrase — idempotent, ensures Admin CP shows correct label
+            self::persistPhrase('permission_interface.' . $igId, $label, $addonId);
 
             // Ensure package master permission: use_package_{packageId}
             $rawPkgPerm = 'use_package_' . $packageId;
@@ -701,8 +727,8 @@ class Setup extends AbstractSetup
                     'addon_id'             => $addonId,
                 ]);
             }
-            // Always compile phrase — idempotent
-            self::compilePhrase('permission.aiconnect_' . $pkgPermId, 'Use ' . $label . ' (package switch)');
+            // Always persist phrase — idempotent
+            self::persistPhrase('permission.aiconnect_' . $pkgPermId, 'Use ' . $label . ' (package switch)', $addonId);
 
             // Default Allow for Registered users (group 2) — only if not yet set
             $pkgEntryExists = $db->fetchOne(
@@ -745,24 +771,30 @@ class Setup extends AbstractSetup
                             'addon_id'             => $addonId,
                         ]);
                         $rebuild = true;
+                    } else {
+                        // Re-home existing permissions when bundles change.
+                        //
+                        // interface_group_id / depend_permission_id are only set
+                        // on INSERT, so a tool registered under an older layout
+                        // (all 66 in one flat 'aiconnect_tools' group) would stay
+                        // there forever and the Admin CP would keep showing one
+                        // undifferentiated list instead of the advertised sets.
+                        // This UPDATE moves it to its current bundle group and
+                        // re-points its dependency at that bundle's master
+                        // switch, which is what makes one-toggle-per-set work.
+                        $moved = $db->query(
+                            'UPDATE xf_permission
+                                SET interface_group_id = ?, depend_permission_id = ?
+                              WHERE permission_group_id = ? AND permission_id = ?
+                                AND (interface_group_id != ? OR depend_permission_id != ?)',
+                            [$igId, $pkgPermId, 'aiconnect', $permId, $igId, $pkgPermId]
+                        );
+                        if ($moved->rowsAffected()) {
+                            $rebuild = true;
+                        }
                     }
-                    // Always compile phrase — idempotent, keeps Admin CP labels fresh
-                    $phraseExists = $db->fetchOne(
-                        'SELECT title FROM xf_phrase WHERE language_id = 0 AND title = ?',
-                        [$phraseKey]
-                    );
-                    if (!$phraseExists) {
-                        $db->insert('xf_phrase', [
-                            'language_id'    => 0,
-                            'title'          => $phraseKey,
-                            'phrase_text'    => $toolLabel,
-                            'addon_id'       => $addonId,
-                            'version_id'     => 1021500,
-                            'version_string' => '1.2.15',
-                            'global_cache'   => 0,
-                        ]);
-                    }
-                    self::compilePhrase($phraseKey, $toolLabel);
+                    // Always persist phrase — idempotent, keeps Admin CP labels fresh
+                    self::persistPhrase($phraseKey, $toolLabel, $addonId);
 
                     // Default Allow for Registered (group 2)
                     $entryExists = $db->fetchOne(
@@ -797,31 +829,45 @@ class Setup extends AbstractSetup
     }
 
     /**
-     * Inserts or updates a phrase in xf_phrase_compiled for all active languages.
-     * Used when dynamically registering per-tool permissions during setup.
+     * Registers a phrase through the XF:Phrase entity so it becomes a real,
+     * translatable phrase rather than a cache artefact.
      *
-     * @param string $title      Phrase key (e.g. 'permission.aiconnect_tool_x_y')
+     * A raw INSERT into xf_phrase is NOT enough. The Admin CP renders these
+     * labels from the on-disk group cache in
+     * internal_data/code_cache/phrase_groups/, which GroupService builds by
+     * joining xf_phrase against xf_phrase_map. A row written straight to the
+     * table has no phrase_map entry, so it never reaches the cache and the
+     * Admin CP keeps showing the raw key (e.g.
+     * "permission.aiconnect_use_package_discovery"). Writing only to
+     * xf_phrase_compiled is worse still — that copy is regenerated from
+     * xf_phrase and is dropped on the next rebuild.
+     *
+     * Saving the entity triggers rebuildPhraseMapForTitle() and
+     * compilePhraseGroup() in Phrase::_postSave(), which is what actually makes
+     * the label appear and lets an admin translate it.
+     *
+     * @param string $title      Phrase key (e.g. 'permission.aiconnect_use_package_core')
      * @param string $phraseText Human-readable text
+     * @param string $addonId    Owning add-on
      */
-    public static function compilePhrase(string $title, string $phraseText)
+    public static function persistPhrase(string $title, string $phraseText, string $addonId = 'chgold/AIConnect')
     {
-        $db        = \XF::db();
-        $languages = $db->fetchAllColumn('SELECT language_id FROM xf_language');
-        // Always include language_id=0 (master)
-        $langIds   = array_unique(array_merge([0], $languages));
+        /** @var \XF\Entity\Phrase|null $phrase */
+        $phrase = \XF::em()->findOne('XF:Phrase', ['language_id' => 0, 'title' => $title]);
 
-        foreach ($langIds as $langId) {
-            $db->insert(
-                'xf_phrase_compiled',
-                [
-                    'language_id' => $langId,
-                    'title'       => $title,
-                    'phrase_text' => $phraseText,
-                ],
-                false,
-                'phrase_text = VALUES(phrase_text)'
-            );
+        if (!$phrase) {
+            $phrase = \XF::em()->create('XF:Phrase');
+            $phrase->language_id = 0;
+            $phrase->title       = $title;
+            $phrase->addon_id    = $addonId;
+        } elseif ($phrase->phrase_text === $phraseText) {
+            // Already correct — saving anyway would recompile the whole group
+            // once per phrase for no gain.
+            return;
         }
+
+        $phrase->phrase_text = $phraseText;
+        $phrase->save();
     }
 
     protected function rebuildAddOnData()

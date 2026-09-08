@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<permissions>
+  <permission permission_group_id="aiconnect" permission_id="t_01171b452975" permission_type="flag" depend_permission_id="use_package_admin" interface_group_id="aiconnect_pkg_admin" display_order="10"/>
+  <permission permission_group_id="aiconnect" permission_id="t_0562df061abd" permission_type="flag" depend_permission_id="use_package_admin" interface_group_id="aiconnect_pkg_admin" display_order="10"/>
+  <permission permission_group_id="aiconnect" permission_id="t_0cc87f41d8cb" permission_type="flag" depend_permission_id="use_package_admin" interface_group_id="aiconnect_pkg_admin" display_order="10"/>
+  <permission permission_group_id="aiconnect" permission_id="t_8820344ca614" permission_type="flag" depend_permission_id="use_package_admin" interface_group_id="aiconnect_pkg_admin" display_order="10"/>
+  <permission permission_group_id="aiconnect" permission_id="t_8da5eeea7433" permission_type="flag" depend_permission_id="use_package_admin" interface_group_id="aiconnect_pkg_admin" display_order="10"/>
+  <permission permission_group_id="aiconnect" permission_id="t_9874b9fbfc8e" permission_type="flag" depend_permission_id="use_package_admin" interface_group_id="aiconnect_pkg_admin" display_order="10"/>
+  <permission permission_group_id="aiconnect" permission_id="t_c42732ba49d9" permission_type="flag" depend_permission_id="use_package_admin" interface_group_id="aiconnect_pkg_admin" display_order="10"/>
+  <permission permission_group_id="aiconnect" permission_id="t_cedcb19dd078" permission_type="flag" depend_permission_id="use_package_admin" interface_group_id="aiconnect_pkg_admin" display_order="10"/>
+  <permission permission_group_id="aiconnect" permission_id="use_package_admin" permission_type="flag" depend_permission_id="useTools" interface_group_id="aiconnect_pkg_admin" display_order="5"/>
+</permissions>

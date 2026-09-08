@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<code_event_listeners>
+  <listener event_id="ai_connect_modules_init" execute_order="20" callback_class="chgold\AIConnectAdmin\Listener\ModuleInit" callback_method="aiConnectModulesInit" active="1" description="Registers Admin module tools for AI Connect"/>
+  <listener event_id="ai_connect_sync_tool_permissions" execute_order="20" callback_class="chgold\AIConnectAdmin\Listener\SyncPermissions" callback_method="aiConnectSyncToolPermissions" active="1" description="Registers Admin package and per-tool permissions"/>
+</code_event_listeners>

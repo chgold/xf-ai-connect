@@ -16,10 +16,11 @@ trait ProCoreTrait
 {
     protected function registerCoreTools()
     {
-        $this->registerTool('getMe', [
-            'description' => 'Get the current authenticated user identity and permissions',
-            'input_schema' => ['type' => 'object', 'properties' => new \stdClass()],
-        ]);
+        // NOTE: there is deliberately no getMe here. It duplicated the free
+        // add-on's getCurrentUser, which left agents with two tools for one job
+        // and no way to tell them apart. The two extra fields getMe exposed
+        // (user_group_id, is_super_admin) were folded into getCurrentUser, so
+        // removing it costs nothing.
         $this->registerTool('findUserByName', [
             'description' => 'Find a user by (start of) username',
             'input_schema' => [
@@ -32,25 +33,17 @@ trait ProCoreTrait
 
     // phpcs:disable PSR1.Methods.CamelCapsMethodName.NotCamelCaps -- dynamic dispatch execute_<name>
 
-    public function execute_getMe($params)
-    {
-        $visitor = \XF::visitor();
-        if (!$visitor->user_id) {
-            return $this->error('not_authenticated', 'No authenticated user');
-        }
-        return $this->success([
-            'user_id'        => $visitor->user_id,
-            'username'       => $visitor->username,
-            'email'          => $visitor->email,
-            'user_group_id'  => $visitor->user_group_id,
-            'is_admin'       => (bool) $visitor->is_admin,
-            'is_super_admin' => (bool) $visitor->is_super_admin,
-            'is_moderator'   => (bool) $visitor->is_moderator,
-        ]);
-    }
-
     public function execute_findUserByName($params)
     {
+        // Looking members up by name prefix is member-list access: without this
+        // gate the tool enumerated the whole user base for any caller with a
+        // read token, on a board that may deliberately hide its member list.
+        // getUserProfile already enforces the same permission — this keeps the
+        // two user-facing tools on one standard.
+        if (!\XF::visitor()->canViewMemberList()) {
+            return $this->error('no_permission', 'You do not have permission to look up members');
+        }
+
         $name = trim((string) $params['username']);
         $finder = \XF::finder('XF:User')
             ->where('username', 'like', \XF::db()->escapeLike($name, '?%'))
@@ -58,6 +51,12 @@ trait ProCoreTrait
             ->limit(10);
         $out = [];
         foreach ($finder->fetch() as $u) {
+            // Skip accounts the member list itself would withhold. XF\Entity\User
+            // has no canView(); visibility is expressed through user_state and
+            // the ban flag, which is exactly what getUserProfile checks.
+            if ($u->user_state !== 'valid' || $u->is_banned) {
+                continue;
+            }
             $out[] = ['user_id' => $u->user_id, 'username' => $u->username];
         }
         return $this->success($out);

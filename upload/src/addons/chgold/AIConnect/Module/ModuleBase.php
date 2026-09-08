@@ -185,6 +185,23 @@ abstract class ModuleBase
     }
 
     /**
+     * Package ID governing a SPECIFIC tool, or null when the tool is ungated.
+     *
+     * Modules whose tools are split across several packages (e.g. the Pro
+     * module, whose tools belong to one bundle each) override this so the
+     * manifest checks the master switch that actually owns the tool. The
+     * default keeps the previous whole-module behaviour, so existing modules
+     * are unaffected.
+     *
+     * @param string $toolName Tool name without the module prefix.
+     * @return string|null
+     */
+    public function getPackageIdForTool(string $toolName): ?string
+    {
+        return $this->getPackageId();
+    }
+
+    /**
      * Returns prompt metadata for each tool in this module.
      *
      * Used by the token generator (InfoPage::buildPersonalizedPrompt) to produce
@@ -209,6 +226,73 @@ abstract class ModuleBase
     public function getToolPromptMeta(): array
     {
         return [];
+    }
+
+    /**
+     * Builds a one-line parameter hint for a tool straight from its input
+     * schema, for the connection prompt.
+     *
+     * getToolPromptMeta() is a hand-written table, so it only ever covered the
+     * handful of tools someone remembered to add — every tool registered since
+     * appeared in the prompt as a bare name with no indication that it takes
+     * arguments at all. The schema is already the single source of truth (it is
+     * what the manifest publishes), so deriving the hint from it means a new
+     * tool is documented the moment it is registered, and the two can never
+     * drift apart again.
+     *
+     * Required parameters are listed first, since those are what a caller must
+     * supply; optional ones follow, capped so the prompt stays readable.
+     *
+     * @param string $toolName short name, e.g. 'searchThreads'
+     */
+    public function buildSchemaHint(string $toolName, int $maxOptional = 3): string
+    {
+        $tool = $this->tools[$toolName] ?? null;
+        if (!$tool) {
+            return '';
+        }
+
+        $schema     = $tool['input_schema'] ?? [];
+        $properties = $schema['properties'] ?? [];
+        if (!is_array($properties) || !$properties) {
+            return 'no arguments';
+        }
+
+        $required = array_flip((array) ($schema['required'] ?? []));
+        $req      = [];
+        $opt      = [];
+
+        foreach ($properties as $name => $spec) {
+            $type = is_array($spec) ? ($spec['type'] ?? 'string') : 'string';
+            $part = $name . '=' . $type;
+
+            if (isset($required[$name])) {
+                $req[] = $part;
+            } else {
+                if (is_array($spec) && isset($spec['default'])) {
+                    $default = $spec['default'];
+                    $part .= ' (default ' . (is_bool($default)
+                        ? ($default ? 'true' : 'false')
+                        : (string) $default) . ')';
+                }
+                $opt[] = $part;
+            }
+        }
+
+        $parts = $req;
+        if ($req) {
+            $parts[count($parts) - 1] .= ' [required]';
+        }
+
+        $shown = array_slice($opt, 0, $maxOptional);
+        $parts = array_merge($parts, $shown);
+
+        $hint = implode(', ', $parts);
+        if (count($opt) > count($shown)) {
+            $hint .= ', +' . (count($opt) - count($shown)) . ' more';
+        }
+
+        return $hint;
     }
 
     protected function success($data, $message = null)

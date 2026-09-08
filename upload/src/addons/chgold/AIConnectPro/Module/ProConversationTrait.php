@@ -66,7 +66,7 @@ trait ProConversationTrait
         ]);
         $this->registerTool('markAllAlertsRead', [
             'description' => 'Mark all your alerts as read',
-            'input_schema' => ['type' => 'object', 'properties' => new \stdClass()],
+            'input_schema' => ['type' => 'object', 'properties' => new \stdClass(), 'additionalProperties' => false],
         ]);
     }
 
@@ -151,20 +151,63 @@ trait ProConversationTrait
         if (!is_array($params['usernames'])) {
             return $this->error('invalid_param', 'usernames must be an array');
         }
-        $conv = \XF::em()->find('XF:ConversationMaster', $params['conversation_id']);
-        if (!$conv) {
+        // Load through the visitor's own conversation record first, exactly as
+        // XF\Pub\Controller\Conversation::actionInvite does. Loading the master
+        // straight by ID was not enough: ConversationMaster::canInvite() never
+        // checks participation (that lives in canView()), and it short-circuits
+        // to true for anyone holding the "always invite" permission — so a
+        // moderator could invite members into a private conversation they were
+        // not part of, purely by guessing its ID.
+        $userConv = $this->getVisitorConversation($params['conversation_id']);
+        if (!$userConv) {
             return $this->error('not_found', 'Conversation not found');
         }
-        if (!$conv->canInvite()) {
+        $conv = $userConv->Master;
+        if (!$conv || !$conv->canInvite()) {
             return $this->error('no_permission', 'You cannot invite users to this conversation');
         }
+
+        // Drop anyone already in the conversation, including the caller. XF's
+        // inviter ignores them silently, which made the tool answer "invited"
+        // for people it had not invited — a self-invite reported success while
+        // nothing happened. Matching is done on user IDs rather than on the
+        // supplied strings, so casing or spacing cannot slip a duplicate past.
+        $existingIds = array_fill_keys($conv->recipient_user_ids, true);
+        $toInvite    = [];
+        $skipped     = [];
+        foreach ($params['usernames'] as $username) {
+            $username = trim((string) $username);
+            if ($username === '') {
+                continue;
+            }
+            $user = \XF::em()->findOne('XF:User', ['username' => $username]);
+            if ($user && isset($existingIds[$user->user_id])) {
+                $skipped[] = $username;
+            } else {
+                // Unknown names are passed through so XF's own validator
+                // produces its standard "member not found" message.
+                $toInvite[] = $username;
+            }
+        }
+
+        if (!$toInvite) {
+            return $this->error(
+                'invalid_param',
+                'Every requested user is already in this conversation: ' . implode(', ', $skipped)
+            );
+        }
+
         $inviter = \XF::service('XF:Conversation\Inviter', $conv, \XF::visitor());
-        $inviter->setRecipients($params['usernames']);
+        $inviter->setRecipients($toInvite);
         if (!$inviter->validate($errors)) {
             return $this->error('validation_failed', implode(' ', $errors));
         }
         $inviter->save();
-        return $this->success(['conversation_id' => $conv->conversation_id, 'invited' => array_values($params['usernames'])]);
+        return $this->success([
+            'conversation_id' => $conv->conversation_id,
+            'invited' => $toInvite,
+            'already_in_conversation' => $skipped,
+        ]);
     }
 
     public function execute_listAlerts($params)

@@ -2,6 +2,16 @@
 <ruleset name="AIConnect">
     <description>PSR12 for XenForo AIConnect — line length excluded (XenForo API calls are inherently verbose)</description>
 
+    <!-- _output/ holds files XenForo generates itself (xf-dev:export), headed
+         "THIS IS A GENERATED FILE. DO NOT EDIT DIRECTLY". extension_hint.php in
+         particular declares XF's class-extension proxies (XFCP_Router,
+         XFCP_User) using XF's own tabs-and-brace style and its mandatory XFCP_
+         naming — none of which we may change, and all of which XF rewrites on
+         every export. Linting generated code produces violations that are by
+         definition unfixable, so it is excluded rather than left as permanent
+         noise that masks real findings. -->
+    <exclude-pattern>*/_output/*</exclude-pattern>
+
     <rule ref="PSR12">
         <!-- Line length warnings suppressed: XenForo method calls and string concatenations
              are inherently verbose and splitting them reduces readability. -->
