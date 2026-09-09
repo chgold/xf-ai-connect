@@ -29,6 +29,10 @@ class AdminModule extends ModuleBase
     use AdminDisciplineTrait;
     use AdminUserCredentialsTrait;
     use AdminNodesAdvancedTrait;
+    use AdminAddonsTrait;
+    use AdminOptionsTrait;
+    use AdminCronTrait;
+    use AdminStylesTrait;
 
     protected $moduleName = 'xenforo_admin';
 
@@ -42,6 +46,10 @@ class AdminModule extends ModuleBase
         'discipline'       => ['label' => 'User discipline (ban/unban)', 'method' => 'registerDisciplineTools'],
         'user_credentials' => ['label' => 'User credentials (email/password)', 'method' => 'registerUserCredentialsTools'],
         'nodes_advanced'   => ['label' => 'Nodes advanced (reorder/permissions)', 'method' => 'registerNodesAdvancedTools'],
+        'addons'           => ['label' => 'Add-ons (list/enable/disable)', 'method' => 'registerAddonsTools'],
+        'options'          => ['label' => 'Site options (get/set)',       'method' => 'registerOptionsTools'],
+        'cron'             => ['label' => 'Cron tasks (list/trigger)',    'method' => 'registerCronTools'],
+        'styles'           => ['label' => 'Styles (list/set default)',    'method' => 'registerStylesTools'],
     ];
 
     protected function registerTools()
@@ -151,6 +159,18 @@ class AdminModule extends ModuleBase
 
         // Bundle: nodes_advanced (2 tools) — reorder + per-node permissions
         $this->registerNodesAdvancedTools();
+
+        // Bundle: addons (3 tools) — list + enable + disable add-ons
+        $this->registerAddonsTools();
+
+        // Bundle: options (2 tools) — get + set board options
+        $this->registerOptionsTools();
+
+        // Bundle: cron (2 tools) — list + trigger cron entries
+        $this->registerCronTools();
+
+        // Bundle: styles (2 tools) — list styles + set default
+        $this->registerStylesTools();
     }
 
     /**
