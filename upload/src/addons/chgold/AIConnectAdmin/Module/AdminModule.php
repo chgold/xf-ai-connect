@@ -27,6 +27,8 @@ class AdminModule extends ModuleBase
 {
     use AdminUsergroupsTrait;
     use AdminDisciplineTrait;
+    use AdminUserCredentialsTrait;
+    use AdminNodesAdvancedTrait;
 
     protected $moduleName = 'xenforo_admin';
 
@@ -35,9 +37,11 @@ class AdminModule extends ModuleBase
      * dashboard/permissions can group + toggle the same way.
      */
     public const BUNDLE_REGISTRARS = [
-        'base'       => ['label' => 'Base — nodes & users',      'method' => null],
-        'usergroups' => ['label' => 'Usergroups & memberships',  'method' => 'registerUsergroupsTools'],
-        'discipline' => ['label' => 'User discipline (ban/unban)', 'method' => 'registerDisciplineTools'],
+        'base'             => ['label' => 'Base — nodes & users',        'method' => null],
+        'usergroups'       => ['label' => 'Usergroups & memberships',    'method' => 'registerUsergroupsTools'],
+        'discipline'       => ['label' => 'User discipline (ban/unban)', 'method' => 'registerDisciplineTools'],
+        'user_credentials' => ['label' => 'User credentials (email/password)', 'method' => 'registerUserCredentialsTools'],
+        'nodes_advanced'   => ['label' => 'Nodes advanced (reorder/permissions)', 'method' => 'registerNodesAdvancedTools'],
     ];
 
     protected function registerTools()
@@ -141,6 +145,12 @@ class AdminModule extends ModuleBase
 
         // Bundle: discipline (2 tools) — ban / unban
         $this->registerDisciplineTools();
+
+        // Bundle: user_credentials (2 tools) — change email + password
+        $this->registerUserCredentialsTools();
+
+        // Bundle: nodes_advanced (2 tools) — reorder + per-node permissions
+        $this->registerNodesAdvancedTools();
     }
 
     /**
