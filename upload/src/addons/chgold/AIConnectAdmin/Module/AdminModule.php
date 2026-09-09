@@ -74,7 +74,10 @@ class AdminModule extends ModuleBase
             ],
         ]);
         $this->registerTool('updateUser', [
-            'description' => 'Update a user (about text and/or primary user group) (admin)',
+            'description' => 'Update a user about text and/or primary user group. '
+                . 'Editing a super admin requires the caller to be a super admin (mirrors XF-core). '
+                . 'Self-demoting your own super-admin group via API is refused unless '
+                . 'confirm_self_demote:true — lockout risk equivalent to self-delete.',
             'input_schema' => [
                 'type' => 'object',
                 'required' => ['user_id'],
@@ -82,6 +85,7 @@ class AdminModule extends ModuleBase
                     'user_id' => ['type' => 'integer', 'description' => 'User to update'],
                     'about' => ['type' => 'string', 'description' => 'New about text (optional)'],
                     'user_group_id' => ['type' => 'integer', 'description' => 'New primary user group id (optional)'],
+                    'confirm_self_demote' => ['type' => 'boolean', 'description' => 'Explicit override to allow demoting yourself if is_super_admin (lockout risk).'],
                 ],
             ],
         ]);
@@ -262,6 +266,40 @@ class AdminModule extends ModuleBase
         if (!$user) {
             return $this->error('not_found', 'User not found');
         }
+
+        // Safeguard 1: mirror XF-core ACP — only super admins may edit super
+        // admins. Prevents a plain admin from tampering with a super-admin
+        // account (locking password, changing group, etc). XF-native behaviour
+        // per Admin/Controller/UserController::actionEdit line 1317.
+        $visitor = \XF::visitor();
+        if ($user->is_super_admin && !$visitor->is_super_admin) {
+            return $this->error(
+                'no_permission',
+                'Only super administrators can edit other super administrators'
+            );
+        }
+
+        // Safeguard 2: prevent self-demote via API. An agent running as a
+        // super admin could accidentally strip their own admin group by
+        // calling updateUser on their own user_id — same lockout effect as
+        // deleteUser. Only allow group change on self via the ACP UI (where
+        // password re-auth applies), never via API. Explicit override:
+        // pass `confirm_self_demote: true` to acknowledge the risk.
+        if (
+            isset($params['user_group_id'])
+            && $user->user_id === $visitor->user_id
+            && $user->is_super_admin
+            && (int) $params['user_group_id'] !== (int) $user->user_group_id
+            && empty($params['confirm_self_demote'])
+        ) {
+            return $this->error(
+                'no_permission',
+                'Refusing to change your own primary group on a super admin account via API — '
+                . 'lockout risk equivalent to self-deletion. Pass confirm_self_demote:true to override, '
+                . 'or use the ACP directly.'
+            );
+        }
+
         if (isset($params['user_group_id'])) {
             $user->user_group_id = (int) $params['user_group_id'];
         }
