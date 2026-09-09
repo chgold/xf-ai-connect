@@ -7,8 +7,8 @@ use XF\Http\Upload;
 use XF\Repository\UserRepository;
 
 /**
- * Administrative tool-set: node CRUD, user CRUD and avatar management for other
- * members.
+ * Administrative tool-set: node CRUD, user CRUD, avatar management, user-group
+ * CRUD + secondary-group assignment, and user discipline (ban/unban).
  *
  * These live outside the Pro add-on because they are not the same class of
  * operation. Everything in Pro acts as the connected member; the tools here act
@@ -16,10 +16,29 @@ use XF\Repository\UserRepository;
  * token must carry the 'admin' scope AND the connected account must genuinely be
  * an administrator. Shipping them separately also means a customer who buys Pro
  * is not silently handed the ability to delete users.
+ *
+ * Bundle structure (mirrors AIConnectPro ProModule pattern) — each trait maps
+ * to a bundle_key advertised in pm_tool_bundles + separately toggle-able:
+ *   base        → node CRUD, user CRUD, avatar management (8 tools, class body)
+ *   usergroups  → usergroup CRUD + secondary-group assignment (5 tools)
+ *   discipline  → ban / unban (2 tools)
  */
 class AdminModule extends ModuleBase
 {
+    use AdminUsergroupsTrait;
+    use AdminDisciplineTrait;
+
     protected $moduleName = 'xenforo_admin';
+
+    /**
+     * bundle_key → registrar method. Mirrors ProModule::BUNDLE_REGISTRARS so
+     * dashboard/permissions can group + toggle the same way.
+     */
+    public const BUNDLE_REGISTRARS = [
+        'base'       => ['label' => 'Base — nodes & users',      'method' => null],
+        'usergroups' => ['label' => 'Usergroups & memberships',  'method' => 'registerUsergroupsTools'],
+        'discipline' => ['label' => 'User discipline (ban/unban)', 'method' => 'registerDisciplineTools'],
+    ];
 
     protected function registerTools()
     {
@@ -116,6 +135,12 @@ class AdminModule extends ModuleBase
                 'properties' => ['user_id' => ['type' => 'integer', 'description' => 'Member whose avatar to remove']],
             ],
         ]);
+
+        // Bundle: usergroups (5 tools) — usergroup CRUD + secondary group assignment
+        $this->registerUsergroupsTools();
+
+        // Bundle: discipline (2 tools) — ban / unban
+        $this->registerDisciplineTools();
     }
 
     /**
