@@ -54,7 +54,10 @@ trait AdminAddonsTrait
     {
         if ($err = $this->requireAdmin()) return $err;
 
-        $addons = \XF::em()->getRepository('XF:AddOn')->getAddOnsForList();
+        // getAddOnsForList() signature varies across XF versions and can return
+        // arrays instead of entities, causing property-access crashes.
+        // Use the finder pattern directly (same fix that worked for styles).
+        $addons = \XF::finder('XF:AddOn')->order('addon_id')->fetch();
         $out = [];
         foreach ($addons as $a) {
             $out[] = [

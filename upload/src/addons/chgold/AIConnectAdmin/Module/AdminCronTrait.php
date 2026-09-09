@@ -43,7 +43,9 @@ trait AdminCronTrait
         if ($err = $this->requireAdmin()) return $err;
         if ($err = $this->assertCronPermission()) return $err;
 
-        $entries = \XF::em()->getRepository('XF:CronEntry')->findCronEntriesForList()->fetch();
+        // findCronEntriesForList may not exist on older XF minor versions.
+        // Use finder pattern directly.
+        $entries = \XF::finder('XF:CronEntry')->order('entry_id')->fetch();
         $out = [];
         foreach ($entries as $e) {
             $out[] = [
@@ -69,7 +71,25 @@ trait AdminCronTrait
         $entry = \XF::em()->find('XF:CronEntry', $entryId);
         if (!$entry) return $this->error('not_found', "Cron entry '$entryId' not found");
 
-        $entry->triggerRun();
+        // Guard against dead add-ons (same check XF ACP does in CronEntryController::actionRun)
+        if ($entry->addon_id && (!$entry->AddOn || !$entry->AddOn->active)) {
+            return $this->error(
+                'invalid_state',
+                "Cron entry '$entryId' belongs to inactive add-on '$entry->addon_id'"
+            );
+        }
+
+        if (!$entry->hasCallback()) {
+            return $this->error('invalid_state', "Cron entry '$entryId' has no callable callback");
+        }
+
+        // Exact pattern used by XF's ACP CronEntryController::actionRun (verified in XF source):
+        //   call_user_func([$entry->cron_class, $entry->cron_method], $entry->toArray());
+        call_user_func(
+            [$entry->cron_class, $entry->cron_method],
+            $entry->toArray()
+        );
+
         // Reload to get updated next_run + last_run
         $entry = \XF::em()->find('XF:CronEntry', $entryId, ['forceRefresh' => true]);
 

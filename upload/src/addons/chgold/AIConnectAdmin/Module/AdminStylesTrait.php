@@ -46,7 +46,10 @@ trait AdminStylesTrait
         if ($err = $this->assertStylePermission()) return $err;
 
         $defaultId = (int) \XF::options()->defaultStyleId;
-        $styles = \XF::em()->findAll('XF:Style', ['title', 'ASC']);
+        // findAll signature is ($shortName, $conditions = null, $order = null).
+        // Passing ['title','ASC'] as $conditions crashes the query builder.
+        // Use finder pattern instead.
+        $styles = \XF::finder('XF:Style')->order('title', 'ASC')->fetch();
 
         $out = [];
         foreach ($styles as $s) {
