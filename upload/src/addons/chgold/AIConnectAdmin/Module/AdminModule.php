@@ -61,14 +61,15 @@ class AdminModule extends ModuleBase
             ],
         ]);
         $this->registerTool('createUser', [
-            'description' => 'Create a new user (admin)',
+            'description' => 'Create a new user (admin). Defaults user_state="valid" (immediately usable).',
             'input_schema' => [
                 'type' => 'object',
                 'required' => ['username', 'email'],
                 'properties' => [
                     'username' => ['type' => 'string', 'description' => 'Username'],
                     'email' => ['type' => 'string', 'description' => 'Email address'],
-                    'password' => ['type' => 'string', 'description' => 'Password (optional; no password set if omitted)'],
+                    'password' => ['type' => 'string', 'description' => 'Password (optional)'],
+                    'require_email_confirm' => ['type' => 'boolean', 'description' => 'If true, create in user_state="email_confirm" (user must click a link before login). Default false — admin-created users are immediately valid.'],
                 ],
             ],
         ]);
@@ -229,7 +230,27 @@ class AdminModule extends ModuleBase
             return $this->error('validation_failed', implode(' ', $errors));
         }
         $user = $registration->save();
-        return $this->success(['user_id' => $user->user_id, 'username' => $user->username]);
+
+        // XF's RegistrationService defaults new users to user_state='email_confirm' —
+        // that's correct for public self-registration but WRONG for an admin API
+        // (the caller has admin scope + is_admin, so the user is pre-vetted). Without
+        // this, the created user is invisible to searchUsers/listUsers (which filter
+        // by isValidUser) — a documented pattern that looks like a write/read
+        // inconsistency bug. Force to 'valid' so admin-created users are immediately
+        // usable. Caller can flip via updateUser if they actually want email confirm.
+        $forceState = isset($params['require_email_confirm']) && $params['require_email_confirm']
+            ? 'email_confirm'
+            : 'valid';
+        if ($user->user_state !== $forceState) {
+            $user->user_state = $forceState;
+            $user->save();
+        }
+
+        return $this->success([
+            'user_id' => $user->user_id,
+            'username' => $user->username,
+            'user_state' => $user->user_state,
+        ]);
     }
 
     public function execute_updateUser($params)
