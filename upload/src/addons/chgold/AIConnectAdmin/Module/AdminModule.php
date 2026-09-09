@@ -179,6 +179,12 @@ class AdminModule extends ModuleBase
      *
      * Both halves matter. The scope alone proves only that the agent asked for
      * administrative access; is_admin proves the board granted it.
+     *
+     * NOTE: is_admin is a coarse flag — it means "has SOME ACP permission",
+     * NOT "has all". Callers MUST additionally call assertPermission($area)
+     * for the specific ACP area they touch (node/user/userGroup/addOn/etc).
+     * A partial admin (e.g. "user" perm only) should not be able to disable
+     * add-ons via the API just because they hold an admin-scoped token.
      */
     protected function requireAdmin()
     {
@@ -191,11 +197,39 @@ class AdminModule extends ModuleBase
         return null;
     }
 
+    /**
+     * Per-area ACP permission check. MUST be called by every mutation tool
+     * after requireAdmin(), passing the exact XF permission string that the
+     * corresponding ACP controller checks (verified in XF source):
+     *   - node       → NodeController::preDispatchController
+     *   - user       → UserController actions
+     *   - userGroup  → UserGroupController + PermissionController (permission edits)
+     *   - addOn      → AddOnController::preDispatchController
+     *   - option     → OptionController::preDispatchController
+     *   - style      → StyleController::preDispatchController
+     *   - cron       → CronEntryController::preDispatchController
+     *
+     * Super admins pass this check automatically (XF-native semantics).
+     */
+    public function assertPermission(string $area)
+    {
+        if (!\XF::visitor()->hasAdminPermission($area)) {
+            return $this->error(
+                'no_permission',
+                'This operation requires the "' . $area . '" admin permission'
+            );
+        }
+        return null;
+    }
+
     // phpcs:disable PSR1.Methods.CamelCapsMethodName.NotCamelCaps -- dynamic dispatch execute_<name>
 
     public function execute_createNode($params)
     {
         if ($err = $this->requireAdmin()) {
+            return $err;
+        }
+        if ($err = $this->assertPermission('node')) {
             return $err;
         }
         $validTypes = ['Forum', 'Category', 'Page', 'LinkForum'];
@@ -224,6 +258,9 @@ class AdminModule extends ModuleBase
         if ($err = $this->requireAdmin()) {
             return $err;
         }
+        if ($err = $this->assertPermission('node')) {
+            return $err;
+        }
         $node = \XF::em()->find('XF:Node', $params['node_id']);
         if (!$node) {
             return $this->error('not_found', 'Node not found');
@@ -247,6 +284,9 @@ class AdminModule extends ModuleBase
     public function execute_deleteNode($params)
     {
         if ($err = $this->requireAdmin()) {
+            return $err;
+        }
+        if ($err = $this->assertPermission('node')) {
             return $err;
         }
         $node = \XF::em()->find('XF:Node', $params['node_id']);
@@ -275,6 +315,9 @@ class AdminModule extends ModuleBase
     public function execute_createUser($params)
     {
         if ($err = $this->requireAdmin()) {
+            return $err;
+        }
+        if ($err = $this->assertPermission('user')) {
             return $err;
         }
         /** @var \XF\Service\User\RegistrationService $registration */
@@ -315,6 +358,9 @@ class AdminModule extends ModuleBase
     public function execute_updateUser($params)
     {
         if ($err = $this->requireAdmin()) {
+            return $err;
+        }
+        if ($err = $this->assertPermission('user')) {
             return $err;
         }
         $user = \XF::em()->find('XF:User', $params['user_id']);
@@ -374,6 +420,9 @@ class AdminModule extends ModuleBase
     public function execute_deleteUser($params)
     {
         if ($err = $this->requireAdmin()) {
+            return $err;
+        }
+        if ($err = $this->assertPermission('user')) {
             return $err;
         }
         $user = \XF::em()->find('XF:User', $params['user_id']);

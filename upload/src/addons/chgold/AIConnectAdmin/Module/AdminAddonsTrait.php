@@ -53,6 +53,7 @@ trait AdminAddonsTrait
     public function execute_listAddons($params)
     {
         if ($err = $this->requireAdmin()) return $err;
+        if ($err = $this->assertPermission('addOn')) return $err;
 
         // getAddOnsForList() signature varies across XF versions and can return
         // arrays instead of entities, causing property-access crashes.
@@ -75,6 +76,7 @@ trait AdminAddonsTrait
     public function execute_enableAddon($params)
     {
         if ($err = $this->requireAdmin()) return $err;
+        if ($err = $this->assertPermission('addOn')) return $err;
 
         $addonId = (string) $params['addon_id'];
         $addon = \XF::em()->find('XF:AddOn', $addonId);
@@ -104,6 +106,7 @@ trait AdminAddonsTrait
     public function execute_disableAddon($params)
     {
         if ($err = $this->requireAdmin()) return $err;
+        if ($err = $this->assertPermission('addOn')) return $err;
 
         $addonId = (string) $params['addon_id'];
 

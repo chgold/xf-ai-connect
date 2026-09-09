@@ -90,6 +90,7 @@ trait AdminDisciplineTrait
     public function execute_unbanUser($params)
     {
         if ($err = $this->requireAdmin()) return $err;
+        if ($err = $this->assertPermission("user")) return $err;
 
         $user = \XF::em()->find("XF:User", (int) $params["user_id"]);
         if (!$user) return $this->error("not_found", "User not found");

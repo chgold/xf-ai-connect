@@ -97,6 +97,7 @@ trait AdminUsergroupsTrait
     public function execute_createUsergroup($params)
     {
         if ($err = $this->requireAdmin()) return $err;
+        if ($err = $this->assertPermission("userGroup")) return $err;
 
         $group = \XF::em()->create("XF:UserGroup");
         $group->title = (string) $params["title"];
@@ -113,6 +114,7 @@ trait AdminUsergroupsTrait
     public function execute_updateUsergroup($params)
     {
         if ($err = $this->requireAdmin()) return $err;
+        if ($err = $this->assertPermission("userGroup")) return $err;
 
         $group = \XF::em()->find("XF:UserGroup", (int) $params["user_group_id"]);
         if (!$group) return $this->error("not_found", "User group not found");
@@ -133,6 +135,7 @@ trait AdminUsergroupsTrait
     public function execute_deleteUsergroup($params)
     {
         if ($err = $this->requireAdmin()) return $err;
+        if ($err = $this->assertPermission("userGroup")) return $err;
 
         $groupId = (int) $params["user_group_id"];
 

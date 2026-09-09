@@ -66,6 +66,7 @@ trait AdminNodesAdvancedTrait
     public function execute_reorderNodes($params)
     {
         if ($err = $this->requireAdmin()) return $err;
+        if ($err = $this->assertPermission('node')) return $err;
 
         $ids = array_values(array_filter(array_map('intval', (array) $params['node_ids'])));
         if (empty($ids)) {
@@ -109,6 +110,9 @@ trait AdminNodesAdvancedTrait
     public function execute_setNodePermission($params)
     {
         if ($err = $this->requireAdmin()) return $err;
+        // XF core: PermissionController::assertAdminPermission('userGroup')
+        // — permission edits belong to the userGroup admin area.
+        if ($err = $this->assertPermission('userGroup')) return $err;
 
         $nodeId = (int) $params['node_id'];
         $node = \XF::em()->find('XF:Node', $nodeId);
