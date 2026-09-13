@@ -167,8 +167,8 @@ trait ProUserContentTrait
             $out[] = [
                 'conversation_id'  => (int)    $c->conversation_id,
                 'title'            => (string) $c->title,
-                'user_id'          => (int)    $c->user_id,
-                'username'         => (string) $c->username,
+                'user_id'          => (int)    $c->owner_user_id,
+                'username'         => (string) $c->last_message_username,
                 'reply_count'      => (int)    $c->reply_count,
                 'last_message_date'=> (int)    $c->last_message_date,
                 'is_unread'        => (bool)   ($c->Recipient->is_unread ?? false),

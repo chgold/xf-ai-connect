@@ -126,12 +126,14 @@ trait ProThreadContentTrait
 
     public function execute_getThreadsByForum($params)
     {
+        // XF:Forum uses node_id as PK but is stored in xf_forum, not xf_node.
+        // findOne via Node relation is the correct approach.
         $node = \XF::em()->find('XF:Node', (int) $params['node_id']);
-        if (!$node) {
-            return $this->error('not_found', 'Node not found');
+        if (!$node || $node->node_type_id !== 'Forum') {
+            return $this->error('not_found', 'Forum node not found');
         }
-        $forum = \XF::em()->find('XF:Forum', (int) $params['node_id']);
-        if (!$forum || !$forum->canView()) {
+        $forum = $node->getDataRelationOrDefault();
+        if (!$forum || !$node->canView()) {
             return $this->error('not_found', 'Forum not found or not accessible');
         }
 
