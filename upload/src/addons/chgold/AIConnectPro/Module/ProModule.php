@@ -17,6 +17,9 @@ class ProModule extends ModuleBase
     use ProUsersGroupsTrait;
     use ProWatchedBookmarksTrait;
     use ProActivityAnalyticsTrait;
+    use ProThreadContentTrait;
+    use ProNotificationsTrait;
+    use ProUserContentTrait;
 
     protected $moduleName = 'xenforo_pro';
 
@@ -32,17 +35,20 @@ class ProModule extends ModuleBase
      * Keys MUST match the bundle keys the licence server returns.
      */
     public const BUNDLE_REGISTRARS = [
-        'core'                => ['label' => 'Core',                 'method' => 'registerCoreTools'],
-        'moderation'          => ['label' => 'Moderation',           'method' => 'registerModerationTools'],
-        'writing'             => ['label' => 'Writing',              'method' => 'registerWritingTools'],
-        'engagement'          => ['label' => 'Engagement',           'method' => 'registerEngagementTools'],
-        'profile'             => ['label' => 'Profile',              'method' => 'registerProfileTools'],
-        'conversation'        => ['label' => 'Conversation',         'method' => 'registerConversationTools'],
-        'media'               => ['label' => 'Media',                'method' => 'registerMediaTools'],
-        'discovery'           => ['label' => 'Discovery',            'method' => 'registerDiscoveryTools'],
-        'users_groups'        => ['label' => 'Users & Groups',       'method' => 'registerUsersGroupsTools'],
-        'watched_bookmarks'   => ['label' => 'Watched & Bookmarks',  'method' => 'registerWatchedBookmarksTools'],
-        'activity_analytics'  => ['label' => 'Activity & Analytics', 'method' => 'registerActivityAnalyticsTools'],
+        'core'                => ['label' => 'Core',                        'method' => 'registerCoreTools'],
+        'moderation'          => ['label' => 'Moderation',                  'method' => 'registerModerationTools'],
+        'writing'             => ['label' => 'Writing',                     'method' => 'registerWritingTools'],
+        'engagement'          => ['label' => 'Engagement',                  'method' => 'registerEngagementTools'],
+        'profile'             => ['label' => 'Profile',                     'method' => 'registerProfileTools'],
+        'conversation'        => ['label' => 'Conversation',                'method' => 'registerConversationTools'],
+        'media'               => ['label' => 'Media',                       'method' => 'registerMediaTools'],
+        'discovery'           => ['label' => 'Discovery',                   'method' => 'registerDiscoveryTools'],
+        'users_groups'        => ['label' => 'Users & Groups',              'method' => 'registerUsersGroupsTools'],
+        'watched_bookmarks'   => ['label' => 'Watched & Bookmarks',         'method' => 'registerWatchedBookmarksTools'],
+        'activity_analytics'  => ['label' => 'Activity & Analytics',        'method' => 'registerActivityAnalyticsTools'],
+        'thread_content'      => ['label' => 'Thread Content (posts/polls)','method' => 'registerThreadContentTools'],
+        'notifications'       => ['label' => 'Notifications & Alerts',      'method' => 'registerNotificationsTools'],
+        'user_content'        => ['label' => 'User Content (bookmarks/DMs)','method' => 'registerUserContentTools'],
     ];
 
     /**
@@ -191,6 +197,15 @@ class ProModule extends ModuleBase
         }
         if ($has('activity_analytics')) {
             $this->registerActivityAnalyticsTools();
+        }
+        if ($has('thread_content')) {
+            $this->registerThreadContentTools();
+        }
+        if ($has('notifications')) {
+            $this->registerNotificationsTools();
+        }
+        if ($has('user_content')) {
+            $this->registerUserContentTools();
         }
 
         $this->registerTool('getForumList', [
