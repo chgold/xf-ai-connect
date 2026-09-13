@@ -20,6 +20,7 @@ class ProModule extends ModuleBase
     use ProThreadContentTrait;
     use ProNotificationsTrait;
     use ProUserContentTrait;
+    use ProForumWatchTrait;
 
     protected $moduleName = 'xenforo_pro';
 
@@ -49,6 +50,7 @@ class ProModule extends ModuleBase
         'thread_content'      => ['label' => 'Thread Content (posts/polls)','method' => 'registerThreadContentTools'],
         'notifications'       => ['label' => 'Notifications & Alerts',      'method' => 'registerNotificationsTools'],
         'user_content'        => ['label' => 'User Content (bookmarks/DMs)','method' => 'registerUserContentTools'],
+        'forum_watch'         => ['label' => 'Forum Watch (watch/unwatch)', 'method' => 'registerForumWatchTools'],
     ];
 
     /**
@@ -206,6 +208,9 @@ class ProModule extends ModuleBase
         }
         if ($has('user_content')) {
             $this->registerUserContentTools();
+        }
+        if ($has('forum_watch')) {
+            $this->registerForumWatchTools();
         }
 
         $this->registerTool('getForumList', [
