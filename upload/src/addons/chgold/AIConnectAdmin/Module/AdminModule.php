@@ -55,7 +55,8 @@ class AdminModule extends ModuleBase
     protected function registerTools()
     {
         $this->registerTool('createNode', [
-            'description' => 'Create a forum/category/page/link node (admin)',
+            'description' => 'Create a forum/category/page/link node (admin). '
+                . 'Type-specific fields: content/log_visits/list_siblings/list_children (Page), link_url (LinkForum).',
             'input_schema' => [
                 'type' => 'object',
                 'required' => ['node_type_id', 'title'],
@@ -64,11 +65,19 @@ class AdminModule extends ModuleBase
                     'title' => ['type' => 'string', 'description' => 'Node title'],
                     'parent_node_id' => ['type' => 'integer', 'description' => 'Parent node id (0 = root)'],
                     'description' => ['type' => 'string', 'description' => 'Node description (optional)'],
+                    // Page-specific fields
+                    'content' => ['type' => 'string', 'description' => 'Page: template body (HTML/BBCode). Stored in xf_template row _page_node.{node_id}. Ignored for non-Page nodes.'],
+                    'log_visits' => ['type' => 'boolean', 'description' => 'Page: increment view_count on each visit (default false).'],
+                    'list_siblings' => ['type' => 'boolean', 'description' => 'Page: show sibling pages in navigation (default false).'],
+                    'list_children' => ['type' => 'boolean', 'description' => 'Page: show child pages in navigation (default false).'],
+                    // LinkForum-specific fields
+                    'link_url' => ['type' => 'string', 'description' => 'LinkForum: target URL. Ignored for non-LinkForum nodes.'],
                 ],
             ],
         ]);
         $this->registerTool('editNode', [
-            'description' => 'Edit a node title/description/parent (admin)',
+            'description' => 'Edit a node title/description/parent and type-specific fields (admin). '
+                . 'Type-specific fields: content/log_visits/list_siblings/list_children (Page), link_url (LinkForum).',
             'input_schema' => [
                 'type' => 'object',
                 'required' => ['node_id'],
@@ -77,6 +86,13 @@ class AdminModule extends ModuleBase
                     'title' => ['type' => 'string', 'description' => 'New title (optional)'],
                     'description' => ['type' => 'string', 'description' => 'New description (optional)'],
                     'parent_node_id' => ['type' => 'integer', 'description' => 'New parent node id (optional)'],
+                    // Page-specific fields
+                    'content' => ['type' => 'string', 'description' => 'Page: new template body (HTML/BBCode). Ignored for non-Page nodes.'],
+                    'log_visits' => ['type' => 'boolean', 'description' => 'Page: increment view_count on each visit.'],
+                    'list_siblings' => ['type' => 'boolean', 'description' => 'Page: show sibling pages in navigation.'],
+                    'list_children' => ['type' => 'boolean', 'description' => 'Page: show child pages in navigation.'],
+                    // LinkForum-specific fields
+                    'link_url' => ['type' => 'string', 'description' => 'LinkForum: new target URL. Ignored for non-LinkForum nodes.'],
                 ],
             ],
         ]);
@@ -245,12 +261,28 @@ class AdminModule extends ModuleBase
         if (!empty($params['parent_node_id'])) {
             $node->parent_node_id = (int) $params['parent_node_id'];
         }
-        $node->getDataRelationOrDefault();
+        $typeData = $node->getDataRelationOrDefault();
+
+        // Set fields that must be present BEFORE node->save() (validation gates).
+        // LinkForum entity fails "valid URL" validation unless link_url is set.
+        if ($node->node_type_id === 'LinkForum' && isset($params['link_url'])) {
+            $typeData->link_url = (string) $params['link_url'];
+        }
+
         if (!$node->preSave()) {
             return $this->error('validation_failed', implode(' ', $node->getErrors()));
         }
         $node->save();
-        return $this->success(['node_id' => $node->node_id, 'title' => $node->title, 'node_type_id' => $node->node_type_id]);
+
+        // Apply type-specific fields on the related entity (xf_page / xf_link_forum / etc)
+        $this->applyNodeTypeSpecific($node, $typeData, $params);
+
+        return $this->success([
+            'node_id'      => $node->node_id,
+            'title'        => $node->title,
+            'node_type_id' => $node->node_type_id,
+            'content_set'  => isset($params['content']) && $node->node_type_id === 'Page',
+        ]);
     }
 
     public function execute_editNode($params)
@@ -278,7 +310,60 @@ class AdminModule extends ModuleBase
             return $this->error('validation_failed', implode(' ', $node->getErrors()));
         }
         $node->save();
-        return $this->success(['node_id' => $node->node_id, 'title' => $node->title]);
+
+        // Apply type-specific fields on the related entity
+        $typeData = $node->getDataRelationOrDefault();
+        $this->applyNodeTypeSpecific($node, $typeData, $params);
+
+        return $this->success([
+            'node_id'      => $node->node_id,
+            'title'        => $node->title,
+            'node_type_id' => $node->node_type_id,
+            'content_set'  => isset($params['content']) && $node->node_type_id === 'Page',
+        ]);
+    }
+
+    /**
+     * Applies node_type-specific fields (Page content, LinkForum URL, etc.)
+     * on the related entity. Silently ignores fields that don't apply to
+     * the current node type — mirroring XF's ACP behaviour where posting
+     * a Page-specific field to a Forum node has no effect.
+     *
+     * Page content is stored in xf_template row titled "_page_node.{node_id}"
+     * — retrieved via Page::getMasterTemplate() which creates it lazily.
+     */
+    protected function applyNodeTypeSpecific(\XF\Entity\Node $node, $typeData, array $params): void
+    {
+        if (!$typeData) return;
+
+        if ($node->node_type_id === 'Page') {
+            $changed = false;
+            foreach (['log_visits', 'list_siblings', 'list_children'] as $field) {
+                if (isset($params[$field])) {
+                    $typeData->$field = (bool) $params[$field];
+                    $changed = true;
+                }
+            }
+            if ($changed) {
+                $typeData->save();
+            }
+
+            // Page content: stored in xf_template row _page_node.{node_id}
+            // Same pattern XF ACP uses in Admin/Controller/Page::actionSave.
+            if (isset($params['content'])) {
+                $template = $typeData->getMasterTemplate();
+                $template->template = (string) $params['content'];
+                if (!$template->save()) {
+                    // Non-fatal — log but don't fail the node save
+                    \XF::logError('AIConnectAdmin: Page content template save failed for node ' . $node->node_id);
+                }
+            }
+        } elseif ($node->node_type_id === 'LinkForum') {
+            if (isset($params['link_url'])) {
+                $typeData->link_url = (string) $params['link_url'];
+                $typeData->save();
+            }
+        }
     }
 
     public function execute_deleteNode($params)
