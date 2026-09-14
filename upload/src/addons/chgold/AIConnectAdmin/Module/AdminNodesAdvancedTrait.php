@@ -39,6 +39,14 @@ trait AdminNodesAdvancedTrait
             ],
         ]);
 
+        // Permission naming crib for the tool description below.
+        // XF Node canView() → hasContentPermission('node', id, 'view') — so use
+        // general.view (NOT viewNode). Same for other common actions:
+        //   general.view          — see the node at all
+        //   forum.viewContent     — read threads/posts inside a Forum node
+        //   forum.postThread      — create threads
+        //   forum.postReply       — reply
+        //   forum.uploadAttachment — attach files
         $this->registerTool('setNodePermission', [
             'description' => 'Grant or deny a permission for a usergroup on a specific node. '
                 . 'XF content-permission model: content_type=node, content_id=node_id. '
@@ -49,8 +57,8 @@ trait AdminNodesAdvancedTrait
                 'properties' => [
                     'node_id' => ['type' => 'integer'],
                     'user_group_id' => ['type' => 'integer'],
-                    'permission_group_id' => ['type' => 'string', 'description' => 'e.g. forum, thread, post'],
-                    'permission_id' => ['type' => 'string', 'description' => 'e.g. postThread, viewOthers, viewAny'],
+                    'permission_group_id' => ['type' => 'string', 'description' => 'Group: general (for basic node access), forum, thread, post. NOT "node".'],
+                    'permission_id' => ['type' => 'string', 'description' => 'Common: general.view (Node::canView checks THIS — NOT viewNode which does not exist), forum.viewContent, forum.postThread, forum.postReply, forum.uploadAttachment. viewNode/viewForum auto-corrected to general.view.'],
                     'permission_value' => [
                         'type' => 'string',
                         'enum' => ['content_allow', 'deny', 'reset', 'unset', 'use_int', 'allow'],
@@ -126,6 +134,40 @@ trait AdminNodesAdvancedTrait
         $pg  = (string) $params['permission_group_id'];
         $pid = (string) $params['permission_id'];
         $val = (string) $params['permission_value'];
+
+        // Auto-map common mistakes to the actual XF permission_id.
+        // XF's Node::canView() calls hasContentPermission('node', id, 'view')
+        // — NOT 'viewNode' (which doesn't exist in xf_permission at all).
+        // Agents keep guessing wrong names; auto-correct + warn in response.
+        $mistakeMap = [
+            'viewNode'    => ['view', 'general'],
+            'viewForum'   => ['view', 'general'],
+            'viewContent' => ['viewContent', 'forum'],
+            'view'        => ['view', 'general'],  // idempotent for correct callers
+        ];
+        $autoMapped = null;
+        if (isset($mistakeMap[$pid])) {
+            $realPid = $mistakeMap[$pid][0];
+            $realPg  = $mistakeMap[$pid][1];
+            if ($pid !== $realPid || $pg !== $realPg) {
+                $autoMapped = "$pg.$pid → $realPg.$realPid";
+                $pid = $realPid;
+                $pg  = $realPg;
+            }
+        }
+        // Verify the permission actually exists (helps agents catch typos)
+        $permExists = \XF::db()->fetchOne(
+            'SELECT permission_id FROM xf_permission WHERE permission_group_id = ? AND permission_id = ?',
+            [$pg, $pid]
+        );
+        if (!$permExists) {
+            return $this->error(
+                'unknown_permission',
+                "Permission '$pg.$pid' does not exist in xf_permission. "
+                . "For node view use general.view. For posting use forum.postThread/postReply. "
+                . "Query xf_permission to see valid IDs."
+            );
+        }
         $valInt = isset($params['permission_value_int']) ? (int) $params['permission_value_int'] : 0;
 
         $db = \XF::db();
@@ -137,7 +179,7 @@ trait AdminNodesAdvancedTrait
                  AND permission_group_id = ? AND permission_id = ?',
                 [$groupId, 'node', $nodeId, $pg, $pid]
             );
-            $this->enqueuePermissionRebuild();
+            $this->enqueuePermissionRebuild('node', $nodeId);
             return $this->success([
                 'node_id' => $nodeId,
                 'user_group_id' => $groupId,
@@ -172,24 +214,68 @@ trait AdminNodesAdvancedTrait
                 permission_value_int = VALUES(permission_value_int)',
             [$groupId, 'node', $nodeId, $pg, $pid, $val, $valInt]
         );
-        $this->enqueuePermissionRebuild();
+        $this->enqueuePermissionRebuild('node', $nodeId);
 
-        return $this->success([
+        // Verify the permission actually took effect (round-trip check)
+        \XF::em()->clearEntityCache('XF:Node', $nodeId);
+        $verifyNode = \XF::em()->find('XF:Node', $nodeId);
+        $canViewNow = $verifyNode ? $verifyNode->canView() : null;
+
+        $out = [
             'node_id' => $nodeId,
             'user_group_id' => $groupId,
             'permission' => "$pg.$pid",
             'permission_value' => $val,
             'permission_value_int' => $valInt,
-        ]);
+            'canView_visitor_after' => $canViewNow,
+        ];
+        if ($autoMapped !== null) {
+            $out['auto_mapped'] = $autoMapped;
+            $out['note'] = "Requested permission was auto-corrected. XF's Node canView() "
+                . "actually checks 'general.view' (not 'viewNode'/'viewForum'). Use general.view "
+                . "next time to avoid the auto-correct.";
+        }
+        return $out === $out ? $this->success($out) : $out;  // preserve API shape
     }
 
-    private function enqueuePermissionRebuild(): void
+    /**
+     * Rebuild permission caches IMMEDIATELY so a subsequent getNode/listNodes
+     * call in the same session reflects the change.
+     *
+     * XF has TWO caches to consider:
+     *   1. xf_permission_combination — the base group permissions
+     *   2. xf_permission_cache_content — per (combination, content_type, content_id)
+     *      → PermissionSet::hasContentPermission reads from THIS one
+     *
+     * Rebuilding only #1 was the previous bug: setNodePermission wrote the
+     * entry but the visitor still saw canView=false because the content
+     * cache #2 was stale.
+     *
+     * Now we call analyzeCombinationContent for every combination on the
+     * specific (content_type, content_id) that was just changed.
+     */
+    private function enqueuePermissionRebuild(string $contentType = null, int $contentId = null): void
     {
-        \XF::app()->jobManager()->enqueueUnique(
-            'aiconnect_perm_rebuild_' . uniqid(),
-            'XF:PermissionRebuild',
-            [],
-            false
-        );
+        try {
+            $builder = \XF::app()->permissionBuilder();
+            $combos = \XF::em()->getFinder('XF:PermissionCombination')->fetch();
+
+            foreach ($combos as $combo) {
+                // Rebuild base combination (covers non-content permissions)
+                $builder->rebuildCombination($combo);
+                // Rebuild content cache for the specific node just modified
+                if ($contentType !== null && $contentId !== null) {
+                    $builder->analyzeCombinationContent($combo, $contentType, $contentId);
+                }
+            }
+        } catch (\Throwable $e) {
+            // Fallback: enqueue for the job runner
+            \XF::app()->jobManager()->enqueueUnique(
+                'aiconnect_perm_rebuild',
+                'XF:PermissionRebuild',
+                [],
+                false
+            );
+        }
     }
 }
