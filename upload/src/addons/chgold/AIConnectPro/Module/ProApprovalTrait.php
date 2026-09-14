@@ -78,7 +78,12 @@ trait ProApprovalTrait
         $finder->limit($limit);
 
         $items = $finder->fetch();
-        $items = $repo->addContentToUnapprovedItems($items);
+        if ($items->count() === 0) {
+            return $this->success(['count' => 0, 'items' => []]);
+        }
+        // addContentToUnapprovedItems can return null on empty inputs → guard.
+        $withContent = $repo->addContentToUnapprovedItems($items);
+        $items = is_iterable($withContent) ? $withContent : $items;
 
         $out = [];
         foreach ($items as $item) {
@@ -87,7 +92,7 @@ trait ProApprovalTrait
                 'content_id'      => (int)    $item->content_id,
                 'content_date'    => (int)    $item->content_date,
                 'content_user_id' => (int)    $item->content_user_id,
-                'title'           => $item->Content->title ?? '',
+                'title'           => isset($item->Content) && isset($item->Content->title) ? (string) $item->Content->title : '',
             ];
         }
         return $this->success(['count' => count($out), 'items' => $out]);

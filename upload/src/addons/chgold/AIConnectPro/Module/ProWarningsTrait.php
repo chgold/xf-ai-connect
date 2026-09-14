@@ -88,8 +88,10 @@ trait ProWarningsTrait
         $content = \XF::em()->find($shortName, $contentId);
         if (!$content) return $this->error('not_found', "$contentType $contentId not found");
 
+        // WarnService::__construct(App, User $user, $contentType, Entity $content, User $warningBy)
+        // XF::service() auto-injects App, so we pass: user, contentType, content, warningBy
         /** @var \XF\Service\User\WarnService $svc */
-        $svc = \XF::service('XF:User\Warn', $contentType, $content, $user, $visitor);
+        $svc = \XF::service('XF:User\Warn', $user, $contentType, $content, $visitor);
 
         if (!empty($params['warning_definition_id'])) {
             $def = \XF::em()->find('XF:WarningDefinition', (int) $params['warning_definition_id']);
