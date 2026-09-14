@@ -110,9 +110,11 @@ trait AdminUserCredentialsTrait
             return $this->error("validation_failed", "Password must be at least 6 characters");
         }
 
+        // XF 2.3+: PasswordChangeService::__construct(App, User, $newPassword) — 3 args.
+        // XF 2.2 : PasswordChangeService::__construct(App, User) — 2 args + setNewPassword() method.
+        // Pass $newPassword directly to satisfy both signatures.
         /** @var \XF\Service\User\PasswordChangeService $service */
-        $service = \XF::service("XF:User\PasswordChange", $user);
-        $service->setNewPassword($newPassword);
+        $service = \XF::service("XF:User\PasswordChange", $user, $newPassword);
         $service->save();
 
         $out = [

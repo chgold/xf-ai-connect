@@ -53,8 +53,9 @@ trait AdminNodesAdvancedTrait
                     'permission_id' => ['type' => 'string', 'description' => 'e.g. postThread, viewOthers, viewAny'],
                     'permission_value' => [
                         'type' => 'string',
-                        'enum' => ['allow', 'deny', 'reset', 'content_allow', 'unset'],
-                        'description' => 'unset removes the entry (inheritance)',
+                        'enum' => ['content_allow', 'deny', 'reset', 'unset', 'use_int', 'allow'],
+                        'description' => 'For node/content permissions: use content_allow (NOT allow). '
+                            . 'unset removes the entry (inheritance). "allow" is auto-mapped to content_allow for convenience.',
                     ],
                     'permission_value_int' => ['type' => 'integer', 'description' => 'Numeric override for count-type permissions (default 0)'],
                 ],
@@ -146,10 +147,17 @@ trait AdminNodesAdvancedTrait
             ]);
         }
 
-        if (!in_array($val, ['allow', 'deny', 'reset', 'content_allow'], true)) {
+        // xf_permission_entry_content enum accepts: unset, reset, content_allow, deny, use_int
+        // (NOT 'allow' — that's for xf_permission_entry global permissions only).
+        // Auto-map 'allow' → 'content_allow' for backward-compatible callers.
+        if ($val === 'allow') {
+            $val = 'content_allow';
+        }
+        if (!in_array($val, ['content_allow', 'deny', 'reset', 'use_int'], true)) {
             return $this->error(
                 'validation_failed',
-                'permission_value must be allow/deny/reset/content_allow/unset'
+                'permission_value for content permissions must be content_allow/deny/reset/use_int/unset '
+                . '(NOT "allow" — that is for global permissions only; use "content_allow" instead)'
             );
         }
 
