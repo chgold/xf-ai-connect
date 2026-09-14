@@ -408,9 +408,29 @@ trait ProDiscoveryTrait
     /**
      * Load a thread the caller may view, or populate $error and return null.
      */
+    /**
+     * Inline title→URL slug (XF's own routes use the same normalization:
+     * transliterate to ASCII, lowercase, non-word→dash, collapse+trim dashes).
+     * When the given URL already contains the slug (ends with .{node_id}/),
+     * returns it unchanged.
+     */
+    protected static function injectTitleSlug(string $url, $node): string
+    {
+        if ($url === '' || $node->title === '') return $url;
+        // Already has slug (endsWith .{id}/)
+        if (preg_match('#\.' . $node->node_id . '/?$#', $url)) return $url;
+
+        $slug = strtolower($node->title);
+        $slug = preg_replace('/[^a-z0-9\-_]+/i', '-', $slug);
+        $slug = trim(preg_replace('/-+/', '-', $slug), '-');
+        if ($slug === '') return $url;
+
+        return rtrim($url, '/') . '/' . $slug . '.' . $node->node_id . '/';
+    }
+
     private function nodeData($node): array
     {
-        return [
+        $data = [
             'node_id' => $node->node_id,
             'title' => $node->title,
             'node_type_id' => $node->node_type_id,
@@ -418,6 +438,37 @@ trait ProDiscoveryTrait
             'description' => $node->description,
             'display_order' => $node->display_order,
         ];
+
+        // Public URL for sharing.
+        // XF's getContentUrl() strips the title-slug for some node types
+        // (returns "pages/" without slug) so we inject it manually.
+        try {
+            $baseUrl = $node->getContentUrl(true);
+            $data['url'] = static::injectTitleSlug($baseUrl, $node);
+        } catch (\Throwable $e) {
+            $data['url'] = null;
+        }
+
+        // Page nodes: include the actual HTML/BBCode content from xf_template
+        // (row _page_node.{node_id}), matching the shape createNode/editNode accepts.
+        // Also expose Page-specific display flags so the caller can round-trip them.
+        if ($node->node_type_id === 'Page') {
+            $typeData = $node->getDataRelationOrDefault();
+            if ($typeData) {
+                $template = $typeData->MasterTemplate;
+                $data['content'] = $template ? (string) $template->template : '';
+                $data['log_visits']    = (bool) $typeData->log_visits;
+                $data['list_siblings'] = (bool) $typeData->list_siblings;
+                $data['list_children'] = (bool) $typeData->list_children;
+            } else {
+                $data['content'] = '';
+            }
+        } elseif ($node->node_type_id === 'LinkForum') {
+            $typeData = $node->getDataRelationOrDefault();
+            $data['link_url'] = $typeData ? (string) $typeData->link_url : '';
+        }
+
+        return $data;
     }
 
     protected function loadViewableThread($threadId, &$error = null)

@@ -281,6 +281,7 @@ class AdminModule extends ModuleBase
             'node_id'      => $node->node_id,
             'title'        => $node->title,
             'node_type_id' => $node->node_type_id,
+            'url'          => $this->nodeUrl($node),
             'content_set'  => isset($params['content']) && $node->node_type_id === 'Page',
         ]);
     }
@@ -319,8 +320,32 @@ class AdminModule extends ModuleBase
             'node_id'      => $node->node_id,
             'title'        => $node->title,
             'node_type_id' => $node->node_type_id,
+            'url'          => $this->nodeUrl($node),
             'content_set'  => isset($params['content']) && $node->node_type_id === 'Page',
         ]);
+    }
+
+    /**
+     * Build the public URL for a node (title→slug + node_id).
+     * Uses XF's own router so the slug always matches what XF generates.
+     */
+    protected function nodeUrl(\XF\Entity\Node $node): ?string
+    {
+        try {
+            $baseUrl = $node->getContentUrl(true);
+            if ($baseUrl === '' || $node->title === '') return $baseUrl ?: null;
+            // Already has slug
+            if (preg_match('#\.' . $node->node_id . '/?$#', $baseUrl)) return $baseUrl;
+
+            $slug = strtolower($node->title);
+            $slug = preg_replace('/[^a-z0-9\-_]+/i', '-', $slug);
+            $slug = trim(preg_replace('/-+/', '-', $slug), '-');
+            if ($slug === '') return $baseUrl;
+
+            return rtrim($baseUrl, '/') . '/' . $slug . '.' . $node->node_id . '/';
+        } catch (\Throwable $e) {
+            return null;
+        }
     }
 
     /**
