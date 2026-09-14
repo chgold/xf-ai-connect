@@ -549,25 +549,40 @@ trait AdminNodesAdvancedTrait
                 }
             }
 
-            // 3. Resolve final view state
-            //    Precedence: content_deny wins > content_allow > base allow > default_deny
+            // 3. Resolve final view state — considering is_private
+            //
+            // When is_private=true, base permissions no longer apply — ONLY explicit
+            // content_allow entries grant view. Groups without an explicit content
+            // entry cannot view, regardless of their base 'general.view' setting.
             if ($contentValue === 'deny') {
                 $granted = false;
             } elseif ($contentValue === 'content_allow') {
                 $granted = true;
+            } elseif ($isPrivate) {
+                // Private: base=allow does NOT grant. Only explicit allow works.
+                $granted = false;
             } elseif ($baseView === 'allow') {
                 $granted = true;
             } else {
                 $granted = false;  // unset/reset/deny at base = no access
             }
 
+            // Derivation string — reflects is_private too
+            if ($contentValue !== null) {
+                $derivation = "content=$contentValue" . ($baseView ? "/base=$baseView" : '');
+            } elseif ($isPrivate) {
+                $derivation = "private-node/no-content-allow" . ($baseView ? "/base=$baseView-IGNORED" : '');
+            } elseif ($baseView) {
+                $derivation = "base=$baseView";
+            } else {
+                $derivation = "no-perm";
+            }
+
             $effective[] = [
                 'user_group_id' => (int) $ug->user_group_id,
                 'title'         => (string) $ug->title,
                 'can_view'      => $granted,
-                'derivation'    => $contentValue !== null
-                    ? "content=$contentValue" . ($baseView ? "/base=$baseView" : '')
-                    : ($baseView ? "base=$baseView" : 'no-perm'),
+                'derivation'    => $derivation,
             ];
         }
 

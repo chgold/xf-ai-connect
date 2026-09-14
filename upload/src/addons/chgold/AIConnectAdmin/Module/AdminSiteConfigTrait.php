@@ -190,23 +190,29 @@ trait AdminSiteConfigTrait
         if ($err = $this->requireAdmin()) return $err;
         if ($err = $this->assertPermission('option')) return $err;
 
-        // XF stores email settings across several separate options, not a single
-        // "email" bag: emailTransport (str), emailTransportSmtp (array), etc.
+        // XF 2.3: emailTransport is an ARRAY option containing the transport
+        // name AND all SMTP fields nested — e.g.
+        //   {"emailTransport": "smtp", "host": "smtp.example.com",
+        //    "port": 587, "username": "user", "password": "...",
+        //    "encryption": "tls"}
         $opts = \XF::options();
-        $smtp = $opts->emailTransportSmtp ?? [];
-        $pwd = $smtp['password'] ?? '';
+        $emailTransport = $opts->emailTransport;
+        $config = is_array($emailTransport) ? $emailTransport : ['emailTransport' => 'sendmail'];
+        $transport = (string) ($config['emailTransport'] ?? 'sendmail');
+
+        $pwd = $config['password'] ?? '';
         $maskedPwd = $pwd === '' ? '' : '****' . substr($pwd, -4);
 
         return $this->success([
-            'transport' => $opts->emailTransport ?? 'default',
+            'transport'  => $transport,
             'from_email' => $opts->defaultEmailAddress ?? '',
-            'from_name' => $opts->defaultEmailSenderName ?? '',
+            'from_name'  => $opts->emailSenderName ?? '',
             'smtp' => [
-                'host'       => $smtp['host'] ?? '',
-                'port'       => (int) ($smtp['port'] ?? 0),
-                'encryption' => $smtp['encryption'] ?? '',
-                'username'   => $smtp['username'] ?? '',
-                'password'   => $maskedPwd,  // always masked
+                'host'       => $config['host'] ?? '',
+                'port'       => (int) ($config['port'] ?? 0),
+                'encryption' => $config['encryption'] ?? '',
+                'username'   => $config['username'] ?? '',
+                'password'   => $maskedPwd,
             ],
         ]);
     }
@@ -216,13 +222,13 @@ trait AdminSiteConfigTrait
         if ($err = $this->requireAdmin()) return $err;
         if ($err = $this->assertPermission('option')) return $err;
 
-        // Update the individual options XF uses (not a single "email" bag)
-        $updates = ['emailTransport' => (string) $params['transport']];
-        if (isset($params['from_email'])) $updates['defaultEmailAddress'] = (string) $params['from_email'];
-        if (isset($params['from_name']))  $updates['defaultEmailSenderName'] = (string) $params['from_name'];
+        // emailTransport is an ARRAY option containing transport + all SMTP
+        // fields nested together — merge into existing structure.
+        $current = \XF::options()->emailTransport;
+        if (!is_array($current)) $current = ['emailTransport' => 'sendmail'];
 
+        $current['emailTransport'] = (string) $params['transport'];
         if ($params['transport'] === 'smtp') {
-            $current = \XF::options()->emailTransportSmtp ?? [];
             if (isset($params['smtp_host']))       $current['host']       = (string) $params['smtp_host'];
             if (isset($params['smtp_port']))       $current['port']       = (int)    $params['smtp_port'];
             if (isset($params['smtp_encryption'])) $current['encryption'] = (string) $params['smtp_encryption'];
@@ -230,11 +236,24 @@ trait AdminSiteConfigTrait
             if (isset($params['smtp_password']) && $params['smtp_password'] !== '') {
                 $current['password'] = (string) $params['smtp_password'];
             }
-            $updates['emailTransportSmtp'] = $current;
         }
 
-        foreach ($updates as $k => $v) {
-            \XF::app()->options()->update($k, $v);
+        // XF 2.3: XF::app()->options() has no update(). Use Option entity + save.
+        $opt = \XF::em()->find('XF:Option', 'emailTransport');
+        if (!$opt) return $this->error('not_found', 'emailTransport option not found');
+        $opt->option_value = $current;
+        if (!$opt->save()) {
+            return $this->error('validation_failed', implode(' ', $opt->getErrors()));
+        }
+
+        // Sender fields are separate string options
+        if (isset($params['from_email'])) {
+            $o = \XF::em()->find('XF:Option', 'defaultEmailAddress');
+            if ($o) { $o->option_value = (string) $params['from_email']; $o->save(); }
+        }
+        if (isset($params['from_name'])) {
+            $o = \XF::em()->find('XF:Option', 'emailSenderName');
+            if ($o) { $o->option_value = (string) $params['from_name']; $o->save(); }
         }
 
         return $this->success([
@@ -253,13 +272,19 @@ trait AdminSiteConfigTrait
         $body = (string) ($params['body'] ?? "This is a test email sent via XF's configured transport.\n\nIf you receive it, email is working.");
 
         try {
+            // XF 2.3: Mail has no setSubject(). setContent($subject, $html, $text)
+            // takes the subject as first arg (was split into setSubject + setBody
+            // in older versions).
             /** @var \XF\Mail\Mail $mail */
             $mail = \XF::app()->mailer()->newMail();
             $mail->setTo($to);
-            $mail->setSubject($subject);
             $mail->setContent($subject, $body, $body);
             $mail->send();
-            return $this->success(['to' => $to, 'sent' => true, 'transport' => \XF::options()->email['transport'] ?? 'default']);
+            return $this->success([
+                'to' => $to,
+                'sent' => true,
+                'transport' => \XF::options()->emailTransport ?? 'default',
+            ]);
         } catch (\Throwable $e) {
             return $this->error('send_failed', 'Test email failed: ' . $e->getMessage());
         }
@@ -313,7 +338,15 @@ trait AdminSiteConfigTrait
             return $this->error('no_permission', "Option '$optionId' is on the blocklist");
         }
 
-        \XF::app()->options()->update($optionId, $params['value']);
+        // XF 2.3: XF::app()->options()->update() doesn't exist. Use Option entity.
+        $opt = \XF::em()->find('XF:Option', $optionId);
+        if (!$opt) {
+            return $this->error('not_found', "Option entity for '$optionId' not found");
+        }
+        $opt->option_value = $params['value'];
+        if (!$opt->save()) {
+            return $this->error('validation_failed', implode(' ', $opt->getErrors()));
+        }
         return $this->success([
             'addon_id' => $addonId,
             'option_id' => $optionId,
