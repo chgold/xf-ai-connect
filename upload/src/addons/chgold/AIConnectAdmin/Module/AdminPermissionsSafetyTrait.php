@@ -57,11 +57,12 @@ trait AdminPermissionsSafetyTrait
         if (!$node) return $this->error('not_found', "Node $nodeId not found");
 
         $callerId   = \XF::visitor()->user_id;
-        $callerGroups = array_merge(
+        // secondary_group_ids is already an array in XF entity (LIST_COMMA type)
+        $secondary = (array) \XF::visitor()->secondary_group_ids;
+        $callerGroups = array_map('intval', array_filter(array_merge(
             [\XF::visitor()->user_group_id],
-            explode(',', (string) \XF::visitor()->secondary_group_ids)
-        );
-        $callerGroups = array_map('intval', array_filter($callerGroups));
+            $secondary
+        )));
 
         // Simulate: after the change, would groups {1,2,3,4, callerGroups...} still see the node?
         $checkGroups = array_unique(array_merge([1, 2, 3, 4], $callerGroups));
@@ -164,11 +165,11 @@ trait AdminPermissionsSafetyTrait
         int $nodeId, int $changeGroup, int $changeUser,
         string $pg, string $pid, string $val
     ): bool {
-        $callerGroups = array_merge(
+        $secondary = (array) \XF::visitor()->secondary_group_ids;
+        $callerGroups = array_map('intval', array_filter(array_merge(
             [\XF::visitor()->user_group_id],
-            explode(',', (string) \XF::visitor()->secondary_group_ids)
-        );
-        $callerGroups = array_map('intval', array_filter($callerGroups));
+            $secondary
+        )));
 
         // Only check for view permission changes
         if ($pg !== 'general' || $pid !== 'view') return false;

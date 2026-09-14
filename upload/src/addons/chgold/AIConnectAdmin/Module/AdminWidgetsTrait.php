@@ -216,14 +216,20 @@ trait AdminWidgetsTrait
         if ($err = $this->requireAdmin()) return $err;
         if ($err = $this->assertPermission('style')) return $err;
 
+        // xf_widget_position schema: position_id, active, addon_id (no title/widget_count)
         $positions = \XF::finder('XF:WidgetPosition')->order('position_id')->fetch();
         $out = [];
         foreach ($positions as $p) {
+            // Widget count via DB (widgets store positions as JSON array in xf_widget)
+            $widgetCount = \XF::db()->fetchOne(
+                'SELECT COUNT(*) FROM xf_widget WHERE positions LIKE ?',
+                ['%' . $p->position_id . '%']
+            );
             $out[] = [
-                'position_id' => (string) $p->position_id,
-                'title'       => (string) $p->title,
-                'active'      => (bool)   $p->active,
-                'widget_count' => (int) $p->widget_count,
+                'position_id'  => (string) $p->position_id,
+                'active'       => (bool)   $p->active,
+                'addon_id'     => (string) $p->addon_id,
+                'widget_count' => (int)    $widgetCount,
             ];
         }
         return $this->success(['count' => count($out), 'positions' => $out]);

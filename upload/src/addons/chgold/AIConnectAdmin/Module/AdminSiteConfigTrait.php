@@ -162,10 +162,15 @@ trait AdminSiteConfigTrait
         if ($err = $this->requireAdmin()) return $err;
         if ($err = $this->assertPermission('option')) return $err;
 
+        // xf_option_group has no title column — titles live in phrases:
+        // "option_group.{group_id}". Fetch via LEFT JOIN.
         $rows = \XF::db()->fetchAll(
-            'SELECT group_id, title, display_order, debug_only, addon_id
-             FROM xf_option_group
-             ORDER BY display_order, group_id'
+            "SELECT g.group_id, g.display_order, g.debug_only, g.addon_id,
+                    p.phrase_text AS title
+             FROM xf_option_group g
+             LEFT JOIN xf_phrase p ON p.title = CONCAT('option_group.', g.group_id)
+                                   AND p.language_id = 0
+             ORDER BY g.display_order, g.group_id"
         );
         return $this->success(['count' => count($rows), 'groups' => $rows]);
     }
@@ -185,24 +190,23 @@ trait AdminSiteConfigTrait
         if ($err = $this->requireAdmin()) return $err;
         if ($err = $this->assertPermission('option')) return $err;
 
+        // XF stores email settings across several separate options, not a single
+        // "email" bag: emailTransport (str), emailTransportSmtp (array), etc.
         $opts = \XF::options();
-        $email = $opts->email ?: [];
-        $smtp  = $email['transport_smtp'] ?? [];
-
-        // ALWAYS mask password
+        $smtp = $opts->emailTransportSmtp ?? [];
         $pwd = $smtp['password'] ?? '';
         $maskedPwd = $pwd === '' ? '' : '****' . substr($pwd, -4);
 
         return $this->success([
-            'transport' => $email['transport'] ?? 'default',
-            'from_email' => $email['fromEmail'] ?? $opts->defaultEmailAddress,
-            'from_name' => $email['fromName'] ?? '',
+            'transport' => $opts->emailTransport ?? 'default',
+            'from_email' => $opts->defaultEmailAddress ?? '',
+            'from_name' => $opts->defaultEmailSenderName ?? '',
             'smtp' => [
                 'host'       => $smtp['host'] ?? '',
                 'port'       => (int) ($smtp['port'] ?? 0),
                 'encryption' => $smtp['encryption'] ?? '',
                 'username'   => $smtp['username'] ?? '',
-                'password'   => $maskedPwd,  // masked
+                'password'   => $maskedPwd,  // always masked
             ],
         ]);
     }
@@ -212,28 +216,29 @@ trait AdminSiteConfigTrait
         if ($err = $this->requireAdmin()) return $err;
         if ($err = $this->assertPermission('option')) return $err;
 
-        $current = \XF::options()->email ?: [];
-        $new = $current;
-        $new['transport'] = (string) $params['transport'];
-        if (isset($params['from_email'])) $new['fromEmail'] = (string) $params['from_email'];
-        if (isset($params['from_name']))  $new['fromName']  = (string) $params['from_name'];
+        // Update the individual options XF uses (not a single "email" bag)
+        $updates = ['emailTransport' => (string) $params['transport']];
+        if (isset($params['from_email'])) $updates['defaultEmailAddress'] = (string) $params['from_email'];
+        if (isset($params['from_name']))  $updates['defaultEmailSenderName'] = (string) $params['from_name'];
 
-        if ($new['transport'] === 'smtp') {
-            $smtp = $new['transport_smtp'] ?? [];
-            if (isset($params['smtp_host']))       $smtp['host']       = (string) $params['smtp_host'];
-            if (isset($params['smtp_port']))       $smtp['port']       = (int)    $params['smtp_port'];
-            if (isset($params['smtp_encryption'])) $smtp['encryption'] = (string) $params['smtp_encryption'];
-            if (isset($params['smtp_username']))   $smtp['username']   = (string) $params['smtp_username'];
+        if ($params['transport'] === 'smtp') {
+            $current = \XF::options()->emailTransportSmtp ?? [];
+            if (isset($params['smtp_host']))       $current['host']       = (string) $params['smtp_host'];
+            if (isset($params['smtp_port']))       $current['port']       = (int)    $params['smtp_port'];
+            if (isset($params['smtp_encryption'])) $current['encryption'] = (string) $params['smtp_encryption'];
+            if (isset($params['smtp_username']))   $current['username']   = (string) $params['smtp_username'];
             if (isset($params['smtp_password']) && $params['smtp_password'] !== '') {
-                $smtp['password'] = (string) $params['smtp_password'];
+                $current['password'] = (string) $params['smtp_password'];
             }
-            $new['transport_smtp'] = $smtp;
+            $updates['emailTransportSmtp'] = $current;
         }
 
-        \XF::app()->options()->update('email', $new);
+        foreach ($updates as $k => $v) {
+            \XF::app()->options()->update($k, $v);
+        }
 
         return $this->success([
-            'transport' => $new['transport'],
+            'transport' => $params['transport'],
             'note' => 'Config saved. Run testEmailConfig to verify connectivity.',
         ]);
     }
