@@ -65,6 +65,16 @@ trait AdminNodesAdvancedTrait
         //   forum.postThread      — create threads
         //   forum.postReply       — reply
         //   forum.uploadAttachment — attach files
+        //
+        // ⚠️ KNOWN XF QUIRK: content-level `deny` for a group's `general.view`
+        // may NOT block access if that group ALSO has `general.view=allow` at
+        // the BASE level (xf_permission_entry). XF's built-in rebuildCombination
+        // produces cache_value {"view":true} in this case — verified against
+        // native XF code. Also: is_admin=1 users bypass content permissions
+        // regardless. Both are XF-native, not tool bugs.
+        // Recommended pattern for strict per-node access control:
+        //   * Set the group's BASE view to `unset` (or use a separate group)
+        //   * Then use content_allow ONLY on nodes the group should access
         $this->registerTool('setNodePermission', [
             'description' => 'Grant or deny a permission for a usergroup on a specific node. '
                 . 'XF content-permission model: content_type=node, content_id=node_id. '
@@ -325,39 +335,67 @@ trait AdminNodesAdvancedTrait
             }
         }
 
-        // Effective view permission for each existing usergroup — round-trip check.
+        // Effective view per usergroup — MANUAL computation from entries.
         //
-        // xf_permission_cache_content.cache_value stores the FLAT permission map
-        // for that content (e.g. {"view":true,"postReply":false}), NOT nested by
-        // permission_group_id. The permission_id 'view' at top-level IS what
-        // XF's Node::canView() ultimately reads (via hasContentPermission).
+        // Why not read xf_permission_cache_content?
+        //   The cache is per-COMBINATION (a group SET, e.g. "2,3,4"), not per
+        //   individual group. A combination that contains group 2 + admin group 3
+        //   grants view via group 3 → but reading that cache for "group 2" would
+        //   falsely report group 2 can view standalone.
+        //   Also, XF's own cache builder has a known quirk: content-level `deny`
+        //   for a group that ALSO has base-level `allow` for the same permission
+        //   does NOT override — the cache still says view:true. See setNodePermission
+        //   doc note for the recommended pattern.
         //
-        // Combination membership lives in xf_permission_combination_user_group
-        // (composite PK user_group_id + permission_combination_id).
+        // What we do: for each group, walk (this node + ancestors) entries and
+        // apply XF-style precedence — deny > content_allow > base > default_deny.
+        // Also read the group's base permission (xf_permission_entry) as fallback.
         $effective = [];
         $ugFinder = \XF::finder('XF:UserGroup')->order('user_group_id')->fetch();
         foreach ($ugFinder as $ug) {
-            $combos = \XF::db()->fetchAllColumn(
-                'SELECT permission_combination_id FROM xf_permission_combination_user_group WHERE user_group_id = ?',
-                [$ug->user_group_id]
+            // 1. Base group permission for general.view
+            $baseView = \XF::db()->fetchOne(
+                'SELECT permission_value FROM xf_permission_entry
+                 WHERE user_group_id = ? AND permission_group_id = ? AND permission_id = ?',
+                [$ug->user_group_id, 'general', 'view']
             );
-            $granted = false;
-            foreach ($combos as $cid) {
-                $perms = \XF::db()->fetchOne(
-                    'SELECT cache_value FROM xf_permission_cache_content
-                     WHERE permission_combination_id = ? AND content_type = ? AND content_id = ?',
-                    [$cid, 'node', $nodeId]
+
+            // 2. Walk chain (this node first, then ancestors) for content overrides
+            $contentValue = null;  // null = no override, else 'content_allow'/'deny'/'reset'
+            foreach ($chain as $nid) {
+                $rowVal = \XF::db()->fetchOne(
+                    'SELECT permission_value FROM xf_permission_entry_content
+                     WHERE user_group_id = ? AND user_id = 0
+                       AND content_type = ? AND content_id = ?
+                       AND permission_group_id = ? AND permission_id = ?',
+                    [$ug->user_group_id, 'node', $nid, 'general', 'view']
                 );
-                if ($perms) {
-                    $decoded = @json_decode($perms, true) ?: [];
-                    // Flat map — check permission_id at top level (NOT nested)
-                    if (!empty($decoded['view'])) { $granted = true; break; }
+                if ($rowVal) {
+                    // First hit wins (closest to node) — but deny anywhere in chain still applies
+                    if ($contentValue === null) $contentValue = $rowVal;
+                    if ($rowVal === 'deny') { $contentValue = 'deny'; break; }
                 }
             }
+
+            // 3. Resolve final view state
+            //    Precedence: content_deny wins > content_allow > base allow > default_deny
+            if ($contentValue === 'deny') {
+                $granted = false;
+            } elseif ($contentValue === 'content_allow') {
+                $granted = true;
+            } elseif ($baseView === 'allow') {
+                $granted = true;
+            } else {
+                $granted = false;  // unset/reset/deny at base = no access
+            }
+
             $effective[] = [
                 'user_group_id' => (int) $ug->user_group_id,
                 'title'         => (string) $ug->title,
                 'can_view'      => $granted,
+                'derivation'    => $contentValue !== null
+                    ? "content=$contentValue" . ($baseView ? "/base=$baseView" : '')
+                    : ($baseView ? "base=$baseView" : 'no-perm'),
             ];
         }
 
