@@ -21,6 +21,10 @@ class ProModule extends ModuleBase
     use ProNotificationsTrait;
     use ProUserContentTrait;
     use ProForumWatchTrait;
+    use ProWarningsTrait;
+    use ProReportsTrait;
+    use ProApprovalTrait;
+    use ProAdvancedModTrait;
 
     protected $moduleName = 'xenforo_pro';
 
@@ -51,6 +55,10 @@ class ProModule extends ModuleBase
         'notifications'       => ['label' => 'Notifications & Alerts',      'method' => 'registerNotificationsTools'],
         'user_content'        => ['label' => 'User Content (bookmarks/DMs)','method' => 'registerUserContentTools'],
         'forum_watch'         => ['label' => 'Forum Watch (watch/unwatch)', 'method' => 'registerForumWatchTools'],
+        'warnings'            => ['label' => 'Warnings (issue/list/delete)','method' => 'registerWarningsTools'],
+        'reports'             => ['label' => 'Reports Queue',                'method' => 'registerReportsTools'],
+        'approval'            => ['label' => 'Approval Queue',               'method' => 'registerApprovalTools'],
+        'advanced_mod'        => ['label' => 'Advanced Mod (merge/split)',   'method' => 'registerAdvancedModTools'],
     ];
 
     /**
@@ -211,6 +219,18 @@ class ProModule extends ModuleBase
         }
         if ($has('forum_watch')) {
             $this->registerForumWatchTools();
+        }
+        if ($has('warnings')) {
+            $this->registerWarningsTools();
+        }
+        if ($has('reports')) {
+            $this->registerReportsTools();
+        }
+        if ($has('approval')) {
+            $this->registerApprovalTools();
+        }
+        if ($has('advanced_mod')) {
+            $this->registerAdvancedModTools();
         }
 
         $this->registerTool('getForumList', [
