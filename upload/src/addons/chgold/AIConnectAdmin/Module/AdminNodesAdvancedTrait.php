@@ -41,10 +41,21 @@ trait AdminNodesAdvancedTrait
 
         $this->registerTool('getNodePermissions', [
             'description' => 'Read all explicit + inherited permissions for a node. '
-                . 'Returns per-usergroup entries on the node itself, walks the parent '
-                . 'chain to compute effective inheritance, and flags the source of each '
-                . 'effective permission (own / parent / default). Avoids the need to '
-                . "test-create nodes just to check whether a permission is set.",
+                . 'Use this AFTER setNodePermission to verify your changes actually blocked/granted '
+                . 'the way you expected. Returns three sections: '
+                . 'entries_on_node (rows on THIS node), '
+                . 'entries_inherited (rows inherited from parent chain, each with inherited_from_node_id), '
+                . 'effective_view_by_group (final per-group can_view boolean + derivation string '
+                . 'showing WHY — e.g. "content=deny/base=allow"). '
+                . "\n\n"
+                . 'RECIPE — verify a node is truly private after setNodePermission:'
+                . "\n"
+                . '  1. getNodePermissions(node_id)'
+                . "\n"
+                . '  2. Inspect effective_view_by_group — every group you wanted to block should show can_view=false'
+                . "\n"
+                . '  3. If a group still shows can_view=true, check its derivation string. base=allow means '
+                . 'the group has global view; use content_allow-only pattern instead of deny.',
             'input_schema' => [
                 'type' => 'object',
                 'required' => ['node_id'],
@@ -76,9 +87,39 @@ trait AdminNodesAdvancedTrait
         //   * Set the group's BASE view to `unset` (or use a separate group)
         //   * Then use content_allow ONLY on nodes the group should access
         $this->registerTool('setNodePermission', [
-            'description' => 'Grant or deny a permission for a usergroup on a specific node. '
-                . 'XF content-permission model: content_type=node, content_id=node_id. '
-                . 'permission_value=unset removes the entry (falls back to inherited).',
+            'description' => 'Set a content-level permission for a usergroup (or single user) on a node. '
+                . 'This is XenForo\'s ONLY built-in mechanism for restricting node access — there is no '
+                . 'separate "private_node" / "allowed_user_group_ids" field on xf_node. The XF ACP itself '
+                . 'uses this same table (xf_permission_entry_content) when you configure node permissions.'
+                . "\n\n"
+                . 'RECIPE — make a node private to specific usergroups (e.g. Admin+Mod only):'
+                . "\n"
+                . '  1. setNodePermission(node_id, user_group_id=1, general.view, deny)   // block Guest'
+                . "\n"
+                . '  2. setNodePermission(node_id, user_group_id=2, general.view, deny)   // block Registered'
+                . "\n"
+                . '  3. setNodePermission(node_id, user_group_id=3, general.view, content_allow)  // allow Admin'
+                . "\n"
+                . '  4. setNodePermission(node_id, user_group_id=4, general.view, content_allow)  // allow Mod'
+                . "\n"
+                . '  5. Verify with getNodePermissions(node_id) — check effective_view_by_group.'
+                . "\n\n"
+                . 'RECIPE — grant access to a single user (no helper usergroup needed):'
+                . "\n"
+                . '  setNodePermission(node_id, user_id=42, user_group_id=0, general.view, content_allow)'
+                . "\n\n"
+                . 'RECIPE — remove all restrictions:'
+                . "\n"
+                . '  setNodePermission(node_id, user_group_id=X, general.view, unset)  // for each group'
+                . "\n\n"
+                . 'XF QUIRKS (both native, not tool bugs — documented for agent guidance):'
+                . "\n"
+                . '  * deny on a group that has base "general.view=allow" may NOT block at runtime '
+                . '(XF s cache builder produces {view:true} anyway). For strict blocking, either '
+                . '(a) don t use deny — leave base as-is and grant with content_allow only, or '
+                . '(b) set the group s BASE view to unset via ACP first.'
+                . "\n"
+                . '  * Users with is_admin=1 (or is_super_admin=1) always bypass content permissions.',
             'input_schema' => [
                 'type' => 'object',
                 'required' => ['node_id', 'user_group_id', 'permission_group_id', 'permission_id', 'permission_value'],

@@ -733,4 +733,55 @@ class AdminModule extends ModuleBase
 
         return new Upload($tempFile, $name);
     }
+
+    /**
+     * Prompt hints surfaced in InfoPage's personalized connection prompt.
+     * Agents see these when the site is added to their session — improves
+     * discovery of the RIGHT tool for common tasks.
+     */
+    public function getToolPromptMeta(): array
+    {
+        return [
+            'createNode' => [
+                'hint' => 'Create Forum/Category/Page/LinkForum. Pass node_type_id + title. '
+                    . 'For Page: add "content" (HTML/BBCode). For LinkForum: add "link_url". '
+                    . 'Response includes viewable_by_creator + note if node needs setNodePermission to be visible.',
+                'url_params' => [],
+            ],
+            'editNode' => [
+                'hint' => 'Update title/description/parent/node_name/content/link_url. '
+                    . 'content_set enum in response: not_sent/not_applicable/saved/save_failed.',
+                'url_params' => [],
+            ],
+            'setNodePermission' => [
+                'hint' => 'ONLY way to make a node private in XF — no "is_private" field exists. '
+                    . 'Recipe for private node: deny general.view for groups 1+2, content_allow for allowed groups. '
+                    . 'Also supports user_id (per-user, no helper usergroup needed). '
+                    . 'CAVEAT: deny may not block if group has base=allow — use content_allow-only pattern instead. '
+                    . 'is_admin=1 bypasses.',
+                'url_params' => [],
+            ],
+            'getNodePermissions' => [
+                'hint' => 'Verify what setNodePermission actually did. Returns entries_on_node + entries_inherited '
+                    . '+ effective_view_by_group (with derivation string). Use AFTER any permission change.',
+                'url_params' => [],
+            ],
+            'listAddons' => [
+                'hint' => 'List all installed XF add-ons with active/version. No arguments.',
+                'url_params' => [''],
+            ],
+            'listCronTasks' => [
+                'hint' => 'List all XF cron entries. No arguments.',
+                'url_params' => [''],
+            ],
+            'listStyles' => [
+                'hint' => 'List all XF styles. No arguments.',
+                'url_params' => [''],
+            ],
+            'triggerCronTask' => [
+                'hint' => 'Manually run a cron entry (same as ACP Run-now button). Pass entry_id from listCronTasks.',
+                'url_params' => [],
+            ],
+        ];
+    }
 }
