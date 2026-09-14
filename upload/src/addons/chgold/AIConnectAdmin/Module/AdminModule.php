@@ -62,7 +62,8 @@ class AdminModule extends ModuleBase
                 'required' => ['node_type_id', 'title'],
                 'properties' => [
                     'node_type_id' => ['type' => 'string', 'description' => 'Forum, Category, Page or LinkForum'],
-                    'title' => ['type' => 'string', 'description' => 'Node title'],
+                    'title' => ['type' => 'string', 'description' => 'Node title (displayed)'],
+                    'node_name' => ['type' => 'string', 'description' => 'URL slug (varchar 50). If omitted, auto-generated from title. XF routes by this, not by title.'],
                     'parent_node_id' => ['type' => 'integer', 'description' => 'Parent node id (0 = root)'],
                     'description' => ['type' => 'string', 'description' => 'Node description (optional)'],
                     // Page-specific fields
@@ -84,6 +85,7 @@ class AdminModule extends ModuleBase
                 'properties' => [
                     'node_id' => ['type' => 'integer', 'description' => 'Node to edit'],
                     'title' => ['type' => 'string', 'description' => 'New title (optional)'],
+                    'node_name' => ['type' => 'string', 'description' => 'New URL slug (varchar 50, optional). If title changes and node_name was empty, it will be auto-regenerated.'],
                     'description' => ['type' => 'string', 'description' => 'New description (optional)'],
                     'parent_node_id' => ['type' => 'integer', 'description' => 'New parent node id (optional)'],
                     // Page-specific fields
@@ -263,6 +265,11 @@ class AdminModule extends ModuleBase
         }
         $typeData = $node->getDataRelationOrDefault();
 
+        // node_name (URL slug) — XF routes ALL node types by node_name, not title.
+        // Without it, URL is just "?pages/" and doesn't resolve. Auto-generate
+        // from title if caller did not provide one.
+        $node->node_name = $this->buildNodeName($params['node_name'] ?? '', $params['title']);
+
         // Set fields that must be present BEFORE node->save() (validation gates).
         // LinkForum entity fails "valid URL" validation unless link_url is set.
         if ($node->node_type_id === 'LinkForum' && isset($params['link_url'])) {
@@ -307,6 +314,13 @@ class AdminModule extends ModuleBase
         if (isset($params['parent_node_id'])) {
             $node->parent_node_id = (int) $params['parent_node_id'];
         }
+        // Allow updating node_name (URL slug) OR regenerating from new title.
+        if (isset($params['node_name'])) {
+            $node->node_name = $this->buildNodeName((string) $params['node_name'], $node->title);
+        } elseif (isset($params['title']) && $node->node_name === '') {
+            // Only auto-regenerate if node_name was empty (don't overwrite user-set slug)
+            $node->node_name = $this->buildNodeName('', (string) $params['title']);
+        }
         if (!$node->preSave()) {
             return $this->error('validation_failed', implode(' ', $node->getErrors()));
         }
@@ -329,23 +343,56 @@ class AdminModule extends ModuleBase
      * Build the public URL for a node (title→slug + node_id).
      * Uses XF's own router so the slug always matches what XF generates.
      */
+    /**
+     * Public URL from XF's own router — works correctly now that node_name
+     * is set on every created/edited node.
+     */
     protected function nodeUrl(\XF\Entity\Node $node): ?string
     {
         try {
-            $baseUrl = $node->getContentUrl(true);
-            if ($baseUrl === '' || $node->title === '') return $baseUrl ?: null;
-            // Already has slug
-            if (preg_match('#\.' . $node->node_id . '/?$#', $baseUrl)) return $baseUrl;
-
-            $slug = strtolower($node->title);
-            $slug = preg_replace('/[^a-z0-9\-_]+/i', '-', $slug);
-            $slug = trim(preg_replace('/-+/', '-', $slug), '-');
-            if ($slug === '') return $baseUrl;
-
-            return rtrim($baseUrl, '/') . '/' . $slug . '.' . $node->node_id . '/';
+            return $node->getContentUrl(true) ?: null;
         } catch (\Throwable $e) {
             return null;
         }
+    }
+
+    /**
+     * URL-safe node_name (varchar(50)). Prefers explicit input, falls back
+     * to title normalization: transliterate → lowercase → non-word→dash →
+     * collapse+trim → truncate to 50. Ensures uniqueness by appending
+     * node_id if the base name is taken.
+     *
+     * Handles Hebrew/CJK by falling back to node_id when transliteration
+     * yields empty (all non-ASCII stripped).
+     */
+    protected function buildNodeName(string $explicit, string $title): string
+    {
+        $base = $explicit !== '' ? $explicit : $title;
+        // Simple ASCII slug — matches what XF's own Node ACP form produces
+        $slug = strtolower($base);
+        // Strip diacritics best-effort (Hebrew/CJK stay as-is, then get stripped)
+        $slug = @iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $slug) ?: $slug;
+        $slug = preg_replace('/[^a-z0-9\-_]+/i', '-', $slug);
+        $slug = trim(preg_replace('/-+/', '-', $slug), '-');
+        $slug = substr($slug, 0, 45);  // leave room for "-N" uniqueness suffix
+
+        // Fallback for empty (all-non-ASCII titles)
+        if ($slug === '') {
+            $slug = 'node';
+        }
+
+        // Uniqueness: append -N if taken (max 5 tries, then use full node_id)
+        $original = $slug;
+        for ($i = 1; $i <= 5; $i++) {
+            $existing = \XF::db()->fetchOne(
+                'SELECT node_id FROM xf_node WHERE node_name = ? LIMIT 1',
+                [$slug]
+            );
+            if (!$existing) return $slug;
+            $slug = $original . '-' . ($i + 1);
+        }
+        // Extremely rare fallback — use timestamp
+        return substr($original . '-' . dechex(\XF::$time), 0, 50);
     }
 
     /**

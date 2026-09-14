@@ -408,26 +408,6 @@ trait ProDiscoveryTrait
     /**
      * Load a thread the caller may view, or populate $error and return null.
      */
-    /**
-     * Inline title→URL slug (XF's own routes use the same normalization:
-     * transliterate to ASCII, lowercase, non-word→dash, collapse+trim dashes).
-     * When the given URL already contains the slug (ends with .{node_id}/),
-     * returns it unchanged.
-     */
-    protected static function injectTitleSlug(string $url, $node): string
-    {
-        if ($url === '' || $node->title === '') return $url;
-        // Already has slug (endsWith .{id}/)
-        if (preg_match('#\.' . $node->node_id . '/?$#', $url)) return $url;
-
-        $slug = strtolower($node->title);
-        $slug = preg_replace('/[^a-z0-9\-_]+/i', '-', $slug);
-        $slug = trim(preg_replace('/-+/', '-', $slug), '-');
-        if ($slug === '') return $url;
-
-        return rtrim($url, '/') . '/' . $slug . '.' . $node->node_id . '/';
-    }
-
     private function nodeData($node): array
     {
         $data = [
@@ -439,15 +419,14 @@ trait ProDiscoveryTrait
             'display_order' => $node->display_order,
         ];
 
-        // Public URL for sharing.
-        // XF's getContentUrl() strips the title-slug for some node types
-        // (returns "pages/" without slug) so we inject it manually.
+        // Public URL for sharing — XF's own builder is authoritative now that
+        // createNode/editNode always populate node_name (which XF routes by).
         try {
-            $baseUrl = $node->getContentUrl(true);
-            $data['url'] = static::injectTitleSlug($baseUrl, $node);
+            $data['url'] = $node->getContentUrl(true) ?: null;
         } catch (\Throwable $e) {
             $data['url'] = null;
         }
+        $data['node_name'] = (string) $node->node_name;
 
         // Page nodes: include the actual HTML/BBCode content from xf_template
         // (row _page_node.{node_id}), matching the shape createNode/editNode accepts.
