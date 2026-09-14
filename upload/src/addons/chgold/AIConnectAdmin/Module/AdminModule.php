@@ -328,9 +328,32 @@ class AdminModule extends ModuleBase
     }
 
     /**
-     * Build the public URL for a node (title→slug + node_id).
-     * Uses XF's own router so the slug always matches what XF generates.
+     * Consistent success payload for createNode/editNode.
+     * Force-refreshes from DB after save + reports viewable_by_creator so the
+     * caller can tell whether the node exists but is hidden by ACL.
      */
+    protected function createEditResponse(\XF\Entity\Node $node, array $params): array
+    {
+        \XF::em()->clearEntityCache('XF:Node', $node->node_id);
+        $fresh = \XF::em()->find('XF:Node', $node->node_id);
+        $viewable = $fresh ? $fresh->canView() : false;
+
+        $out = [
+            'node_id'      => $node->node_id,
+            'title'        => $node->title,
+            'node_name'    => (string) $node->node_name,
+            'node_type_id' => $node->node_type_id,
+            'url'          => $this->nodeUrl($fresh ?: $node),
+            'content_set'  => isset($params['content']) && $node->node_type_id === 'Page',
+            'viewable_by_creator' => $viewable,
+        ];
+        if (!$viewable) {
+            $out['note'] = 'Node exists in DB but is not viewable by the current user. '
+                . 'Use setNodePermission (or ACP) to grant view permission for target usergroups.';
+        }
+        return $out;
+    }
+
     /**
      * Public URL from XF's own router — works correctly now that node_name
      * is set on every created/edited node.
