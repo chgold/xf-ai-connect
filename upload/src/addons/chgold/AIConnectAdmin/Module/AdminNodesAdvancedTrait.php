@@ -325,7 +325,15 @@ trait AdminNodesAdvancedTrait
             }
         }
 
-        // Effective view permission for each existing usergroup — round-trip check
+        // Effective view permission for each existing usergroup — round-trip check.
+        //
+        // xf_permission_cache_content.cache_value stores the FLAT permission map
+        // for that content (e.g. {"view":true,"postReply":false}), NOT nested by
+        // permission_group_id. The permission_id 'view' at top-level IS what
+        // XF's Node::canView() ultimately reads (via hasContentPermission).
+        //
+        // Combination membership lives in xf_permission_combination_user_group
+        // (composite PK user_group_id + permission_combination_id).
         $effective = [];
         $ugFinder = \XF::finder('XF:UserGroup')->order('user_group_id')->fetch();
         foreach ($ugFinder as $ug) {
@@ -342,7 +350,8 @@ trait AdminNodesAdvancedTrait
                 );
                 if ($perms) {
                     $decoded = @json_decode($perms, true) ?: [];
-                    if (!empty($decoded['general']['view'])) { $granted = true; break; }
+                    // Flat map — check permission_id at top level (NOT nested)
+                    if (!empty($decoded['view'])) { $granted = true; break; }
                 }
             }
             $effective[] = [
