@@ -284,13 +284,7 @@ class AdminModule extends ModuleBase
         // Apply type-specific fields on the related entity (xf_page / xf_link_forum / etc)
         $this->applyNodeTypeSpecific($node, $typeData, $params);
 
-        return $this->success([
-            'node_id'      => $node->node_id,
-            'title'        => $node->title,
-            'node_type_id' => $node->node_type_id,
-            'url'          => $this->nodeUrl($node),
-            'content_set'  => isset($params['content']) && $node->node_type_id === 'Page',
-        ]);
+        return $this->success($this->createEditResponse($node, $params));
     }
 
     public function execute_editNode($params)
@@ -330,13 +324,7 @@ class AdminModule extends ModuleBase
         $typeData = $node->getDataRelationOrDefault();
         $this->applyNodeTypeSpecific($node, $typeData, $params);
 
-        return $this->success([
-            'node_id'      => $node->node_id,
-            'title'        => $node->title,
-            'node_type_id' => $node->node_type_id,
-            'url'          => $this->nodeUrl($node),
-            'content_set'  => isset($params['content']) && $node->node_type_id === 'Page',
-        ]);
+        return $this->success($this->createEditResponse($node, $params));
     }
 
     /**
@@ -358,41 +346,54 @@ class AdminModule extends ModuleBase
 
     /**
      * URL-safe node_name (varchar(50)). Prefers explicit input, falls back
-     * to title normalization: transliterate → lowercase → non-word→dash →
-     * collapse+trim → truncate to 50. Ensures uniqueness by appending
-     * node_id if the base name is taken.
+     * to title transliteration.
      *
-     * Handles Hebrew/CJK by falling back to node_id when transliteration
-     * yields empty (all non-ASCII stripped).
+     * IMPORTANT: uses XF's own \XF\Util\Str::transliterate — iconv strips
+     * Hebrew/CJK entirely (returns "?????"), while XF transliterates them
+     * to Latin approximation ("דף עברי" → "dp ʻbry"). Prior implementation
+     * with iconv silently degraded to "node"/"node-2"/"node-3"... causing
+     * near-guaranteed collisions on Hebrew-only sites.
+     *
+     * Uniqueness handled by suffix numbering (up to 99). Final safety
+     * net: falls back to page-{time-hex} if all suffixes exhausted.
      */
     protected function buildNodeName(string $explicit, string $title): string
     {
         $base = $explicit !== '' ? $explicit : $title;
-        // Simple ASCII slug — matches what XF's own Node ACP form produces
-        $slug = strtolower($base);
-        // Strip diacritics best-effort (Hebrew/CJK stay as-is, then get stripped)
-        $slug = @iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $slug) ?: $slug;
-        $slug = preg_replace('/[^a-z0-9\-_]+/i', '-', $slug);
-        $slug = trim(preg_replace('/-+/', '-', $slug), '-');
-        $slug = substr($slug, 0, 45);  // leave room for "-N" uniqueness suffix
 
-        // Fallback for empty (all-non-ASCII titles)
-        if ($slug === '') {
-            $slug = 'node';
+        // XF's transliterate handles Hebrew/CJK/Cyrillic/emoji properly.
+        // Second arg (false) = drop emoji entirely rather than transliterating.
+        try {
+            $slug = \XF\Util\Str::transliterate($base, false);
+        } catch (\Throwable $e) {
+            $slug = $base;
         }
 
-        // Uniqueness: append -N if taken (max 5 tries, then use full node_id)
-        $original = $slug;
-        for ($i = 1; $i <= 5; $i++) {
+        // Now sanitize to URL-safe ASCII: lowercase → non-word→dash → trim
+        $slug = strtolower($slug);
+        $slug = preg_replace('/[^a-z0-9\-_]+/i', '-', $slug);
+        $slug = trim(preg_replace('/-+/', '-', $slug), '-');
+        $slug = substr($slug, 0, 45);  // leave room for "-NN" uniqueness suffix
+
+        // Fallback ONLY if transliteration itself was fully empty (extreme
+        // edge case: emoji-only title, or characters even XF can't handle).
+        // Use page-<hex> so different fallbacks don't collide.
+        if ($slug === '') {
+            $slug = 'page-' . substr(md5($base . microtime(true)), 0, 8);
+        }
+
+        // Uniqueness: append -N (up to 99). Base cap 44 to leave room.
+        $original = substr($slug, 0, 44);
+        for ($i = 2; $i <= 99; $i++) {
             $existing = \XF::db()->fetchOne(
                 'SELECT node_id FROM xf_node WHERE node_name = ? LIMIT 1',
                 [$slug]
             );
             if (!$existing) return $slug;
-            $slug = $original . '-' . ($i + 1);
+            $slug = $original . '-' . $i;
         }
-        // Extremely rare fallback — use timestamp
-        return substr($original . '-' . dechex(\XF::$time), 0, 50);
+        // Extremely rare fallback — timestamp-based unique
+        return 'page-' . substr(md5($base . microtime(true) . mt_rand()), 0, 8);
     }
 
     /**
