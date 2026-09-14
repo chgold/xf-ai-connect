@@ -103,7 +103,9 @@ trait AdminWidgetsTrait
         if ($err = $this->requireAdmin()) return $err;
         if ($err = $this->assertPermission('style')) return $err;
 
-        $finder = \XF::finder('XF:Widget')->order('display_order');
+        // xf_widget has NO display_order/active columns — those live per-position
+        // inside the positions JSON blob. Order by widget_key for stability.
+        $finder = \XF::finder('XF:Widget')->order('widget_key');
         if (!empty($params['widget_definition_id'])) {
             $finder->where('definition_id', (string) $params['widget_definition_id']);
         }
@@ -117,11 +119,10 @@ trait AdminWidgetsTrait
                 'widget_id'            => (int)    $w->widget_id,
                 'widget_key'           => (string) $w->widget_key,
                 'widget_definition_id' => (string) $w->definition_id,
-                'title'                => (string) $w->title,
-                'display_order'        => (int)    $w->display_order,
-                'active'               => (bool)   $w->active,
-                'positions'            => array_keys($positions),
+                'title'                => (string) $w->title,  // computed getter (via phrase)
+                'positions'            => $positions,  // full per-position map: {position_id: {display_order, ...}}
                 'options'              => $w->options ?: new \stdClass(),
+                'display_condition'    => (string) $w->display_condition,
             ];
         }
         return $this->success(['count' => count($out), 'widgets' => $out]);
@@ -141,10 +142,9 @@ trait AdminWidgetsTrait
             'widget_key'           => (string) $w->widget_key,
             'widget_definition_id' => (string) $w->definition_id,
             'title'                => (string) $w->title,
-            'display_order'        => (int)    $w->display_order,
-            'active'               => (bool)   $w->active,
-            'positions'            => array_keys($w->positions ?: []),
+            'positions'            => $w->positions ?: new \stdClass(),
             'options'              => $w->options ?: new \stdClass(),
+            'display_condition'    => (string) $w->display_condition,
         ]);
     }
 
@@ -162,15 +162,23 @@ trait AdminWidgetsTrait
         $w = \XF::em()->create('XF:Widget');
         $w->widget_key    = $key;
         $w->definition_id = (string) $params['widget_definition_id'];
-        $w->title         = (string) ($params['title'] ?? '');
-        $w->display_order = (int)    ($params['display_order'] ?? 10);
-        $w->active        = (bool)   ($params['active'] ?? true);
-        $w->positions     = $this->positionsFromArray((array) $params['positions']);
+        // display_order + active are per-position properties (built into positions map)
+        $w->positions     = $this->positionsFromArray(
+            (array) $params['positions'],
+            (int) ($params['display_order'] ?? 10),
+            (bool) ($params['active'] ?? true)
+        );
         $w->options       = (array)  ($params['options'] ?? []);
 
         if (!$w->save()) {
             return $this->error('validation_failed', implode(' ', $w->getErrors()));
         }
+
+        // Title lives in a phrase (widget.{widget_key}) — write it via phrase if provided.
+        if (!empty($params['title'])) {
+            $this->writeWidgetTitle($w->widget_key, (string) $params['title']);
+        }
+
         return $this->success([
             'widget_id'  => $w->widget_id,
             'widget_key' => $w->widget_key,
@@ -187,14 +195,30 @@ trait AdminWidgetsTrait
         $w = \XF::em()->findOne('XF:Widget', ['widget_key' => $key]);
         if (!$w) return $this->error('not_found', "Widget '$key' not found");
 
-        if (isset($params['title']))         $w->title = (string) $params['title'];
-        if (isset($params['display_order'])) $w->display_order = (int) $params['display_order'];
-        if (isset($params['active']))        $w->active = (bool) $params['active'];
-        if (isset($params['positions']))     $w->positions = $this->positionsFromArray((array) $params['positions']);
-        if (isset($params['options']))       $w->options = (array) $params['options'];
+        if (isset($params['positions'])) {
+            $w->positions = $this->positionsFromArray(
+                (array) $params['positions'],
+                (int) ($params['display_order'] ?? 10),
+                (bool) ($params['active'] ?? true)
+            );
+        } elseif (isset($params['display_order']) || isset($params['active'])) {
+            // update display_order/active inside existing positions map without changing which positions
+            $pos = $w->positions ?: [];
+            foreach ($pos as $pid => &$cfg) {
+                if (isset($params['display_order'])) $cfg['display_order'] = (int) $params['display_order'];
+                if (isset($params['active']))        $cfg['active']        = (bool) $params['active'];
+            }
+            unset($cfg);
+            $w->positions = $pos;
+        }
+        if (isset($params['options'])) $w->options = (array) $params['options'];
 
         if (!$w->save()) {
             return $this->error('validation_failed', implode(' ', $w->getErrors()));
+        }
+        // Update title phrase if provided
+        if (isset($params['title'])) {
+            $this->writeWidgetTitle($w->widget_key, (string) $params['title']);
         }
         return $this->success(['widget_key' => $key, 'updated' => true]);
     }
@@ -235,12 +259,40 @@ trait AdminWidgetsTrait
         return $this->success(['count' => count($out), 'positions' => $out]);
     }
 
-    private function positionsFromArray(array $ids): array
+    private function positionsFromArray(array $ids, int $displayOrder = 10, bool $active = true): array
     {
         $out = [];
         foreach ($ids as $id) {
-            $out[(string) $id] = ['position_id' => (string) $id, 'display_order' => 10];
+            $out[(string) $id] = [
+                'position_id'   => (string) $id,
+                'display_order' => $displayOrder,
+                'active'        => $active,
+            ];
         }
         return $out;
+    }
+
+    /**
+     * Widget titles live in the phrase table (widget.{widget_key}).
+     * Write directly via Phrase entity — XF ACP does the same.
+     */
+    private function writeWidgetTitle(string $widgetKey, string $title): void
+    {
+        $phraseTitle = 'widget.' . $widgetKey;
+        $existing = \XF::em()->findOne('XF:Phrase', [
+            'title' => $phraseTitle, 'language_id' => 0,
+        ]);
+        if ($existing) {
+            $existing->phrase_text = $title;
+            $existing->save();
+        } else {
+            $p = \XF::em()->create('XF:Phrase');
+            $p->title = $phraseTitle;
+            $p->language_id = 0;
+            $p->phrase_text = $title;
+            $p->global_cache = 0;
+            $p->addon_id = '';
+            $p->save();
+        }
     }
 }
