@@ -338,13 +338,34 @@ class AdminModule extends ModuleBase
         $fresh = \XF::em()->find('XF:Node', $node->node_id);
         $viewable = $fresh ? $fresh->canView() : false;
 
+        // content_set semantics:
+        //   'not_sent'      — no content param in the request (no-op, intentional)
+        //   'not_applicable' — sent but node is not a Page (silently ignored)
+        //   'saved'         — content was sent, node is Page, template saved OK
+        //   'save_failed'   — content was sent + save was attempted + failed
+        //                     (see XF error log for details)
+        // Boolean would collapse these — string keeps the caller informed.
+        if (!array_key_exists('content', $params)) {
+            $contentSet = 'not_sent';
+        } elseif ($node->node_type_id !== 'Page') {
+            $contentSet = 'not_applicable';
+        } else {
+            // Round-trip check: did the template actually get saved?
+            $tplExists = \XF::db()->fetchOne(
+                'SELECT template_id FROM xf_template
+                 WHERE title = ? AND style_id = 0 AND type = ?',
+                ['_page_node.' . $node->node_id, 'public']
+            );
+            $contentSet = $tplExists ? 'saved' : 'save_failed';
+        }
+
         $out = [
             'node_id'      => $node->node_id,
             'title'        => $node->title,
             'node_name'    => (string) $node->node_name,
             'node_type_id' => $node->node_type_id,
             'url'          => $this->nodeUrl($fresh ?: $node),
-            'content_set'  => isset($params['content']) && $node->node_type_id === 'Page',
+            'content_set'  => $contentSet,
             'viewable_by_creator' => $viewable,
         ];
         if (!$viewable) {

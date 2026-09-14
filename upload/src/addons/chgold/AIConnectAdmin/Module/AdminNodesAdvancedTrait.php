@@ -39,6 +39,24 @@ trait AdminNodesAdvancedTrait
             ],
         ]);
 
+        $this->registerTool('getNodePermissions', [
+            'description' => 'Read all explicit + inherited permissions for a node. '
+                . 'Returns per-usergroup entries on the node itself, walks the parent '
+                . 'chain to compute effective inheritance, and flags the source of each '
+                . 'effective permission (own / parent / default). Avoids the need to '
+                . "test-create nodes just to check whether a permission is set.",
+            'input_schema' => [
+                'type' => 'object',
+                'required' => ['node_id'],
+                'properties' => [
+                    'node_id' => ['type' => 'integer'],
+                    'permission_id' => ['type' => 'string', 'description' => 'Filter to one permission (e.g. view). Omit for all.'],
+                    'permission_group_id' => ['type' => 'string', 'description' => 'Filter to one permission group (e.g. general). Omit for all.'],
+                ],
+                'additionalProperties' => false,
+            ],
+        ]);
+
         // Permission naming crib for the tool description below.
         // XF Node canView() → hasContentPermission('node', id, 'view') — so use
         // general.view (NOT viewNode). Same for other common actions:
@@ -59,6 +77,7 @@ trait AdminNodesAdvancedTrait
                     'user_group_id' => ['type' => 'integer'],
                     'permission_group_id' => ['type' => 'string', 'description' => 'Group: general (for basic node access), forum, thread, post. NOT "node".'],
                     'permission_id' => ['type' => 'string', 'description' => 'Common: general.view (Node::canView checks THIS — NOT viewNode which does not exist), forum.viewContent, forum.postThread, forum.postReply, forum.uploadAttachment. viewNode/viewForum auto-corrected to general.view.'],
+                    'user_id' => ['type' => 'integer', 'description' => 'Set permission for a specific user instead of a usergroup. When provided (>0), user_group_id is set to 0. Useful to override group perms per-user without creating a helper usergroup.'],
                     'permission_value' => [
                         'type' => 'string',
                         'enum' => ['content_allow', 'deny', 'reset', 'unset', 'use_int', 'allow'],
@@ -127,9 +146,20 @@ trait AdminNodesAdvancedTrait
         $node = \XF::em()->find('XF:Node', $nodeId);
         if (!$node) return $this->error('not_found', 'Node not found');
 
+        // Per-user OR per-group — XF supports both via xf_permission_entry_content
+        // (columns user_group_id + user_id). Prior versions of this tool always
+        // set user_id=0 which forced callers to create helper usergroups to
+        // target individual users.
+        $userId  = (int) ($params['user_id'] ?? 0);
         $groupId = (int) $params['user_group_id'];
-        $group = \XF::em()->find('XF:UserGroup', $groupId);
-        if (!$group) return $this->error('not_found', 'User group not found');
+        if ($userId > 0) {
+            $user = \XF::em()->find('XF:User', $userId);
+            if (!$user) return $this->error('not_found', 'User not found');
+            $groupId = 0;  // user-specific: group is unused
+        } else {
+            $group = \XF::em()->find('XF:UserGroup', $groupId);
+            if (!$group) return $this->error('not_found', 'User group not found');
+        }
 
         $pg  = (string) $params['permission_group_id'];
         $pid = (string) $params['permission_id'];
@@ -175,9 +205,9 @@ trait AdminNodesAdvancedTrait
         if ($val === 'unset') {
             $affected = $db->delete(
                 'xf_permission_entry_content',
-                'user_group_id = ? AND user_id = 0 AND content_type = ? AND content_id = ?
+                'user_group_id = ? AND user_id = ? AND content_type = ? AND content_id = ?
                  AND permission_group_id = ? AND permission_id = ?',
-                [$groupId, 'node', $nodeId, $pg, $pid]
+                [$groupId, $userId, 'node', $nodeId, $pg, $pid]
             );
             $this->enqueuePermissionRebuild('node', $nodeId);
             return $this->success([
@@ -203,16 +233,16 @@ trait AdminNodesAdvancedTrait
             );
         }
 
-        // Upsert content-permission entry
+        // Upsert content-permission entry (per-group OR per-user)
         $db->query(
             'INSERT INTO xf_permission_entry_content
                 (user_group_id, user_id, content_type, content_id,
                  permission_group_id, permission_id, permission_value, permission_value_int)
-             VALUES (?, 0, ?, ?, ?, ?, ?, ?)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
              ON DUPLICATE KEY UPDATE
                 permission_value = VALUES(permission_value),
                 permission_value_int = VALUES(permission_value_int)',
-            [$groupId, 'node', $nodeId, $pg, $pid, $val, $valInt]
+            [$groupId, $userId, 'node', $nodeId, $pg, $pid, $val, $valInt]
         );
         $this->enqueuePermissionRebuild('node', $nodeId);
 
@@ -236,6 +266,100 @@ trait AdminNodesAdvancedTrait
                 . "next time to avoid the auto-correct.";
         }
         return $out === $out ? $this->success($out) : $out;  // preserve API shape
+    }
+
+    public function execute_getNodePermissions($params)
+    {
+        if ($err = $this->requireAdmin()) return $err;
+        if ($err = $this->assertPermission('userGroup')) return $err;
+
+        $nodeId = (int) $params['node_id'];
+        $node = \XF::em()->find('XF:Node', $nodeId);
+        if (!$node) return $this->error('not_found', 'Node not found');
+
+        $pgFilter  = (string) ($params['permission_group_id'] ?? '');
+        $pidFilter = (string) ($params['permission_id'] ?? '');
+        // Auto-correct viewNode → view here too, for consistency
+        if ($pidFilter === 'viewNode' || $pidFilter === 'viewForum') $pidFilter = 'view';
+
+        // Walk parent chain (this node + ancestors) — inheritance goes down
+        $chain = [];
+        $cursor = $node;
+        while ($cursor) {
+            $chain[] = (int) $cursor->node_id;
+            if (!$cursor->parent_node_id) break;
+            $cursor = \XF::em()->find('XF:Node', $cursor->parent_node_id);
+        }
+
+        // Fetch entries for this node + all ancestors
+        $placeholders = implode(',', array_fill(0, count($chain), '?'));
+        $where = "content_type='node' AND content_id IN ($placeholders)";
+        $bind  = $chain;
+        if ($pgFilter !== '') { $where .= " AND permission_group_id = ?"; $bind[] = $pgFilter; }
+        if ($pidFilter !== ''){ $where .= " AND permission_id = ?";       $bind[] = $pidFilter; }
+
+        $rows = \XF::db()->fetchAll(
+            "SELECT content_id, user_group_id, user_id, permission_group_id, permission_id,
+                    permission_value, permission_value_int
+             FROM xf_permission_entry_content
+             WHERE $where
+             ORDER BY content_id, user_group_id DESC, user_id, permission_group_id, permission_id",
+            $bind
+        );
+
+        $own = [];
+        $inherited = [];
+        foreach ($rows as $r) {
+            $entry = [
+                'user_group_id'        => (int) $r['user_group_id'],
+                'user_id'              => (int) $r['user_id'],
+                'permission'           => $r['permission_group_id'] . '.' . $r['permission_id'],
+                'permission_value'     => (string) $r['permission_value'],
+                'permission_value_int' => (int) $r['permission_value_int'],
+            ];
+            if ((int) $r['content_id'] === $nodeId) {
+                $own[] = $entry;
+            } else {
+                $entry['inherited_from_node_id'] = (int) $r['content_id'];
+                $inherited[] = $entry;
+            }
+        }
+
+        // Effective view permission for each existing usergroup — round-trip check
+        $effective = [];
+        $ugFinder = \XF::finder('XF:UserGroup')->order('user_group_id')->fetch();
+        foreach ($ugFinder as $ug) {
+            $combos = \XF::db()->fetchAllColumn(
+                'SELECT permission_combination_id FROM xf_permission_combination_user_group WHERE user_group_id = ?',
+                [$ug->user_group_id]
+            );
+            $granted = false;
+            foreach ($combos as $cid) {
+                $perms = \XF::db()->fetchOne(
+                    'SELECT cache_value FROM xf_permission_cache_content
+                     WHERE permission_combination_id = ? AND content_type = ? AND content_id = ?',
+                    [$cid, 'node', $nodeId]
+                );
+                if ($perms) {
+                    $decoded = @json_decode($perms, true) ?: [];
+                    if (!empty($decoded['general']['view'])) { $granted = true; break; }
+                }
+            }
+            $effective[] = [
+                'user_group_id' => (int) $ug->user_group_id,
+                'title'         => (string) $ug->title,
+                'can_view'      => $granted,
+            ];
+        }
+
+        return $this->success([
+            'node_id'    => $nodeId,
+            'title'      => $node->title,
+            'parent_chain' => array_slice($chain, 1), // exclude self
+            'entries_on_node' => $own,
+            'entries_inherited' => $inherited,
+            'effective_view_by_group' => $effective,
+        ]);
     }
 
     /**
