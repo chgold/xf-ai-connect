@@ -753,17 +753,22 @@ class AdminModule extends ModuleBase
                     . 'content_set enum in response: not_sent/not_applicable/saved/save_failed.',
                 'url_params' => [],
             ],
+            'setNodePrivate' => [
+                'hint' => 'FIRST step to make a node private — flips XF s built-in Private checkbox. '
+                    . 'After setting is_private=true, call setNodePermission with content_allow for each allowed group. '
+                    . 'This is the correct XF pattern — writes SYSTEM marker (viewNode=reset at ug=0/u=0).',
+                'url_params' => [],
+            ],
             'setNodePermission' => [
-                'hint' => 'ONLY way to make a node private in XF — no "is_private" field exists. '
-                    . 'Recipe for private node: deny general.view for groups 1+2, content_allow for allowed groups. '
-                    . 'Also supports user_id (per-user, no helper usergroup needed). '
-                    . 'CAVEAT: deny may not block if group has base=allow — use content_allow-only pattern instead. '
+                'hint' => 'Grant/deny per usergroup or user_id. Use content_allow to grant explicit access. '
+                    . 'For a private node: first call setNodePrivate(true), THEN content_allow for each allowed group. '
+                    . 'CAVEAT: content-level deny may not block if group has base=allow — setNodePrivate is stronger. '
                     . 'is_admin=1 bypasses.',
                 'url_params' => [],
             ],
             'getNodePermissions' => [
-                'hint' => 'Verify what setNodePermission actually did. Returns entries_on_node + entries_inherited '
-                    . '+ effective_view_by_group (with derivation string). Use AFTER any permission change.',
+                'hint' => 'Verify setNodePrivate / setNodePermission. Returns is_private + entries_on_node '
+                    . '+ entries_inherited + effective_view_by_group (with derivation). Use AFTER any change.',
                 'url_params' => [],
             ],
             'listAddons' => [

@@ -20,6 +20,7 @@ trait AdminNodesAdvancedTrait
 {
     protected function registerNodesAdvancedTools()
     {
+        // Note: setNodePrivate + getNodePermissions are registered later
         $this->registerTool('reorderNodes', [
             'description' => 'Bulk update display_order for a set of sibling nodes under the same parent. '
                 . 'Pass an ordered array of node_ids; positions are assigned by array index (0,10,20,...) '
@@ -34,6 +35,38 @@ trait AdminNodesAdvancedTrait
                         'description' => 'Ordered list of node IDs to reorder (must all share the same parent_node_id)',
                         'minItems' => 1,
                     ],
+                ],
+                'additionalProperties' => false,
+            ],
+        ]);
+
+        $this->registerTool('setNodePrivate', [
+            'description' => 'Toggle a node s "Private" flag — same checkbox XF ACP exposes on the '
+                . 'Node Permissions page. When private=true, ONLY groups/users with an explicit '
+                . 'content_allow entry (via setNodePermission) can view the node; base group '
+                . 'permissions no longer apply. This is XF s intended way to make a node truly '
+                . 'private, and it defeats the "deny + base=allow" quirk that setNodePermission '
+                . 'alone cannot solve.'
+                . "\n\n"
+                . 'RECIPE — proper private node:'
+                . "\n"
+                . '  1. setNodePrivate(node_id, is_private=true)  // flip the flag'
+                . "\n"
+                . '  2. setNodePermission(node_id, user_group_id=X, general.view, content_allow)'
+                . "\n"
+                . '     for each group that SHOULD see it'
+                . "\n"
+                . '  3. Verify with getNodePermissions(node_id) — is_private + effective_view_by_group'
+                . "\n\n"
+                . 'Implementation: writes a SYSTEM entry (user_group_id=0, user_id=0) to '
+                . 'xf_permission_entry_content with permission_id=viewNode + value=reset (XF s '
+                . 'internal marker). Uses XF UpdatePermissionsService — same code path as ACP.',
+            'input_schema' => [
+                'type' => 'object',
+                'required' => ['node_id', 'is_private'],
+                'properties' => [
+                    'node_id' => ['type' => 'integer'],
+                    'is_private' => ['type' => 'boolean', 'description' => 'true = mark as private (only explicitly-allowed groups view); false = clear the flag'],
                 ],
                 'additionalProperties' => false,
             ],
@@ -69,23 +102,21 @@ trait AdminNodesAdvancedTrait
         ]);
 
         // Permission naming crib for the tool description below.
-        // XF Node canView() → hasContentPermission('node', id, 'view') — so use
-        // general.view (NOT viewNode). Same for other common actions:
-        //   general.view          — see the node at all
-        //   forum.viewContent     — read threads/posts inside a Forum node
-        //   forum.postThread      — create threads
-        //   forum.postReply       — reply
-        //   forum.uploadAttachment — attach files
         //
-        // ⚠️ KNOWN XF QUIRK: content-level `deny` for a group's `general.view`
-        // may NOT block access if that group ALSO has `general.view=allow` at
-        // the BASE level (xf_permission_entry). XF's built-in rebuildCombination
-        // produces cache_value {"view":true} in this case — verified against
-        // native XF code. Also: is_admin=1 users bypass content permissions
-        // regardless. Both are XF-native, not tool bugs.
-        // Recommended pattern for strict per-node access control:
-        //   * Set the group's BASE view to `unset` (or use a separate group)
-        //   * Then use content_allow ONLY on nodes the group should access
+        // XF has TWO separate "view" permission_ids at content level:
+        //   general.view      — used by Node::canView() at runtime (per-user check)
+        //   general.viewNode  — a SYSTEM MARKER (ug=0/u=0 + value=reset) that flips
+        //                       XF s "Private node" checkbox. NOT a per-group perm.
+        //                       Use setNodePrivate to toggle this properly.
+        //
+        // For per-group access control (setNodePermission), use general.view.
+        // For the Private-node flag, use the dedicated setNodePrivate tool.
+        //
+        // ⚠️ KNOWN XF QUIRK when NOT using setNodePrivate: content-level `deny`
+        // for a group with base=allow does NOT block at runtime. If you want a
+        // truly private node, ALWAYS call setNodePrivate(is_private=true) FIRST
+        // — that is XF s intended mechanism and bypasses the quirk.
+        // is_admin=1 users bypass content permissions regardless.
         $this->registerTool('setNodePermission', [
             'description' => 'Set a content-level permission for a usergroup (or single user) on a node. '
                 . 'This is XenForo\'s ONLY built-in mechanism for restricting node access — there is no '
@@ -216,24 +247,31 @@ trait AdminNodesAdvancedTrait
         $pid = (string) $params['permission_id'];
         $val = (string) $params['permission_value'];
 
-        // Auto-map common mistakes to the actual XF permission_id.
-        // XF's Node::canView() calls hasContentPermission('node', id, 'view')
-        // — NOT 'viewNode' (which doesn't exist in xf_permission at all).
-        // Agents keep guessing wrong names; auto-correct + warn in response.
-        $mistakeMap = [
-            'viewNode'    => ['view', 'general'],
-            'viewForum'   => ['view', 'general'],
-            'viewContent' => ['viewContent', 'forum'],
-            'view'        => ['view', 'general'],  // idempotent for correct callers
-        ];
+        // Auto-map common mistakes — but ONLY when it's not the special
+        // "Private Node" system marker. XF uses `general.viewNode` at
+        // user_group_id=0 + user_id=0 with value=reset as the internal
+        // private flag. Rewriting to `general.view` there would break the
+        // ACP checkbox. For all other combinations, viewNode is a mistake.
+        $isPrivateFlag = (
+            $pid === 'viewNode' && $pg === 'general'
+            && $groupId === 0 && $userId === 0
+        );
         $autoMapped = null;
-        if (isset($mistakeMap[$pid])) {
-            $realPid = $mistakeMap[$pid][0];
-            $realPg  = $mistakeMap[$pid][1];
-            if ($pid !== $realPid || $pg !== $realPg) {
-                $autoMapped = "$pg.$pid → $realPg.$realPid";
-                $pid = $realPid;
-                $pg  = $realPg;
+        if (!$isPrivateFlag) {
+            $mistakeMap = [
+                'viewNode'    => ['view', 'general'],
+                'viewForum'   => ['view', 'general'],
+                'viewContent' => ['viewContent', 'forum'],
+                'view'        => ['view', 'general'],
+            ];
+            if (isset($mistakeMap[$pid])) {
+                $realPid = $mistakeMap[$pid][0];
+                $realPg  = $mistakeMap[$pid][1];
+                if ($pid !== $realPid || $pg !== $realPg) {
+                    $autoMapped = "$pg.$pid → $realPg.$realPid";
+                    $pid = $realPid;
+                    $pg  = $realPg;
+                }
             }
         }
         // Verify the permission actually exists (helps agents catch typos)
@@ -319,6 +357,75 @@ trait AdminNodesAdvancedTrait
         return $out === $out ? $this->success($out) : $out;  // preserve API shape
     }
 
+    public function execute_setNodePrivate($params)
+    {
+        if ($err = $this->requireAdmin()) return $err;
+        if ($err = $this->assertPermission('userGroup')) return $err;
+
+        $nodeId = (int) $params['node_id'];
+        $node = \XF::em()->find('XF:Node', $nodeId);
+        if (!$node) return $this->error('not_found', 'Node not found');
+
+        $makePrivate = !empty($params['is_private']);
+
+        // Write the SYSTEM marker row directly (user_group_id=0, user_id=0,
+        // permission_id=viewNode, value=reset). XF ACP does the same write via
+        // UpdatePermissionsService, but that service asserts an ACP session
+        // which isn't set up in the API context — direct write matches state.
+        $db = \XF::db();
+        if ($makePrivate) {
+            $db->query(
+                'INSERT INTO xf_permission_entry_content
+                    (user_group_id, user_id, content_type, content_id,
+                     permission_group_id, permission_id, permission_value, permission_value_int)
+                 VALUES (0, 0, ?, ?, ?, ?, ?, 0)
+                 ON DUPLICATE KEY UPDATE permission_value = VALUES(permission_value)',
+                ['node', $nodeId, 'general', 'viewNode', 'reset']
+            );
+        } else {
+            $db->delete(
+                'xf_permission_entry_content',
+                'user_group_id = 0 AND user_id = 0 AND content_type = ? AND content_id = ?
+                 AND permission_group_id = ? AND permission_id = ?',
+                ['node', $nodeId, 'general', 'viewNode']
+            );
+        }
+
+        // Rebuild is FIRE-AND-FORGET via job manager — never inline.
+        // Inline rebuild triggers XF Permission service checks that require
+        // an ACP session (unavailable in API), causing "do_not_have_permission"
+        // false-error responses AFTER the DB write already succeeded.
+        try {
+            \XF::app()->jobManager()->enqueueUnique(
+                'aiconnect_perm_rebuild_priv',
+                'XF:PermissionRebuild',
+                [],
+                false
+            );
+        } catch (\Throwable $e) {
+            // job enqueue failed — the write is still safe, cache refreshes on next cron
+            \XF::logException($e, false, 'setNodePrivate: rebuild enqueue failed: ');
+        }
+
+        // Verify by reading back the marker row
+        $marker = \XF::db()->fetchOne(
+            'SELECT permission_value FROM xf_permission_entry_content
+             WHERE content_type = ? AND content_id = ?
+               AND user_group_id = 0 AND user_id = 0
+               AND permission_group_id = ? AND permission_id = ?',
+            ['node', $nodeId, 'general', 'viewNode']
+        );
+
+        return $this->success([
+            'node_id'    => $nodeId,
+            'is_private' => $marker === 'reset',
+            'marker'     => $marker,
+            'note'       => $makePrivate
+                ? 'Node is now private. Grant explicit content_allow per group/user via setNodePermission to allow view.'
+                : 'Private flag cleared. Base group permissions apply again.',
+        ]);
+    }
+
     public function execute_getNodePermissions($params)
     {
         if ($err = $this->requireAdmin()) return $err;
@@ -327,6 +434,15 @@ trait AdminNodesAdvancedTrait
         $nodeId = (int) $params['node_id'];
         $node = \XF::em()->find('XF:Node', $nodeId);
         if (!$node) return $this->error('not_found', 'Node not found');
+
+        // Is the node marked "Private" via XF s system flag?
+        $isPrivate = \XF::db()->fetchOne(
+            'SELECT permission_value FROM xf_permission_entry_content
+             WHERE content_type = ? AND content_id = ?
+               AND user_group_id = 0 AND user_id = 0
+               AND permission_group_id = ? AND permission_id = ?',
+            ['node', $nodeId, 'general', 'viewNode']
+        ) === 'reset';
 
         $pgFilter  = (string) ($params['permission_group_id'] ?? '');
         $pidFilter = (string) ($params['permission_id'] ?? '');
@@ -443,6 +559,7 @@ trait AdminNodesAdvancedTrait
         return $this->success([
             'node_id'    => $nodeId,
             'title'      => $node->title,
+            'is_private' => $isPrivate,
             'parent_chain' => array_slice($chain, 1), // exclude self
             'entries_on_node' => $own,
             'entries_inherited' => $inherited,
