@@ -167,6 +167,7 @@ trait AdminNodesAdvancedTrait
                             . 'unset removes the entry (inheritance). "allow" is auto-mapped to content_allow for convenience.',
                     ],
                     'permission_value_int' => ['type' => 'integer', 'description' => 'Numeric override for count-type permissions (default 0)'],
+                    'confirm_self_lockout' => ['type' => 'boolean', 'description' => 'Explicit override to allow a change that would lock the caller (or their groups) out of this node. Default false — the change is refused with lockout_risk error if this flag is not set. Use simulatePermissionChange first to preview.'],
                 ],
                 'additionalProperties' => false,
             ],
@@ -286,6 +287,20 @@ trait AdminNodesAdvancedTrait
                 . "For node view use general.view. For posting use forum.postThread/postReply. "
                 . "Query xf_permission to see valid IDs."
             );
+        }
+
+        // Self-lockout guard — refuse the change if it would lock out the caller,
+        // unless they explicitly acknowledged via confirm_self_lockout=true.
+        if (empty($params['confirm_self_lockout'])) {
+            if ($this->wouldLockOutCaller($nodeId, $groupId, $userId, $pg, $pid, $val)) {
+                return $this->error(
+                    'lockout_risk',
+                    'This change would lock YOU (or one of your groups) out of node '
+                    . $nodeId . '. Refused as safety measure. '
+                    . 'Use simulatePermissionChange to preview, or pass confirm_self_lockout=true '
+                    . 'if you really intend this.'
+                );
+            }
         }
         $valInt = isset($params['permission_value_int']) ? (int) $params['permission_value_int'] : 0;
 

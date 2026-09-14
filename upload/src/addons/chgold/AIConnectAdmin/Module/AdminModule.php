@@ -33,6 +33,11 @@ class AdminModule extends ModuleBase
     use AdminOptionsTrait;
     use AdminCronTrait;
     use AdminStylesTrait;
+    use AdminAppearanceTrait;
+    use AdminWidgetsTrait;
+    use AdminSiteConfigTrait;
+    use AdminPhrasesTrait;
+    use AdminPermissionsSafetyTrait;
 
     protected $moduleName = 'xenforo_admin';
 
@@ -50,6 +55,11 @@ class AdminModule extends ModuleBase
         'options'          => ['label' => 'Site options (get/set)',       'method' => 'registerOptionsTools'],
         'cron'             => ['label' => 'Cron tasks (list/trigger)',    'method' => 'registerCronTools'],
         'styles'           => ['label' => 'Styles (list/set default)',    'method' => 'registerStylesTools'],
+        'appearance'       => ['label' => 'Appearance (CSS + logo + assets)', 'method' => 'registerAppearanceTools'],
+        'widgets'          => ['label' => 'Widgets (list/create/edit/delete)', 'method' => 'registerWidgetsTools'],
+        'site_config'      => ['label' => 'Site config (options/email/addon opts)', 'method' => 'registerSiteConfigTools'],
+        'phrases'          => ['label' => 'Phrases (search/edit)',        'method' => 'registerPhrasesTools'],
+        'permissions_safety' => ['label' => 'Permission safety (simulate/lockout guard)', 'method' => 'registerPermissionsSafetyTools'],
     ];
 
     protected function registerTools()
@@ -189,6 +199,23 @@ class AdminModule extends ModuleBase
 
         // Bundle: styles (2 tools) — list styles + set default
         $this->registerStylesTools();
+
+        // === v1.4.0 additions (Groups A + B from #811) ===
+
+        // Bundle: appearance (7 tools) — style properties + logo + assets
+        $this->registerAppearanceTools();
+
+        // Bundle: widgets (6 tools) — CRUD widgets + positions
+        $this->registerWidgetsTools();
+
+        // Bundle: site_config (8 tools) — options discovery + email + addon options
+        $this->registerSiteConfigTools();
+
+        // Bundle: phrases (3 tools) — search/get/edit
+        $this->registerPhrasesTools();
+
+        // Bundle: permissions_safety (1 tool) — dry-run permission simulator
+        $this->registerPermissionsSafetyTools();
     }
 
     /**
