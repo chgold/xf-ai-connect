@@ -168,7 +168,12 @@ trait AdminWidgetsTrait
             (int) ($params['display_order'] ?? 10),
             (bool) ($params['active'] ?? true)
         );
-        $w->options       = (array)  ($params['options'] ?? []);
+        // Save first (need widget_id + widget_key resolved before creating linked template row for Html widgets)
+        $w->options = $this->normalizeOptionsForDefinition(
+            (string) $params['widget_definition_id'],
+            (array) ($params['options'] ?? []),
+            $key
+        );
 
         if (!$w->save()) {
             return $this->error('validation_failed', implode(' ', $w->getErrors()));
@@ -217,7 +222,13 @@ trait AdminWidgetsTrait
                 $w->positions = $pos;
             }
         }
-        if (isset($params['options'])) $w->options = (array) $params['options'];
+        if (isset($params['options'])) {
+            $w->options = $this->normalizeOptionsForDefinition(
+                (string) $w->definition_id,
+                (array) $params['options'],
+                (string) $w->widget_key
+            );
+        }
 
         if (!$w->save()) {
             return $this->error('validation_failed', implode(' ', $w->getErrors()));
@@ -284,6 +295,50 @@ trait AdminWidgetsTrait
             // when $active=false, simply omit the position — widget invisible there
         }
         return $out;
+    }
+
+    /**
+     * XF's Widget\Html doesn't store HTML in options — it creates a linked
+     * template row (`_widget_{widget_key}`) via verifyOptions() and stores
+     * only `template_title` + `advanced_mode` in options. Its render() then
+     * renderTemplate('public:' . template_title) which triggers
+     * "Template public: is unknown" warnings if template_title is empty or
+     * the linked template row doesn't exist.
+     *
+     * We replicate verifyOptions here for the html definition (input arrives
+     * as {html: "<p>..."} from the tool but must be persisted as an
+     * xf_template row + template_title pointer). Other definitions store
+     * options as-is.
+     */
+    private function normalizeOptionsForDefinition(string $definitionId, array $options, string $widgetKey): array
+    {
+        if ($definitionId !== 'html') {
+            return $options;
+        }
+
+        $templateTitle = '_widget_' . $widgetKey;
+        $htmlContent   = (string) ($options['html'] ?? $options['template'] ?? '');
+
+        $existing = \XF::em()->findOne(\XF\Entity\Template::class, [
+            'style_id' => 0, 'type' => 'public', 'title' => $templateTitle,
+        ]);
+        if ($existing) {
+            $existing->template = $htmlContent;
+            $existing->save();
+        } else {
+            $t = \XF::em()->create(\XF\Entity\Template::class);
+            $t->type     = 'public';
+            $t->title    = $templateTitle;
+            $t->style_id = 0;
+            $t->addon_id = '';
+            $t->template = $htmlContent;
+            $t->save();
+        }
+
+        return [
+            'template_title' => $templateTitle,
+            'advanced_mode'  => (bool) ($options['advanced_mode'] ?? false),
+        ];
     }
 
     /**
