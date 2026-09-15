@@ -16,14 +16,33 @@ trait AdminAppearanceTrait
     {
         // Style properties — CSS vars, safer than templates
         $this->registerTool('listStyleProperties', [
-            'description' => 'List CSS-level style properties for a style '
-                . '(colors, font sizes, spacing). Editable via setStyleProperty '
-                . 'without touching raw template code — the safe way to restyle.',
+            'description' => 'List CSS-level style properties for a style. Returns EVERY property '
+                . 'defined on Master (style 0), and for each: local_value (this style s override, or null), '
+                . 'master_value, effective_value (what LESS compiler uses = local ?? master), and '
+                . 'is_overridden. Agent can immediately see inheritance state without joining. Values '
+                . 'are DECODED (native JSON structures, not raw JSON strings).',
             'input_schema' => [
                 'type' => 'object',
                 'properties' => [
                     'style_id' => ['type' => 'integer', 'description' => 'Style to inspect (default: master 0)'],
-                    'group_name' => ['type' => 'string', 'description' => 'Filter to a property group (color, general, etc)'],
+                    'group_name' => ['type' => 'string', 'description' => 'Filter to a property group (color, general, fonts)'],
+                    'only_overridden' => ['type' => 'boolean', 'description' => 'If true, return only properties overridden on this style (default false — return all)'],
+                ],
+                'additionalProperties' => false,
+            ],
+        ]);
+
+        $this->registerTool('getStyleProperty', [
+            'description' => 'Read a single style property with full inheritance context. Returns '
+                . 'local_value (this style s row or null if inheriting), master_value, effective_value, '
+                . 'is_overridden, plus property metadata (property_type, value_type). Prefer this over '
+                . 'listStyleProperties for a targeted lookup. Values are DECODED.',
+            'input_schema' => [
+                'type' => 'object',
+                'required' => ['property_name'],
+                'properties' => [
+                    'property_name' => ['type' => 'string'],
+                    'style_id' => ['type' => 'integer', 'description' => 'Style ID (default 0 = master)'],
                 ],
                 'additionalProperties' => false,
             ],
@@ -31,15 +50,32 @@ trait AdminAppearanceTrait
 
         $this->registerTool('setStyleProperty', [
             'description' => 'Set a single CSS property value on a style. '
-                . 'Changes take effect after the style asset build (auto). '
-                . 'Prefer this over editing raw templates when adjusting colors/fonts/spacing.',
+                . 'For value_type=color properties value MUST be an object {default: ..., alternate: ...} '
+                . '(tool will REJECT plain strings with 400 + hint). For fontFamily/string properties, '
+                . 'pass a plain string. Changes flush CSS caches synchronously.',
             'input_schema' => [
                 'type' => 'object',
                 'required' => ['property_name', 'value'],
                 'properties' => [
-                    'property_name' => ['type' => 'string', 'description' => 'e.g. publicColorPrimary, fontSizeNormal'],
-                    'value' => ['description' => 'New value — string or JSON for structured props (colors, dims)'],
+                    'property_name' => ['type' => 'string', 'description' => 'e.g. publicColorPrimary, fontFamilyBody'],
+                    'value' => ['description' => 'New value — plain string for fonts/dims, object {default,alternate} for colors'],
                     'style_id' => ['type' => 'integer', 'description' => 'Style ID (default 0 = master)'],
+                ],
+                'additionalProperties' => false,
+            ],
+        ]);
+
+        $this->registerTool('unsetStyleProperty', [
+            'description' => 'DELETE a style property override on a child style, restoring inheritance '
+                . 'from Master. Refused on style_id=0 (Master itself — cannot unset). Refused if the '
+                . 'style has no local override for this property (nothing to unset). After unset, '
+                . 'effective_value reverts to Master s value.',
+            'input_schema' => [
+                'type' => 'object',
+                'required' => ['property_name', 'style_id'],
+                'properties' => [
+                    'property_name' => ['type' => 'string'],
+                    'style_id' => ['type' => 'integer', 'description' => 'Child style ID (>0). Master (0) is refused.'],
                 ],
                 'additionalProperties' => false,
             ],
@@ -117,36 +153,94 @@ trait AdminAppearanceTrait
         if ($err = $this->requireAdmin()) return $err;
         if ($err = $this->assertPermission('style')) return $err;
 
-        $styleId = (int) ($params['style_id'] ?? 0);
-        $group   = trim((string) ($params['group_name'] ?? ''));
+        $styleId  = (int) ($params['style_id'] ?? 0);
+        $group    = trim((string) ($params['group_name'] ?? ''));
+        $onlyOver = (bool) ($params['only_overridden'] ?? false);
 
-        $q = 'SELECT property_id, property_name, property_type, group_name, title,
-                     property_value, addon_id
-              FROM xf_style_property
-              WHERE style_id = ?';
+        // Master (style 0) defines every property that exists. Child styles hold ONLY
+        // their local overrides. To show effective/inheritance state we LEFT JOIN
+        // Master against the target style — this catches inherited props that would
+        // otherwise be invisible to an agent inspecting a child style.
+        $sql = 'SELECT m.property_id, m.property_name, m.property_type, m.group_name,
+                       m.title, m.value_type, m.addon_id,
+                       m.property_value AS master_raw,
+                       s.property_value AS local_raw
+                FROM xf_style_property m
+                LEFT JOIN xf_style_property s
+                       ON s.property_name = m.property_name AND s.style_id = ?
+                WHERE m.style_id = 0';
         $args = [$styleId];
         if ($group !== '') {
-            $q .= ' AND group_name = ?';
+            $sql .= ' AND m.group_name = ?';
             $args[] = $group;
         }
-        $q .= ' ORDER BY group_name, property_name LIMIT 500';
+        if ($onlyOver) {
+            $sql .= ' AND s.property_id IS NOT NULL';
+        }
+        $sql .= ' ORDER BY m.group_name, m.property_name LIMIT 500';
 
-        $rows = \XF::db()->fetchAll($q, $args);
+        $rows = \XF::db()->fetchAll($sql, $args);
         $out = [];
         foreach ($rows as $r) {
+            $masterValue = self::decodePropertyValue($r['master_raw']);
+            $localValue  = $r['local_raw'] === null ? null : self::decodePropertyValue($r['local_raw']);
+            $isOverridden = ($r['local_raw'] !== null);
             $out[] = [
-                'property_name' => $r['property_name'],
-                'property_type' => $r['property_type'],
-                'group_name'    => $r['group_name'],
-                'title'         => $r['title'],
-                'value'         => $r['property_value'],
-                'addon_id'      => $r['addon_id'],
+                'property_name'   => $r['property_name'],
+                'property_type'   => $r['property_type'],
+                'value_type'      => $r['value_type'],
+                'group_name'      => $r['group_name'],
+                'title'           => $r['title'],
+                'local_value'     => $localValue,
+                'master_value'    => $masterValue,
+                'effective_value' => $isOverridden ? $localValue : $masterValue,
+                'is_overridden'   => $isOverridden,
+                'addon_id'        => $r['addon_id'],
             ];
         }
         return $this->success([
-            'style_id' => $styleId,
-            'count'    => count($out),
+            'style_id'   => $styleId,
+            'count'      => count($out),
             'properties' => $out,
+        ]);
+    }
+
+    public function execute_getStyleProperty($params)
+    {
+        if ($err = $this->requireAdmin()) return $err;
+        if ($err = $this->assertPermission('style')) return $err;
+
+        $styleId = (int) ($params['style_id'] ?? 0);
+        $name    = (string) $params['property_name'];
+
+        /** @var \XF\Entity\StyleProperty|null $master */
+        $master = \XF::em()->findOne('XF:StyleProperty', ['style_id' => 0, 'property_name' => $name]);
+        if (!$master) {
+            return $this->error(
+                'not_found',
+                "Style property '$name' not defined on Master (style 0). Property name unknown to XF."
+            );
+        }
+        /** @var \XF\Entity\StyleProperty|null $local */
+        $local = ($styleId === 0)
+            ? $master
+            : \XF::em()->findOne('XF:StyleProperty', ['style_id' => $styleId, 'property_name' => $name]);
+
+        $isOverridden = ($styleId !== 0 && $local !== null);
+        $localValue   = $local ? $local->property_value : null;
+        $masterValue  = $master->property_value;
+
+        return $this->success([
+            'property_name'   => $name,
+            'style_id'        => $styleId,
+            'property_type'   => (string) $master->property_type,
+            'value_type'      => (string) $master->value_type,
+            'group_name'      => (string) $master->group_name,
+            'title'           => (string) $master->title,
+            'local_value'     => $localValue,
+            'master_value'    => $masterValue,
+            'effective_value' => $isOverridden ? $localValue : $masterValue,
+            'is_overridden'   => $isOverridden,
         ]);
     }
 
@@ -222,6 +316,34 @@ trait AdminAppearanceTrait
                 $value = $decoded;
             }
         }
+
+        // TYPE-GUARD (v1.4.9): before v1.4.9, passing a plain string to a property
+        // whose Master shape is an object (e.g. value_type=color expects
+        // {default, alternate}) caused XF entity to silently coerce to
+        // {"default": ""} — a data-loss regression the agent could not detect
+        // without hex-comparing to Master. Now: if Master shape ≠ input shape,
+        // fail loud with a hint showing the required structure.
+        $masterRef = ($styleId === 0)
+            ? $prop
+            : \XF::em()->findOne('XF:StyleProperty', ['style_id' => 0, 'property_name' => $name]);
+        if ($masterRef && $masterRef !== $prop) {
+            $masterShape = $masterRef->property_value;
+            if (is_array($masterShape) && !is_array($value)) {
+                $exampleKeys = array_keys($masterShape);
+                $exampleVal  = [];
+                foreach ($exampleKeys as $k) {
+                    $exampleVal[$k] = is_string($masterShape[$k]) ? $masterShape[$k] : '';
+                }
+                return $this->error(
+                    'validation_failed',
+                    "Property '$name' (value_type={$masterRef->value_type}) requires an OBJECT "
+                    . 'with keys [' . implode(', ', $exampleKeys) . '], got a plain '
+                    . gettype($value) . '. Expected shape: ' . json_encode($exampleVal)
+                    . '. Master s current value: ' . json_encode($masterShape)
+                );
+            }
+        }
+
         $prop->property_value = $value;
         if (!$prop->save()) {
             return $this->error('validation_failed', implode(' ', $prop->getErrors()));
@@ -246,15 +368,99 @@ trait AdminAppearanceTrait
         }
 
         return $this->success([
-            'property_name' => $name,
-            'style_id'      => $styleId,
-            'value'         => $prop->property_value,
-            'created'       => $created,
-            'rebuilt'       => $rebuilt,
-            'note'          => $created
+            'property_name'   => $name,
+            'style_id'        => $styleId,
+            'value'           => $prop->property_value,     // decoded (XF entity returns PHP value)
+            'stored_shape'    => is_array($prop->property_value) ? 'object' : gettype($prop->property_value),
+            'created'         => $created,
+            'rebuilt'         => $rebuilt,
+            'note'            => $created
                 ? "Override row CREATED on style $styleId (inherited metadata from Master). CSS caches wiped."
                 : 'Style property saved + CSS caches wiped. Browser hard-refresh (Ctrl+F5) may be needed.',
         ]);
+    }
+
+    public function execute_unsetStyleProperty($params)
+    {
+        if ($err = $this->requireAdmin()) return $err;
+        if ($err = $this->assertPermission('style')) return $err;
+
+        $styleId = (int) $params['style_id'];
+        $name    = (string) $params['property_name'];
+
+        if ($styleId === 0) {
+            return $this->error(
+                'validation_failed',
+                'Cannot unset a property on Master style (style_id=0) — Master IS the base. '
+                . 'To reset Master itself, use setStyleProperty with the addon s original default value.'
+            );
+        }
+
+        /** @var \XF\Entity\StyleProperty|null $prop */
+        $prop = \XF::em()->findOne('XF:StyleProperty', [
+            'style_id' => $styleId,
+            'property_name' => $name,
+        ]);
+        if (!$prop) {
+            return $this->error(
+                'not_found',
+                "No override for '$name' on style $styleId — already inheriting from Master. Nothing to unset."
+            );
+        }
+
+        // Get Master value so caller can see what effective_value reverts to.
+        $master = \XF::em()->findOne('XF:StyleProperty', ['style_id' => 0, 'property_name' => $name]);
+        $masterValue = $master ? $master->property_value : null;
+
+        $prop->delete();
+
+        // Same synchronous cache flush cycle as setStyleProperty — style will
+        // otherwise keep serving the stale compiled CSS with the removed value.
+        $rebuilt = ['css_cache_wiped' => false, 'style_data_rebuilt' => false];
+        try {
+            /** @var \XF\Repository\StyleRepository $repo */
+            $repo = \XF::em()->getRepository('XF:Style');
+            $repo->updateAllStylesLastModifiedDate();
+            $rebuilt['css_cache_wiped'] = true;
+            $repo->triggerPartialStyleDataRebuild();
+            $rebuilt['style_data_rebuilt'] = true;
+        } catch (\Throwable $e) {
+            \XF::logException($e, false, 'unsetStyleProperty rebuild: ');
+        }
+
+        return $this->success([
+            'property_name'         => $name,
+            'style_id'              => $styleId,
+            'unset'                 => true,
+            'now_effective_value'   => $masterValue,   // decoded — what LESS will now compile with
+            'rebuilt'               => $rebuilt,
+            'note'                  => "Override deleted. Style $styleId now inherits '$name' from Master.",
+        ]);
+    }
+
+    /**
+     * xf_style_property.property_value is JSON-typed. \XF::db()->fetchAll returns
+     * the raw JSON string; XF entity finder auto-decodes. When we bypass the
+     * entity for perf (large listStyleProperties LEFT JOIN), we must decode
+     * manually — otherwise the agent gets a JSON string it needs to re-parse.
+     * Also swallows the pre-v1.4.5 wrapped state ("\"...\"" double-encoded)
+     * by unwrapping once — read-side is defensive; write-side (v1.4.5+) is
+     * already clean, so any doubly-wrapped row is legacy data.
+     */
+    private static function decodePropertyValue($raw)
+    {
+        if ($raw === null || $raw === '') return null;
+        $decoded = json_decode((string) $raw, true);
+        if ($decoded === null && json_last_error() !== JSON_ERROR_NONE) {
+            return $raw;  // not JSON — return as-is
+        }
+        // Legacy double-encoding compensation: if decoded is still a JSON string,
+        // try decoding one more layer (only happens on data written by v1.4.0-v1.4.4)
+        if (is_string($decoded) && $decoded !== '' && ($decoded[0] === '{' || $decoded[0] === '[')) {
+            $inner = json_decode($decoded, true);
+            if ($inner !== null) return $inner;
+        }
+        return $decoded;
     }
 
     public function execute_uploadSiteLogo($params)
