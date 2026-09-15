@@ -306,16 +306,17 @@ trait AdminAppearanceTrait
 
         // property_value column is XF type=JSON — XF entity json_encodes on save.
         // If we pre-encode here, the string gets double-encoded and LESS compiler
-        // sees "{\"default\":\"#XXX\"}" instead of the intended color value.
-        // Pass raw PHP value; if caller sent a JSON string, decode first so XF
-        // encodes the parsed structure (not the string).
-        $value = $params['value'];
-        if (is_string($value) && $value !== '' && $value[0] === '{') {
-            $decoded = json_decode($value, true);
-            if ($decoded !== null) {
-                $value = $decoded;
-            }
-        }
+        // sees "\"'Segoe UI', ...\"" instead of the intended CSS value.
+        //
+        // v1.4.10 hardening: earlier versions only detected object-encoded input
+        // (leading '{'). If caller sent an already-JSON-encoded STRING (leading
+        // '"' — which happens when an agent copies a value returned by a raw
+        // JSON reader, or double-serializes by accident), we FAILED to unwrap
+        // and XF encoded a SECOND time → the classic double-encoding pattern
+        // "\"...\"" observed on fontFamilyUi. Now we normalize ANY JSON-shaped
+        // string input (starts with '"', '{', or '['), then also detect and
+        // reject any residual JSON-string wrapping AFTER the decode pass.
+        $value = self::normalizeIncomingValue($params['value']);
 
         // TYPE-GUARD (v1.4.9): before v1.4.9, passing a plain string to a property
         // whose Master shape is an object (e.g. value_type=color expects
@@ -443,9 +444,12 @@ trait AdminAppearanceTrait
      * the raw JSON string; XF entity finder auto-decodes. When we bypass the
      * entity for perf (large listStyleProperties LEFT JOIN), we must decode
      * manually — otherwise the agent gets a JSON string it needs to re-parse.
-     * Also swallows the pre-v1.4.5 wrapped state ("\"...\"" double-encoded)
-     * by unwrapping once — read-side is defensive; write-side (v1.4.5+) is
-     * already clean, so any doubly-wrapped row is legacy data.
+     *
+     * v1.4.10: aggressive multi-layer unwrap. Legacy rows from v1.4.0-v1.4.4
+     * can be TRIPLE-encoded ("\"\\\"...\\\"\"") — every read now peels layers
+     * until the value is no longer a JSON-shaped string starting with '"',
+     * '{', or '['. Write-side (setStyleProperty) is already clean since v1.4.5
+     * and v1.4.10 hardens against re-introducing wrap layers.
      */
     private static function decodePropertyValue($raw)
     {
@@ -454,13 +458,45 @@ trait AdminAppearanceTrait
         if ($decoded === null && json_last_error() !== JSON_ERROR_NONE) {
             return $raw;  // not JSON — return as-is
         }
-        // Legacy double-encoding compensation: if decoded is still a JSON string,
-        // try decoding one more layer (only happens on data written by v1.4.0-v1.4.4)
-        if (is_string($decoded) && $decoded !== '' && ($decoded[0] === '{' || $decoded[0] === '[')) {
-            $inner = json_decode($decoded, true);
-            if ($inner !== null) return $inner;
+        return self::unwrapNestedJsonStrings($decoded);
+    }
+
+    /**
+     * v1.4.10 — used by BOTH setStyleProperty (write-side type-guard input
+     * normalization) AND decodePropertyValue (read-side self-heal). Any string
+     * that itself looks like JSON (starts with '"', '{', '[') is decoded, up
+     * to 3 layers deep to break the "\"\\\"...\\\"\"" pattern that legacy
+     * rows carry from v1.4.0-v1.4.4. Bool/int/float DECODED results are NOT
+     * substituted (avoids type coercion of raw CSS strings like "42px" or
+     * "true"); only string/array/null substitutions are accepted.
+     */
+    private static function unwrapNestedJsonStrings($value, int $maxDepth = 3)
+    {
+        for ($i = 0; $i < $maxDepth; $i++) {
+            if (!is_string($value) || $value === '') break;
+            $first = $value[0];
+            if ($first !== '"' && $first !== '{' && $first !== '[') break;
+            $next = json_decode($value, true);
+            if ($next === null && strtolower(trim($value)) !== 'null') break;
+            // Refuse type coercion: bool/int/float are almost never desired.
+            if (!is_string($next) && !is_array($next) && $next !== null) break;
+            $value = $next;
         }
-        return $decoded;
+        return $value;
+    }
+
+    /**
+     * v1.4.10 — write-side normalizer used by setStyleProperty. Runs the same
+     * unwrap logic as read-side (unwrapNestedJsonStrings) so callers who send
+     * already-JSON-encoded input by mistake (agent copy-paste, double-serialize
+     * bug in a wrapper) do NOT trigger a double-encoding on save.
+     */
+    private static function normalizeIncomingValue($value)
+    {
+        if (is_string($value)) {
+            $value = self::unwrapNestedJsonStrings($value);
+        }
+        return $value;
     }
 
     public function execute_uploadSiteLogo($params)
