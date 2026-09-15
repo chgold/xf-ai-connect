@@ -619,28 +619,63 @@ trait AdminAppearanceTrait
             return $this->error('too_large', 'Logo file exceeds 5 MB limit');
         }
 
+        // Resolve the target style property BEFORE writing the file: if the style
+        // has no publicLogoUrl property to point at, fail cleanly instead of leaving
+        // an orphaned asset on disk while falsely reporting success (the header would
+        // stay empty — the exact silent failure this tool exists to prevent).
+        $prop = \XF::em()->findOne('XF:StyleProperty', [
+            'style_id' => $styleId, 'property_name' => 'publicLogoUrl',
+        ]);
+        if (!$prop) {
+            return $this->error(
+                'property_missing',
+                "publicLogoUrl style property not found for style_id={$styleId}. "
+                . 'Upload to the master style (style_id=0) or a style that defines publicLogoUrl.'
+            );
+        }
+
         $dir = \XF::app()->config('externalDataPath') . '/assets/' . ($styleId ?: 'default');
-        if (!is_dir($dir)) @mkdir($dir, 0755, true);
+        if (!is_dir($dir) && !@mkdir($dir, 0755, true) && !is_dir($dir)) {
+            return $this->error('write_failed', 'Could not create asset directory');
+        }
         $fname = 'logo.' . $ext;
         $target = $dir . '/' . $fname;
         if (!copy($upload->getTempFile(), $target)) {
             return $this->error('write_failed', 'Could not save logo');
         }
 
-        // Point publicLogoUrl style property to the uploaded file
-        $prop = \XF::em()->findOne('XF:StyleProperty', [
-            'style_id' => $styleId, 'property_name' => 'publicLogoUrl',
-        ]);
-        if ($prop) {
-            $prop->property_value = 'styles/' . ($styleId ?: 'default') . '/xenforo/' . $fname;
-            $prop->save();
+        // Public URL for the file just written to <externalDataPath>/assets/<id>/.
+        // externalDataUrl is normally the string "data" (-> board-relative
+        // "data/assets/<id>/logo.<ext>", which the header template resolves via
+        // base_url()), but XF allows it to be a Closure (e.g. a CDN); delegate to it
+        // so a custom data URL is honoured instead of being silently wrong.
+        $externalDataUrl = \XF::app()->config('externalDataUrl');
+        if ($externalDataUrl instanceof \Closure) {
+            $logoUrl = $externalDataUrl('assets/' . ($styleId ?: 'default') . '/' . $fname, 'root-base');
+        } else {
+            $base = (string) $externalDataUrl;
+            if ($base === '') {
+                $base = 'data';
+            }
+            $logoUrl = rtrim($base, '/') . '/assets/' . ($styleId ?: 'default') . '/' . $fname;
         }
+
+        // XF 2.3: publicLogoUrl is variation-aware. When style variations are
+        // enabled the value MUST be a per-variation map ([default => path]);
+        // a plain string leaves the header logo as <img src=""> (empty). Saving
+        // recompiles the property style cache (StyleProperty::_postSave), so no
+        // manual cache rebuild is required.
+        $prop->property_value = $prop->has_variations
+            ? [\XF\Style::VARIATION_DEFAULT => $logoUrl]
+            : $logoUrl;
+        $prop->save();
 
         return $this->success([
             'style_id' => $styleId,
             'filename' => $fname,
             'size'     => filesize($target),
-            'note'     => 'Logo uploaded. If the site still shows the old one, rebuild style caches.',
+            'logo_url' => $logoUrl,
+            'note'     => 'Logo set and style property cache rebuilt.',
         ]);
     }
 
@@ -649,10 +684,18 @@ trait AdminAppearanceTrait
         $prop = \XF::em()->findOne('XF:StyleProperty', [
             'style_id' => $styleId, 'property_name' => 'publicLogoUrl',
         ]);
-        if ($prop) {
-            $prop->property_value = '';
-            $prop->save();
+        if (!$prop) {
+            return $this->error(
+                'property_missing',
+                "publicLogoUrl style property not found for style_id={$styleId}; nothing to clear."
+            );
         }
+        // Keep the variation-aware shape consistent with applyLogoUpload so the
+        // header falls back to the text logo cleanly. save() recompiles the cache.
+        $prop->property_value = $prop->has_variations
+            ? [\XF\Style::VARIATION_DEFAULT => '']
+            : '';
+        $prop->save();
         return $this->success(['style_id' => $styleId, 'cleared' => true]);
     }
 
