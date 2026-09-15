@@ -202,14 +202,20 @@ trait AdminWidgetsTrait
                 (bool) ($params['active'] ?? true)
             );
         } elseif (isset($params['display_order']) || isset($params['active'])) {
-            // update display_order/active inside existing positions map without changing which positions
+            // Positions is flat map {pos_id: displayOrder}. Update the int value directly.
             $pos = $w->positions ?: [];
-            foreach ($pos as $pid => &$cfg) {
-                if (isset($params['display_order'])) $cfg['display_order'] = (int) $params['display_order'];
-                if (isset($params['active']))        $cfg['active']        = (bool) $params['active'];
+            $newOrder = isset($params['display_order']) ? (int) $params['display_order'] : null;
+            if (isset($params['active']) && !$params['active']) {
+                // Turning off = clear positions
+                $w->positions = [];
+            } else {
+                if ($newOrder !== null) {
+                    foreach ($pos as $pid => $_) {
+                        $pos[$pid] = $newOrder;
+                    }
+                }
+                $w->positions = $pos;
             }
-            unset($cfg);
-            $w->positions = $pos;
         }
         if (isset($params['options'])) $w->options = (array) $params['options'];
 
@@ -259,15 +265,23 @@ trait AdminWidgetsTrait
         return $this->success(['count' => count($out), 'positions' => $out]);
     }
 
+    /**
+     * XF stores widget positions as a FLAT map: {position_id: displayOrderInt}.
+     * See XF\Repository\WidgetRepository::getWidgetCache() line 113 which does
+     * `foreach ($widget['positions'] as $positionId => $displayOrder)` and then
+     * subtracts $displayOrder values (line 147). Nested structs cause TypeError.
+     *
+     * `active` is NOT per-position — it's a top-level entity column (which we
+     * remove/re-add as needed to include/exclude a widget from a position).
+     */
     private function positionsFromArray(array $ids, int $displayOrder = 10, bool $active = true): array
     {
         $out = [];
         foreach ($ids as $id) {
-            $out[(string) $id] = [
-                'position_id'   => (string) $id,
-                'display_order' => $displayOrder,
-                'active'        => $active,
-            ];
+            if ($active) {
+                $out[(string) $id] = $displayOrder;  // XF format: flat map
+            }
+            // when $active=false, simply omit the position — widget invisible there
         }
         return $out;
     }
