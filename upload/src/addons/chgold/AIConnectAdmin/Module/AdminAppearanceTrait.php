@@ -176,19 +176,30 @@ trait AdminAppearanceTrait
             return $this->error('validation_failed', implode(' ', $prop->getErrors()));
         }
 
-        // Trigger style rebuild so change becomes visible
+        // FULL cache invalidation — API context has no cron so "Later" variants
+        // never fire. XF ACP saves via PropertyService which does all of this
+        // synchronously; we replicate the same flush cycle here.
+        $rebuilt = ['css_cache_wiped' => false, 'style_data_rebuilt' => false];
         try {
             /** @var \XF\Repository\StyleRepository $repo */
             $repo = \XF::em()->getRepository('XF:Style');
-            $repo->updateAllStylesLastModifiedDateLater();
+            // 1. Bump last_modified_date on every style + wipe xf_css_cache
+            //    (invalidates browser + server CSS caches immediately)
+            $repo->updateAllStylesLastModifiedDate();
+            $rebuilt['css_cache_wiped'] = true;
+            // 2. Rebuild asset + property caches (recomputes CSS from properties)
+            $repo->triggerPartialStyleDataRebuild();
+            $rebuilt['style_data_rebuilt'] = true;
         } catch (\Throwable $e) {
-            // non-fatal
+            \XF::logException($e, false, 'setStyleProperty rebuild: ');
         }
 
         return $this->success([
             'property_name' => $name,
             'style_id'      => $styleId,
             'value'         => $prop->property_value,
+            'rebuilt'       => $rebuilt,
+            'note'          => 'Style property saved + CSS caches wiped. Browser hard-refresh (Ctrl+F5) may be needed.',
         ]);
     }
 
