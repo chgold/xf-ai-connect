@@ -167,11 +167,19 @@ trait AdminAppearanceTrait
             return $this->error('not_found', "Style property '$name' not found on style $styleId");
         }
 
+        // property_value column is XF type=JSON — XF entity json_encodes on save.
+        // If we pre-encode here, the string gets double-encoded and LESS compiler
+        // sees "{\"default\":\"#XXX\"}" instead of the intended color value.
+        // Pass raw PHP value; if caller sent a JSON string, decode first so XF
+        // encodes the parsed structure (not the string).
         $value = $params['value'];
-        if (is_array($value)) {
-            $value = json_encode($value, JSON_UNESCAPED_UNICODE);
+        if (is_string($value) && $value !== '' && $value[0] === '{') {
+            $decoded = json_decode($value, true);
+            if ($decoded !== null) {
+                $value = $decoded;
+            }
         }
-        $prop->property_value = (string) $value;
+        $prop->property_value = $value;
         if (!$prop->save()) {
             return $this->error('validation_failed', implode(' ', $prop->getErrors()));
         }
