@@ -63,8 +63,11 @@ trait AdminSiteConfigTrait
         ]);
 
         $this->registerTool('setEmailTransportConfig', [
-            'description' => 'Set email transport (smtp/default). Password is stored via XF s '
-                . 'option encryption. Recommended: call testEmailConfig after.',
+            'description' => 'Set email transport (smtp/default). v1.4.11: writes XF native option keys '
+                . '(smtpHost/smtpPort/smtpSsl/smtpLoginUsername/smtpLoginPassword/smtpAuth) so XF Mailer '
+                . 'can consume without crashing (bug in v1.4.0-v1.4.10: missing smtpSsl key caused '
+                . '"Undefined array key smtpSsl" on any mail send, including createUser welcome mail). '
+                . 'Recommended: call testEmailConfig after.',
             'input_schema' => [
                 'type' => 'object',
                 'required' => ['transport'],
@@ -75,7 +78,8 @@ trait AdminSiteConfigTrait
                     // SMTP-specific
                     'smtp_host' => ['type' => 'string'],
                     'smtp_port' => ['type' => 'integer'],
-                    'smtp_encryption' => ['type' => 'string', 'enum' => ['', 'ssl', 'tls']],
+                    'smtp_encryption' => ['type' => 'string', 'enum' => ['', 'ssl', 'tls'], 'description' => 'ssl→smtpSsl=true, tls or empty→false'],
+                    'smtp_auth' => ['type' => 'string', 'enum' => ['', 'login', 'plain'], 'description' => 'SMTP auth method (default: login)'],
                     'smtp_username' => ['type' => 'string'],
                     'smtp_password' => ['type' => 'string', 'description' => 'Plain password (stored server-side, never returned)'],
                 ],
@@ -190,17 +194,20 @@ trait AdminSiteConfigTrait
         if ($err = $this->requireAdmin()) return $err;
         if ($err = $this->assertPermission('option')) return $err;
 
-        // XF 2.3: emailTransport is an ARRAY option containing the transport
-        // name AND all SMTP fields nested — e.g.
-        //   {"emailTransport": "smtp", "host": "smtp.example.com",
-        //    "port": 587, "username": "user", "password": "...",
-        //    "encryption": "tls"}
+        // XF 2.3 native emailTransport option structure (see XF\Admin\Controller\OptionController
+        // ::actionEmailTransport lines 640-655) is an ARRAY with these keys:
+        //   emailTransport (str), smtpHost (str), smtpPort (uint), smtpAuth (str),
+        //   smtpLoginUsername (str), smtpLoginPassword (str), smtpSsl (bool)
+        // XF\Mail\Mailer.php lines 369+377 CRASHES with 'Undefined array key smtpSsl'
+        // if the config lacks smtpSsl — v1.4.10 setEmailTransportConfig stored
+        // {host,port,encryption,username,password} instead of XF native keys, causing
+        // 'createUser + SMTP transport' to break (welcome mail send fails). v1.4.11
+        // stores XF native keys ONLY.
         $opts = \XF::options();
-        $emailTransport = $opts->emailTransport;
-        $config = is_array($emailTransport) ? $emailTransport : ['emailTransport' => 'sendmail'];
-        $transport = (string) ($config['emailTransport'] ?? 'sendmail');
+        $config = self::normalizeEmailTransportConfig($opts->emailTransport ?? null);
+        $transport = (string) ($config['emailTransport'] ?? 'default');
 
-        $pwd = $config['password'] ?? '';
+        $pwd = (string) ($config['smtpLoginPassword'] ?? '');
         $maskedPwd = $pwd === '' ? '' : '****' . substr($pwd, -4);
 
         return $this->success([
@@ -208,11 +215,13 @@ trait AdminSiteConfigTrait
             'from_email' => $opts->defaultEmailAddress ?? '',
             'from_name'  => $opts->emailSenderName ?? '',
             'smtp' => [
-                'host'       => $config['host'] ?? '',
-                'port'       => (int) ($config['port'] ?? 0),
-                'encryption' => $config['encryption'] ?? '',
-                'username'   => $config['username'] ?? '',
+                'host'       => (string) ($config['smtpHost'] ?? ''),
+                'port'       => (int)    ($config['smtpPort'] ?? 0),
+                'encryption' => ($config['smtpSsl'] ?? false) ? 'ssl' : ($config['smtpPort'] === 587 ? 'tls' : ''),
+                'auth'       => (string) ($config['smtpAuth'] ?? ''),
+                'username'   => (string) ($config['smtpLoginUsername'] ?? ''),
                 'password'   => $maskedPwd,
+                'smtpSsl'    => (bool)   ($config['smtpSsl'] ?? false),
             ],
         ]);
     }
@@ -222,19 +231,44 @@ trait AdminSiteConfigTrait
         if ($err = $this->requireAdmin()) return $err;
         if ($err = $this->assertPermission('option')) return $err;
 
-        // emailTransport is an ARRAY option containing transport + all SMTP
-        // fields nested together — merge into existing structure.
-        $current = \XF::options()->emailTransport;
-        if (!is_array($current)) $current = ['emailTransport' => 'sendmail'];
+        // v1.4.11: store with XF NATIVE keys (smtpHost, smtpPort, smtpAuth,
+        // smtpLoginUsername, smtpLoginPassword, smtpSsl). Previous versions
+        // stored bare {host, port, encryption, username, password} which
+        // XF\Mail\Mailer.php cannot consume — the missing smtpSsl key crashed
+        // any mail send (including welcome mail on createUser).
+        // Start from a CLEAN slate (do not merge legacy wrong keys forward).
+        $transport = (string) $params['transport'];
+        $encryption = strtolower((string) ($params['smtp_encryption'] ?? ''));  // '', 'ssl', 'tls'
 
-        $current['emailTransport'] = (string) $params['transport'];
-        if ($params['transport'] === 'smtp') {
-            if (isset($params['smtp_host']))       $current['host']       = (string) $params['smtp_host'];
-            if (isset($params['smtp_port']))       $current['port']       = (int)    $params['smtp_port'];
-            if (isset($params['smtp_encryption'])) $current['encryption'] = (string) $params['smtp_encryption'];
-            if (isset($params['smtp_username']))   $current['username']   = (string) $params['smtp_username'];
-            if (isset($params['smtp_password']) && $params['smtp_password'] !== '') {
-                $current['password'] = (string) $params['smtp_password'];
+        $current = [
+            'emailTransport' => $transport,
+        ];
+
+        if ($transport === 'smtp') {
+            // If caller is UPDATING existing SMTP config, preserve unchanged fields
+            $existing = self::normalizeEmailTransportConfig(\XF::options()->emailTransport ?? null);
+
+            $current['smtpHost'] = isset($params['smtp_host'])
+                ? (string) $params['smtp_host']
+                : (string) ($existing['smtpHost'] ?? '');
+            $current['smtpPort'] = isset($params['smtp_port'])
+                ? (int) $params['smtp_port']
+                : (int) ($existing['smtpPort'] ?? 587);
+            $current['smtpAuth'] = isset($params['smtp_auth'])
+                ? (string) $params['smtp_auth']
+                : (string) ($existing['smtpAuth'] ?? 'login');
+            $current['smtpLoginUsername'] = isset($params['smtp_username'])
+                ? (string) $params['smtp_username']
+                : (string) ($existing['smtpLoginUsername'] ?? '');
+            $current['smtpLoginPassword'] = (isset($params['smtp_password']) && $params['smtp_password'] !== '')
+                ? (string) $params['smtp_password']
+                : (string) ($existing['smtpLoginPassword'] ?? '');
+
+            // XF derives smtpSsl bool from encryption per OptionController line 721
+            if ($encryption !== '') {
+                $current['smtpSsl'] = ($encryption === 'ssl');
+            } else {
+                $current['smtpSsl'] = (bool) ($existing['smtpSsl'] ?? false);
             }
         }
 
@@ -257,9 +291,42 @@ trait AdminSiteConfigTrait
         }
 
         return $this->success([
-            'transport' => $params['transport'],
-            'note' => 'Config saved. Run testEmailConfig to verify connectivity.',
+            'transport'      => $transport,
+            'stored_keys'    => array_keys($current),   // agent can verify XF native key names present
+            'note'           => 'Config saved with XF native keys (smtpHost/smtpPort/smtpSsl/smtpLoginUsername/'
+                . 'smtpLoginPassword/smtpAuth). Run testEmailConfig to verify.',
         ]);
+    }
+
+    /**
+     * v1.4.11: normalizer that ACCEPTS legacy wrong-key format from v1.4.0-v1.4.10
+     * ({host, port, encryption, username, password}) and returns XF-native shape.
+     * Used by read-side and by write-side to seed 'existing' when merging.
+     * Read-side self-heal: even if DB still holds legacy keys, callers see XF
+     * native shape → 'Undefined array key smtpSsl' cannot recur once caller
+     * follows through with a setEmailTransportConfig write.
+     */
+    private static function normalizeEmailTransportConfig($raw): array
+    {
+        if (!is_array($raw)) return ['emailTransport' => 'default'];
+
+        // Already in XF native shape → return as-is (defensive on smtpSsl)
+        if (isset($raw['smtpHost']) || isset($raw['smtpSsl']) || isset($raw['smtpLoginUsername'])) {
+            $raw['emailTransport'] = $raw['emailTransport'] ?? 'default';
+            $raw['smtpSsl'] = (bool) ($raw['smtpSsl'] ?? false);
+            return $raw;
+        }
+
+        // Legacy shape (v1.4.0-v1.4.10 bug): {host, port, encryption, username, password}
+        $out = ['emailTransport' => (string) ($raw['emailTransport'] ?? 'default')];
+        if (isset($raw['host']))       $out['smtpHost']          = (string) $raw['host'];
+        if (isset($raw['port']))       $out['smtpPort']          = (int)    $raw['port'];
+        if (isset($raw['username']))   $out['smtpLoginUsername'] = (string) $raw['username'];
+        if (isset($raw['password']))   $out['smtpLoginPassword'] = (string) $raw['password'];
+        if (isset($raw['encryption'])) $out['smtpSsl']           = (strtolower((string) $raw['encryption']) === 'ssl');
+        $out['smtpAuth'] = 'login';
+        $out['smtpSsl'] = (bool) ($out['smtpSsl'] ?? false);
+        return $out;
     }
 
     public function execute_testEmailConfig($params)
