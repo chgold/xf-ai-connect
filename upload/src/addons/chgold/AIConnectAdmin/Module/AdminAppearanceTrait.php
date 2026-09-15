@@ -198,7 +198,15 @@ trait AdminAppearanceTrait
         if ($err = $this->assertPermission('style')) return $err;
 
         $styleId = (int) ($params['style_id'] ?? 0);
-        $upload  = $this->fetchUrlToUpload((string) $params['file_url'], 'logo');
+        // Derive extension from URL path (agent tests confirmed 'logo' with no
+        // extension → getExtension() returns '' → validation failed).
+        // uploadStyleAsset worked because caller provides target_filename with ext.
+        $url = (string) $params['file_url'];
+        $urlPath = parse_url($url, PHP_URL_PATH) ?: '';
+        $urlExt = strtolower(pathinfo($urlPath, PATHINFO_EXTENSION));
+        $suggestedName = $urlExt !== '' ? 'logo.' . $urlExt : 'logo';
+
+        $upload  = $this->fetchUrlToUpload($url, $suggestedName);
         if ($upload instanceof \XF\Http\Upload) {
             return $this->applyLogoUpload($upload, $styleId);
         }
@@ -287,10 +295,18 @@ trait AdminAppearanceTrait
 
     private function applyLogoUpload(\XF\Http\Upload $upload, int $styleId): array
     {
-        // Save the logo file to xf_style asset dir + write publicLogoUrl property
+        // Extension: prefer $upload->getExtension(), fall back to MIME sniff
+        // from the temp file if extension is empty (URL had no path suffix).
         $ext = strtolower($upload->getExtension());
+        if ($ext === '') {
+            $ext = $this->extFromMime($upload->getTempFile());
+        }
         if (!in_array($ext, ['png', 'jpg', 'jpeg', 'gif', 'svg', 'webp'], true)) {
-            return $this->error('validation_failed', "Logo type '$ext' not allowed");
+            return $this->error(
+                'validation_failed',
+                "Logo type '$ext' not allowed — supported: png/jpg/jpeg/gif/svg/webp. "
+                . "If the URL has no extension, ensure the server returns a recognizable Content-Type."
+            );
         }
         if ($upload->getFileSize() > 5 * 1024 * 1024) {
             return $this->error('too_large', 'Logo file exceeds 5 MB limit');
@@ -348,6 +364,54 @@ trait AdminAppearanceTrait
             return $this->error('too_large', 'File exceeds 5 MB');
         }
         file_put_contents($tmp, $data);
+
+        // If the suggested name has no extension, sniff MIME from the actual
+        // file content and append the matching extension. Otherwise
+        // Upload::getExtension() returns '' and downstream validation fails.
+        if (pathinfo($suggestedName, PATHINFO_EXTENSION) === '') {
+            $ext = $this->extFromMime($tmp);
+            if ($ext !== '') $suggestedName .= '.' . $ext;
+        }
         return new \XF\Http\Upload($tmp, $suggestedName);
+    }
+
+    /**
+     * Detect a file's image extension from its actual content (magic bytes /
+     * MIME sniff). Returns empty string if not a recognizable image.
+     */
+    private function extFromMime(string $path): string
+    {
+        if (!is_file($path)) return '';
+
+        // getimagesize covers png/jpg/gif/webp reliably
+        $info = @getimagesize($path);
+        if (is_array($info) && !empty($info['mime'])) {
+            $map = [
+                'image/png'  => 'png',
+                'image/jpeg' => 'jpg',
+                'image/gif'  => 'gif',
+                'image/webp' => 'webp',
+                'image/svg+xml' => 'svg',
+            ];
+            if (isset($map[$info['mime']])) return $map[$info['mime']];
+        }
+
+        // SVG is XML — getimagesize might not identify it. Sniff the start.
+        $head = (string) @file_get_contents($path, false, null, 0, 512);
+        if ($head !== '' && (stripos($head, '<svg') !== false || stripos($head, '<?xml') === 0)) {
+            if (stripos($head, '<svg') !== false) return 'svg';
+        }
+
+        // finfo as last resort
+        if (function_exists('finfo_open')) {
+            $f = finfo_open(FILEINFO_MIME_TYPE);
+            if ($f) {
+                $mime = finfo_file($f, $path) ?: '';
+                finfo_close($f);
+                $map = ['image/png'=>'png','image/jpeg'=>'jpg','image/gif'=>'gif','image/webp'=>'webp','image/svg+xml'=>'svg'];
+                if (isset($map[$mime])) return $map[$mime];
+            }
+        }
+        return '';
     }
 }
