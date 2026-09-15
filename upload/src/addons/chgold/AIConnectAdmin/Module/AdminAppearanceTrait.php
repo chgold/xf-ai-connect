@@ -163,8 +163,51 @@ trait AdminAppearanceTrait
             'style_id' => $styleId,
             'property_name' => $name,
         ]);
+
+        $created = false;
         if (!$prop) {
-            return $this->error('not_found', "Style property '$name' not found on style $styleId");
+            // Property doesn't exist on this style — but it may exist on Master
+            // (style_id=0) and this is a child style creating its first override.
+            // XF ACP creates a new xf_style_property row in this case, copying
+            // property_type/group_name from Master. Do the same.
+            $master = \XF::em()->findOne('XF:StyleProperty', [
+                'style_id' => 0,
+                'property_name' => $name,
+            ]);
+            if (!$master) {
+                return $this->error(
+                    'not_found',
+                    "Style property '$name' not defined anywhere (not on style $styleId, not on Master style 0). "
+                    . "Check property_name — see listStyleProperties for valid names."
+                );
+            }
+            if ($styleId === 0) {
+                // Master itself missing — real error, no fallback
+                return $this->error('not_found', "Style property '$name' not found on Master style 0");
+            }
+            // Verify the target style exists
+            $style = \XF::em()->find('XF:Style', $styleId);
+            if (!$style) {
+                return $this->error('not_found', "Style $styleId not found");
+            }
+            // Create override on the child style — copy ALL metadata from Master
+            // (property_type=value needs value_type, css_components, etc.).
+            $prop = \XF::em()->create('XF:StyleProperty');
+            $prop->style_id        = $styleId;
+            $prop->property_name   = $name;
+            $prop->property_type   = $master->property_type;
+            $prop->group_name      = $master->group_name;
+            $prop->title           = $master->title;
+            $prop->description     = $master->description;
+            $prop->css_components  = $master->css_components;
+            $prop->value_type      = $master->value_type;
+            $prop->value_parameters = $master->value_parameters;
+            $prop->has_variations  = $master->has_variations;
+            $prop->depends_on      = $master->depends_on;
+            $prop->value_group     = $master->value_group;
+            $prop->display_order   = $master->display_order;
+            $prop->addon_id        = $master->addon_id;
+            $created = true;
         }
 
         // property_value column is XF type=JSON — XF entity json_encodes on save.
@@ -206,8 +249,11 @@ trait AdminAppearanceTrait
             'property_name' => $name,
             'style_id'      => $styleId,
             'value'         => $prop->property_value,
+            'created'       => $created,
             'rebuilt'       => $rebuilt,
-            'note'          => 'Style property saved + CSS caches wiped. Browser hard-refresh (Ctrl+F5) may be needed.',
+            'note'          => $created
+                ? "Override row CREATED on style $styleId (inherited metadata from Master). CSS caches wiped."
+                : 'Style property saved + CSS caches wiped. Browser hard-refresh (Ctrl+F5) may be needed.',
         ]);
     }
 
