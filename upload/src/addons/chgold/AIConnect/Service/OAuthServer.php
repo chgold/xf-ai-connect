@@ -83,11 +83,11 @@ class OAuthServer extends AbstractService
             $code
         );
 
-        // Create access token
+        // Create access token — parseScopes defensive against legacy space-format storage
         $token = $this->createAccessToken(
             $authCode['client_id'],
             $authCode['user_id'],
-            json_decode($authCode['scopes'], true)
+            self::parseScopes($authCode['scopes'])
         );
 
         return $token;
@@ -217,8 +217,46 @@ class OAuthServer extends AbstractService
             'valid' => true,
             'user_id' => $tokenData['user_id'],
             'client_id' => $tokenData['client_id'],
-            'scopes' => json_decode($tokenData['scopes'], true)
+            'scopes' => self::parseScopes($tokenData['scopes']),
         ];
+    }
+
+    /**
+     * v1.2.47 — defensive scope parser.
+     *
+     * Legacy tokens (created before 2026-08) stored `scopes` as a space-separated
+     * string ("read write admin"). Newer tokens use JSON (["read","write","admin"]).
+     * A blind json_decode on the legacy shape returns NULL, which downstream
+     * ScopeGuard treats as "no scopes at all" — a valid admin token then fails
+     * checkScope('admin') with "admin scope required".
+     *
+     * This parser accepts BOTH shapes without a schema change to the DB:
+     *   - JSON array   → array_values($decoded)
+     *   - space/comma  → preg_split with whitespace-or-comma delimiter
+     *   - null / bad   → empty array (safe default; caller sees "no scopes")
+     */
+    public static function parseScopes($raw): array
+    {
+        if ($raw === null || $raw === '') {
+            return [];
+        }
+        if (is_array($raw)) {
+            return array_values(array_filter($raw, 'is_string'));
+        }
+        $s = (string) $raw;
+        $trim = ltrim($s);
+        if ($trim !== '' && $trim[0] === '[') {
+            $decoded = json_decode($s, true);
+            if (is_array($decoded)) {
+                return array_values(array_filter($decoded, 'is_string'));
+            }
+        }
+        // Legacy space/comma-separated format
+        $parts = preg_split('/[\s,]+/', trim($s));
+        if ($parts === false) {
+            return [];
+        }
+        return array_values(array_filter($parts, static fn($p) => $p !== ''));
     }
 
     /**
@@ -258,11 +296,11 @@ class OAuthServer extends AbstractService
             $tokenData['token_id']
         );
 
-        // Create new access token and refresh token
+        // Create new access token and refresh token — parseScopes defensive against legacy format
         $newToken = $this->createAccessToken(
             $tokenData['client_id'],
             $tokenData['user_id'],
-            json_decode($tokenData['scopes'], true),
+            self::parseScopes($tokenData['scopes']),
             'refresh'
         );
 

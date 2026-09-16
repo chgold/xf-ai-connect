@@ -1069,6 +1069,59 @@ class Setup extends AbstractSetup
         }
     }
 
+    /**
+     * v1.2.47 — two-in-one heal:
+     *
+     *   1. Normalize legacy space-separated `scopes` on live tokens to JSON.
+     *      Tokens minted before ~2026-08 stored "read write admin" as a raw
+     *      string. New code (OAuthServer::parseScopes) accepts both shapes,
+     *      but normalizing at rest means all downstream tools see the same
+     *      canonical structure. Idempotent — only converts rows that don't
+     *      already start with '['.
+     *
+     *   2. Rebuild the codeEventListeners + route caches. Sessions have shown
+     *      that XF's cache can silently lose an addon's listener/route entries
+     *      between upgrades, causing our Bearer auth listener
+     *      (app_api_validate_request) to never fire — Bearer requests then
+     *      return api_error.unauthorized even for valid tokens. Explicit
+     *      rebuild here (which addon upgrade already invokes) is defense in
+     *      depth against future regressions of the same pattern.
+     */
+    public function upgrade1024700Step1(): void
+    {
+        $db = \XF::db();
+
+        // (1) normalize scopes in place — only touch rows that aren't JSON
+        try {
+            $rows = $db->fetchAll(
+                "SELECT token_id, scopes FROM xf_ai_connect_oauth_tokens "
+                . "WHERE scopes IS NOT NULL AND scopes <> '' AND scopes NOT LIKE '[%'"
+            );
+            foreach ($rows as $row) {
+                $parts = preg_split('/[\s,]+/', trim((string) $row['scopes']));
+                $parts = $parts ? array_values(array_filter($parts, static fn($p) => $p !== '')) : [];
+                $db->update(
+                    'xf_ai_connect_oauth_tokens',
+                    ['scopes' => json_encode($parts)],
+                    'token_id = ?',
+                    $row['token_id']
+                );
+            }
+        } catch (\Throwable $e) {
+            \XF::logException($e, false, 'AIConnect 1.2.47 scope normalization failed: ');
+        }
+
+        // (2) rebuild caches defensively
+        try {
+            \XF::repository('XF:CodeEventListener')->rebuildListenerCache();
+            \XF::repository('XF:Route')->rebuildRouteCache('api');
+            \XF::repository('XF:Route')->rebuildRouteCache('admin');
+            \XF::repository('XF:Route')->rebuildRouteCache('public');
+        } catch (\Throwable $e) {
+            \XF::logException($e, false, 'AIConnect 1.2.47 cache rebuild failed: ');
+        }
+    }
+
     public function uninstallStep1()
     {
         $schemaManager = $this->schemaManager();
