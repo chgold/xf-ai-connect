@@ -199,6 +199,7 @@ class ConversationModule extends ModuleBase
         if (!$visitor->user_id) {
             return $this->error('not_authenticated', 'You must be logged in to start a conversation');
         }
+        $error = null;   // initialize — canStartConversation writes here by ref only on rejection
         if (!$visitor->canStartConversation($error)) {
             return $this->error('no_permission', $error ?: 'You do not have permission to start a conversation');
         }
@@ -256,6 +257,7 @@ class ConversationModule extends ModuleBase
             return $error;
         }
         $conversation = $convUser->Master;
+        $replyError = null;   // initialize — canReply writes here by ref only on rejection
         if (!$conversation->canReply($replyError)) {
             return $this->error(
                 'no_permission',
