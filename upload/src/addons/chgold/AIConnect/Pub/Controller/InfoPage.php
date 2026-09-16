@@ -67,10 +67,29 @@ class InfoPage extends AbstractController
         /** @var \chgold\AIConnect\Service\OAuthServer $oauthServer */
         $oauthServer = $this->service('chgold\AIConnect:OAuthServer');
 
+        // v1.2.49 — grant the MAX scope set this client is allowed, instead of
+        // hardcoding ['read','write']. On a Free-only site the client is
+        // configured with allowed_scopes=["read","write"] → grants those.
+        // Once the Admin addon is installed it upgrades every client's
+        // allowed_scopes to include "admin" (see AIConnectAdmin/Setup.php
+        // addAdminScopeToClients). Then the generator ALSO grants admin,
+        // matching what the OAuth authorization flow already grants (RFC 6749
+        // §3.3 subset from v1.2.48). Without this, hand-fed tokens from the
+        // prompt generator locked users out of admin_* tools even when the
+        // site had every prerequisite in place.
+        $requested = ['read', 'write', 'admin'];
+        $scopes    = $oauthServer->filterAllowedScopes('claude-ai', $requested);
+        if (empty($scopes)) {
+            // Fallback if client is somehow completely without allowed scopes —
+            // preserves the historical minimum so the generator never mints an
+            // empty-scope token silently.
+            $scopes = ['read'];
+        }
+
         $token = $oauthServer->createAccessToken(
             'claude-ai',
             $visitor->user_id,
-            ['read', 'write'],
+            $scopes,
             'generator'
         );
 
