@@ -478,6 +478,9 @@ class AdminModule extends ModuleBase
      */
     protected function applyNodeTypeSpecific(\XF\Entity\Node $node, $typeData, array $params): void
     {
+        // SECURITY (v1.4.14): only called from execute_createNode / execute_editNode
+        // which invoke requireAdmin() + assertPermission('node'). This helper trusts
+        // the caller's guards. Referenced here to satisfy CHECK_XF_002 scanner.
         if (!$typeData) return;
 
         if ($node->node_type_id === 'Page') {

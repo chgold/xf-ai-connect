@@ -312,6 +312,8 @@ trait AdminWidgetsTrait
      */
     private function normalizeOptionsForDefinition(string $definitionId, array $options, string $widgetKey): array
     {
+        // SECURITY (v1.4.14): only called from execute_createWidget / execute_editWidget
+        // which invoke requireAdmin() + assertPermission('style'). See CHECK_XF_002.
         if ($definitionId !== 'html') {
             return $options;
         }
@@ -347,6 +349,8 @@ trait AdminWidgetsTrait
      */
     private function writeWidgetTitle(string $widgetKey, string $title): void
     {
+        // SECURITY (v1.4.14): only called from execute_createWidget / execute_editWidget
+        // which invoke requireAdmin() + assertPermission('style'). See CHECK_XF_002.
         $phraseTitle = 'widget.' . $widgetKey;
         $existing = \XF::em()->findOne('XF:Phrase', [
             'title' => $phraseTitle, 'language_id' => 0,

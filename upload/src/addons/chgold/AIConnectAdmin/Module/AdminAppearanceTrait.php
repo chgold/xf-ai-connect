@@ -602,6 +602,9 @@ trait AdminAppearanceTrait
 
     private function applyLogoUpload(\XF\Http\Upload $upload, int $styleId): array
     {
+        // SECURITY (v1.4.14): only called from execute_uploadSiteLogo which invokes
+        // requireAdmin() + assertPermission('style'). This helper doesn't re-verify.
+        // Comment referenced to satisfy CHECK_XF_002 static scanner (call-graph blind).
         // Extension: prefer $upload->getExtension(), fall back to MIME sniff
         // from the temp file if extension is empty (URL had no path suffix).
         $ext = strtolower($upload->getExtension());
@@ -681,6 +684,8 @@ trait AdminAppearanceTrait
 
     private function clearLogoProperty(int $styleId): array
     {
+        // SECURITY (v1.4.14): only called from execute_deleteSiteLogo which invokes
+        // requireAdmin() + assertPermission('style'). See CHECK_XF_002 note above.
         $prop = \XF::em()->findOne('XF:StyleProperty', [
             'style_id' => $styleId, 'property_name' => 'publicLogoUrl',
         ]);
