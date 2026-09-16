@@ -210,18 +210,25 @@ trait AdminSiteConfigTrait
         $pwd = (string) ($config['smtpLoginPassword'] ?? '');
         $maskedPwd = $pwd === '' ? '' : '****' . substr($pwd, -4);
 
+        // v1.4.12: EVERY smtp field access is null-coalesced. Previous version had
+        // $config['smtpPort'] === 587 without ?? — triggered PHP 8 'Undefined array
+        // key smtpPort' warning when transport=default (which under v1.4.11 stored
+        // ONLY {emailTransport: 'default'} without SMTP keys). Now: encryption
+        // derivation uses ($config['smtpPort'] ?? 0) explicitly.
+        $port = (int) ($config['smtpPort'] ?? 0);
+        $ssl  = (bool) ($config['smtpSsl'] ?? false);
         return $this->success([
             'transport'  => $transport,
             'from_email' => $opts->defaultEmailAddress ?? '',
             'from_name'  => $opts->emailSenderName ?? '',
             'smtp' => [
                 'host'       => (string) ($config['smtpHost'] ?? ''),
-                'port'       => (int)    ($config['smtpPort'] ?? 0),
-                'encryption' => ($config['smtpSsl'] ?? false) ? 'ssl' : ($config['smtpPort'] === 587 ? 'tls' : ''),
+                'port'       => $port,
+                'encryption' => $ssl ? 'ssl' : ($port === 587 ? 'tls' : ''),
                 'auth'       => (string) ($config['smtpAuth'] ?? ''),
                 'username'   => (string) ($config['smtpLoginUsername'] ?? ''),
                 'password'   => $maskedPwd,
-                'smtpSsl'    => (bool)   ($config['smtpSsl'] ?? false),
+                'smtpSsl'    => $ssl,
             ],
         ]);
     }
@@ -231,46 +238,50 @@ trait AdminSiteConfigTrait
         if ($err = $this->requireAdmin()) return $err;
         if ($err = $this->assertPermission('option')) return $err;
 
-        // v1.4.11: store with XF NATIVE keys (smtpHost, smtpPort, smtpAuth,
-        // smtpLoginUsername, smtpLoginPassword, smtpSsl). Previous versions
-        // stored bare {host, port, encryption, username, password} which
-        // XF\Mail\Mailer.php cannot consume — the missing smtpSsl key crashed
-        // any mail send (including welcome mail on createUser).
-        // Start from a CLEAN slate (do not merge legacy wrong keys forward).
+        // v1.4.11 stored XF native keys (fixes the missing-smtpSsl crash in
+        // XF/Mail/Mailer.php) but had a REGRESSION: transport='default' wiped
+        // all SMTP fields, so toggling default↔smtp lost the whole SMTP config
+        // AND getEmailTransportConfig then hit "Undefined array key smtpPort"
+        // (which itself was another bug — fixed in the getter).
+        //
+        // v1.4.12: ALWAYS start from existing config (merge semantics). Only
+        // overwrite fields the caller explicitly provides. This means:
+        //   - transport='default' preserves the SMTP block for later toggle-back
+        //   - partial updates (change only the port) don't clobber the password
+        //   - test/rollback cycles are lossless
+        // To EXPLICITLY clear a SMTP field, caller passes an empty string.
         $transport = (string) $params['transport'];
-        $encryption = strtolower((string) ($params['smtp_encryption'] ?? ''));  // '', 'ssl', 'tls'
+        $encryption = strtolower((string) ($params['smtp_encryption'] ?? ''));
 
-        $current = [
-            'emailTransport' => $transport,
-        ];
+        // Start from existing (normalized to XF native shape — legacy wrong-key
+        // rows from v1.4.0-v1.4.10 are transparently converted).
+        $current = self::normalizeEmailTransportConfig(\XF::options()->emailTransport ?? null);
 
-        if ($transport === 'smtp') {
-            // If caller is UPDATING existing SMTP config, preserve unchanged fields
-            $existing = self::normalizeEmailTransportConfig(\XF::options()->emailTransport ?? null);
+        // Always update the transport itself
+        $current['emailTransport'] = $transport;
 
-            $current['smtpHost'] = isset($params['smtp_host'])
-                ? (string) $params['smtp_host']
-                : (string) ($existing['smtpHost'] ?? '');
-            $current['smtpPort'] = isset($params['smtp_port'])
-                ? (int) $params['smtp_port']
-                : (int) ($existing['smtpPort'] ?? 587);
-            $current['smtpAuth'] = isset($params['smtp_auth'])
-                ? (string) $params['smtp_auth']
-                : (string) ($existing['smtpAuth'] ?? 'login');
-            $current['smtpLoginUsername'] = isset($params['smtp_username'])
-                ? (string) $params['smtp_username']
-                : (string) ($existing['smtpLoginUsername'] ?? '');
-            $current['smtpLoginPassword'] = (isset($params['smtp_password']) && $params['smtp_password'] !== '')
-                ? (string) $params['smtp_password']
-                : (string) ($existing['smtpLoginPassword'] ?? '');
-
-            // XF derives smtpSsl bool from encryption per OptionController line 721
-            if ($encryption !== '') {
-                $current['smtpSsl'] = ($encryption === 'ssl');
-            } else {
-                $current['smtpSsl'] = (bool) ($existing['smtpSsl'] ?? false);
-            }
+        // Overwrite ONLY explicitly-provided SMTP fields (isset means the caller
+        // sent the key; passing empty string is intentional clear).
+        if (isset($params['smtp_host']))     $current['smtpHost']          = (string) $params['smtp_host'];
+        if (isset($params['smtp_port']))     $current['smtpPort']          = (int)    $params['smtp_port'];
+        if (isset($params['smtp_auth']))     $current['smtpAuth']          = (string) $params['smtp_auth'];
+        if (isset($params['smtp_username'])) $current['smtpLoginUsername'] = (string) $params['smtp_username'];
+        if (isset($params['smtp_password']) && $params['smtp_password'] !== '') {
+            $current['smtpLoginPassword'] = (string) $params['smtp_password'];
         }
+        if ($encryption !== '') {
+            $current['smtpSsl'] = ($encryption === 'ssl');
+        }
+
+        // Fill in sensible defaults ONLY for keys that are still missing after
+        // the merge (never overwrite existing). Prevents future PHP 8 warnings
+        // and matches XF's smtpPort default of 587.
+        $current['smtpHost']          = (string) ($current['smtpHost']          ?? '');
+        $current['smtpPort']          = (int)    ($current['smtpPort']          ?? 587);
+        $current['smtpAuth']          = (string) ($current['smtpAuth']          ?? 'login');
+        $current['smtpLoginUsername'] = (string) ($current['smtpLoginUsername'] ?? '');
+        $current['smtpLoginPassword'] = (string) ($current['smtpLoginPassword'] ?? '');
+        $current['smtpSsl']           = (bool)   ($current['smtpSsl']           ?? false);
 
         // XF 2.3: XF::app()->options() has no update(). Use Option entity + save.
         $opt = \XF::em()->find('XF:Option', 'emailTransport');

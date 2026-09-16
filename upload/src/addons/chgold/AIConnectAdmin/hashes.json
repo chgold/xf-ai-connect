@@ -12,7 +12,7 @@
     "src/addons/chgold/AIConnectAdmin/Module/AdminOptionsTrait.php": "8df67b7f9cf8a389d06058a80a003c66d4d97f191693e2dfaf98749626b92d80",
     "src/addons/chgold/AIConnectAdmin/Module/AdminPermissionsSafetyTrait.php": "955e69d5e7ef636b7f9dff017f825f5eb96290a14fe771337764ac9e6cfc33ee",
     "src/addons/chgold/AIConnectAdmin/Module/AdminPhrasesTrait.php": "dcc4f162c81324c26c58e2c6ac201d7013758178a41b26d2945734c4cbb3aabe",
-    "src/addons/chgold/AIConnectAdmin/Module/AdminSiteConfigTrait.php": "d64b005493069b2620a55b5c216e3c1fe4ffe98b779d3973b37dbd0e05b99ea1",
+    "src/addons/chgold/AIConnectAdmin/Module/AdminSiteConfigTrait.php": "cce188367d4ce216a739c777536dedf0d5ea97de42726e1298e989d524d81695",
     "src/addons/chgold/AIConnectAdmin/Module/AdminStylesTrait.php": "1a79c91cb2da4cd8c13c1955e468af8eacaa463241839ffed2b0d7b859b243fe",
     "src/addons/chgold/AIConnectAdmin/Module/AdminUserCredentialsTrait.php": "d16aa85dc3281b9d029a23cb1c83a6dd362b30d70a193b7644e0c004fadf4b12",
     "src/addons/chgold/AIConnectAdmin/Module/AdminUsergroupsTrait.php": "2aae07d1c8e1f89dc64c3679e3346e275f2f7c48bf2141b0b77e17cb0c159463",
