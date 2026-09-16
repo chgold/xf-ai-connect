@@ -13,6 +13,7 @@ return array (
   'widget.member_wrapper_newest_members' => '',
   'widget.online_list_online_statistics' => '',
   'widget.unread_posts' => 'Unread posts',
+  'widget.webmcp_test_widget' => 'webmcp-test-updated',
   'widget.whats_new_new_posts' => '',
   'widget.whats_new_new_profile_posts' => '',
 );

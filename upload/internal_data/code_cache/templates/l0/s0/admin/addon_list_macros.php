@@ -126,6 +126,7 @@ return array(
 					';
 	}
 	$__finalCompiled .= '
+					' . $__templater->callback('chgold\\AIConnectPro\\Admin\\LicenseBadge', 'renderBadge', '', array('addOn' => $__vars['addOn'], )) . '
 				</h3>
 				<div class="contentRow-lesser js-filterSearchable' . ((!$__vars['addOn']['description']) ? ' no-description' : '') . '">
 					' . ($__vars['addOn']['description'] ? $__templater->filter($__templater->func('snippet', array($__vars['addOn']['description'], 200, ), false), array(array('nl2br', array()),), true) : '&nbsp;') . '

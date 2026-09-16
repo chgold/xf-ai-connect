@@ -54,11 +54,17 @@ trait AdminUserCredentialsTrait
 
     public function execute_changeUserEmail($params)
     {
-        if ($err = $this->requireAdmin()) return $err;
+        if ($err = $this->requireAdmin()) {
+            return $err;
+        }
 
         $user = \XF::em()->find("XF:User", (int) $params["user_id"]);
-        if (!$user) return $this->error("not_found", "User not found");
-        if ($err = $this->assertCanTouchCredentials($user)) return $err;
+        if (!$user) {
+            return $this->error("not_found", "User not found");
+        }
+        if ($err = $this->assertCanTouchCredentials($user)) {
+            return $err;
+        }
 
         $newEmail = trim((string) $params["email"]);
         if (!filter_var($newEmail, FILTER_VALIDATE_EMAIL)) {
@@ -89,11 +95,17 @@ trait AdminUserCredentialsTrait
 
     public function execute_changeUserPassword($params)
     {
-        if ($err = $this->requireAdmin()) return $err;
+        if ($err = $this->requireAdmin()) {
+            return $err;
+        }
 
         $user = \XF::em()->find("XF:User", (int) $params["user_id"]);
-        if (!$user) return $this->error("not_found", "User not found");
-        if ($err = $this->assertCanTouchCredentials($user)) return $err;
+        if (!$user) {
+            return $this->error("not_found", "User not found");
+        }
+        if ($err = $this->assertCanTouchCredentials($user)) {
+            return $err;
+        }
 
         $hasNew = isset($params["new_password"]) && $params["new_password"] !== "";
         $doGen  = !empty($params["generate_password"]);

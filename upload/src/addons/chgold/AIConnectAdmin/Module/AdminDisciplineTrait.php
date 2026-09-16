@@ -49,11 +49,17 @@ trait AdminDisciplineTrait
 
     public function execute_banUser($params)
     {
-        if ($err = $this->requireAdmin()) return $err;
+        if ($err = $this->requireAdmin()) {
+            return $err;
+        }
 
         $user = \XF::em()->find("XF:User", (int) $params["user_id"]);
-        if (!$user) return $this->error("not_found", "User not found");
-        if ($err = $this->assertCanDisciplineUser($user)) return $err;
+        if (!$user) {
+            return $this->error("not_found", "User not found");
+        }
+        if ($err = $this->assertCanDisciplineUser($user)) {
+            return $err;
+        }
 
         // Compute expiration: 0 = permanent
         $endsAt = 0;
@@ -89,11 +95,17 @@ trait AdminDisciplineTrait
 
     public function execute_unbanUser($params)
     {
-        if ($err = $this->requireAdmin()) return $err;
-        if ($err = $this->assertPermission("user")) return $err;
+        if ($err = $this->requireAdmin()) {
+            return $err;
+        }
+        if ($err = $this->assertPermission("user")) {
+            return $err;
+        }
 
         $user = \XF::em()->find("XF:User", (int) $params["user_id"]);
-        if (!$user) return $this->error("not_found", "User not found");
+        if (!$user) {
+            return $this->error("not_found", "User not found");
+        }
 
         // Fetch the ban (there is at most one active per user)
         $ban = \XF::em()->find("XF:UserBan", $user->user_id);

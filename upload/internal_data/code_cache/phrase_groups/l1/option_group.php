@@ -2,6 +2,8 @@
 return array (
   'option_group.acp' => 'Admin control panel',
   'option_group.aiconnect_navigation' => 'AI Connect — Navigation',
+  'option_group.aiconnect_pro_license' => 'AI Connect Pro License',
+  'option_group.aiconnect_pro_license_description' => 'Manage your AI Connect Pro license key. When a valid license is entered the Pro tools will be enabled automatically.',
   'option_group.aiconnect_settings' => 'AI Connect — Settings',
   'option_group.alerts' => 'User alerts and notifications',
   'option_group.appearance' => 'Appearance',

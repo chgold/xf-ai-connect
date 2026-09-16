@@ -176,8 +176,12 @@ trait AdminNodesAdvancedTrait
 
     public function execute_reorderNodes($params)
     {
-        if ($err = $this->requireAdmin()) return $err;
-        if ($err = $this->assertPermission('node')) return $err;
+        if ($err = $this->requireAdmin()) {
+            return $err;
+        }
+        if ($err = $this->assertPermission('node')) {
+            return $err;
+        }
 
         $ids = array_values(array_filter(array_map('intval', (array) $params['node_ids'])));
         if (empty($ids)) {
@@ -220,14 +224,20 @@ trait AdminNodesAdvancedTrait
 
     public function execute_setNodePermission($params)
     {
-        if ($err = $this->requireAdmin()) return $err;
+        if ($err = $this->requireAdmin()) {
+            return $err;
+        }
         // XF core: PermissionController::assertAdminPermission('userGroup')
         // — permission edits belong to the userGroup admin area.
-        if ($err = $this->assertPermission('userGroup')) return $err;
+        if ($err = $this->assertPermission('userGroup')) {
+            return $err;
+        }
 
         $nodeId = (int) $params['node_id'];
         $node = \XF::em()->find('XF:Node', $nodeId);
-        if (!$node) return $this->error('not_found', 'Node not found');
+        if (!$node) {
+            return $this->error('not_found', 'Node not found');
+        }
 
         // Per-user OR per-group — XF supports both via xf_permission_entry_content
         // (columns user_group_id + user_id). Prior versions of this tool always
@@ -237,11 +247,15 @@ trait AdminNodesAdvancedTrait
         $groupId = (int) $params['user_group_id'];
         if ($userId > 0) {
             $user = \XF::em()->find('XF:User', $userId);
-            if (!$user) return $this->error('not_found', 'User not found');
+            if (!$user) {
+                return $this->error('not_found', 'User not found');
+            }
             $groupId = 0;  // user-specific: group is unused
         } else {
             $group = \XF::em()->find('XF:UserGroup', $groupId);
-            if (!$group) return $this->error('not_found', 'User group not found');
+            if (!$group) {
+                return $this->error('not_found', 'User group not found');
+            }
         }
 
         $pg  = (string) $params['permission_group_id'];
@@ -374,12 +388,18 @@ trait AdminNodesAdvancedTrait
 
     public function execute_setNodePrivate($params)
     {
-        if ($err = $this->requireAdmin()) return $err;
-        if ($err = $this->assertPermission('userGroup')) return $err;
+        if ($err = $this->requireAdmin()) {
+            return $err;
+        }
+        if ($err = $this->assertPermission('userGroup')) {
+            return $err;
+        }
 
         $nodeId = (int) $params['node_id'];
         $node = \XF::em()->find('XF:Node', $nodeId);
-        if (!$node) return $this->error('not_found', 'Node not found');
+        if (!$node) {
+            return $this->error('not_found', 'Node not found');
+        }
 
         $makePrivate = !empty($params['is_private']);
 
@@ -443,12 +463,18 @@ trait AdminNodesAdvancedTrait
 
     public function execute_getNodePermissions($params)
     {
-        if ($err = $this->requireAdmin()) return $err;
-        if ($err = $this->assertPermission('userGroup')) return $err;
+        if ($err = $this->requireAdmin()) {
+            return $err;
+        }
+        if ($err = $this->assertPermission('userGroup')) {
+            return $err;
+        }
 
         $nodeId = (int) $params['node_id'];
         $node = \XF::em()->find('XF:Node', $nodeId);
-        if (!$node) return $this->error('not_found', 'Node not found');
+        if (!$node) {
+            return $this->error('not_found', 'Node not found');
+        }
 
         // Is the node marked "Private" via XF s system flag?
         $isPrivate = \XF::db()->fetchOne(
@@ -462,14 +488,18 @@ trait AdminNodesAdvancedTrait
         $pgFilter  = (string) ($params['permission_group_id'] ?? '');
         $pidFilter = (string) ($params['permission_id'] ?? '');
         // Auto-correct viewNode → view here too, for consistency
-        if ($pidFilter === 'viewNode' || $pidFilter === 'viewForum') $pidFilter = 'view';
+        if ($pidFilter === 'viewNode' || $pidFilter === 'viewForum') {
+            $pidFilter = 'view';
+        }
 
         // Walk parent chain (this node + ancestors) — inheritance goes down
         $chain = [];
         $cursor = $node;
         while ($cursor) {
             $chain[] = (int) $cursor->node_id;
-            if (!$cursor->parent_node_id) break;
+            if (!$cursor->parent_node_id) {
+                break;
+            }
             $cursor = \XF::em()->find('XF:Node', $cursor->parent_node_id);
         }
 
@@ -477,8 +507,14 @@ trait AdminNodesAdvancedTrait
         $placeholders = implode(',', array_fill(0, count($chain), '?'));
         $where = "content_type='node' AND content_id IN ($placeholders)";
         $bind  = $chain;
-        if ($pgFilter !== '') { $where .= " AND permission_group_id = ?"; $bind[] = $pgFilter; }
-        if ($pidFilter !== ''){ $where .= " AND permission_id = ?";       $bind[] = $pidFilter; }
+        if ($pgFilter !== '') {
+            $where .= " AND permission_group_id = ?";
+            $bind[] = $pgFilter;
+        }
+        if ($pidFilter !== '') {
+            $where .= " AND permission_id = ?";
+            $bind[] = $pidFilter;
+        }
 
         $rows = \XF::db()->fetchAll(
             "SELECT content_id, user_group_id, user_id, permission_group_id, permission_id,
@@ -544,8 +580,13 @@ trait AdminNodesAdvancedTrait
                 );
                 if ($rowVal) {
                     // First hit wins (closest to node) — but deny anywhere in chain still applies
-                    if ($contentValue === null) $contentValue = $rowVal;
-                    if ($rowVal === 'deny') { $contentValue = 'deny'; break; }
+                    if ($contentValue === null) {
+                        $contentValue = $rowVal;
+                    }
+                    if ($rowVal === 'deny') {
+                        $contentValue = 'deny';
+                        break;
+                    }
                 }
             }
 

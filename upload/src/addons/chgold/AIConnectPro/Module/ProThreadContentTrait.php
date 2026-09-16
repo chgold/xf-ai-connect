@@ -42,7 +42,7 @@ trait ProThreadContentTrait
                 'required' => ['node_id'],
                 'properties' => [
                     'node_id'    => ['type' => 'integer', 'description' => 'Forum node ID'],
-                    'sticky_only'=> ['type' => 'boolean', 'description' => 'Return only sticky threads (default false)'],
+                    'sticky_only' => ['type' => 'boolean', 'description' => 'Return only sticky threads (default false)'],
                     'prefix_id'  => ['type' => 'integer', 'description' => 'Filter by thread prefix ID (optional)'],
                     'order'      => ['type' => 'string',  'description' => 'Sort: last_post_date (default), post_date, reply_count, view_count'],
                     'page'  => $page,
@@ -100,7 +100,9 @@ trait ProThreadContentTrait
 
         $posts = [];
         foreach ($finder->fetch() as $post) {
-            if (!$post->canView()) continue;
+            if (!$post->canView()) {
+                continue;
+            }
             $posts[] = [
                 'post_id'        => (int)    $post->post_id,
                 'thread_id'      => (int)    $post->thread_id,
@@ -163,7 +165,9 @@ trait ProThreadContentTrait
 
         $threads = [];
         foreach ($finder->fetch() as $t) {
-            if (!$t->canView()) continue;
+            if (!$t->canView()) {
+                continue;
+            }
             $threads[] = [
                 'thread_id'      => (int)    $t->thread_id,
                 'title'          => (string) $t->title,

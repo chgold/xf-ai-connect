@@ -170,7 +170,7 @@ trait ProUserContentTrait
                 'user_id'          => (int)    $c->owner_user_id,
                 'username'         => (string) $c->last_message_username,
                 'reply_count'      => (int)    $c->reply_count,
-                'last_message_date'=> (int)    $c->last_message_date,
+                'last_message_date' => (int)    $c->last_message_date,
                 'is_unread'        => (bool)   ($c->Recipient->is_unread ?? false),
             ];
         }
@@ -221,7 +221,9 @@ trait ProUserContentTrait
 
         $out = [];
         foreach ($finder->fetch() as $t) {
-            if (!$t->canView()) continue;
+            if (!$t->canView()) {
+                continue;
+            }
             $watch = $t->Watch[$visitor->user_id] ?? null;
             $out[] = [
                 'thread_id'      => (int)    $t->thread_id,
@@ -328,7 +330,7 @@ trait ProUserContentTrait
             'attachment_id' => (int)    $attachment->attachment_id,
             'filename'      => (string) $attachment->filename,
             'file_size'     => (int)    $attachment->file_size,
-            'content_base64'=> base64_encode($contents),
+            'content_base64' => base64_encode($contents),
             'encoding'      => 'base64',
         ]);
     }
@@ -365,7 +367,9 @@ trait ProUserContentTrait
         $out = [];
         foreach ($threadIds as $tid) {
             $t = $threads[$tid] ?? null;
-            if (!$t || !$t->canView()) continue;
+            if (!$t || !$t->canView()) {
+                continue;
+            }
             $out[] = [
                 'thread_id'      => (int)    $t->thread_id,
                 'title'          => (string) $t->title,

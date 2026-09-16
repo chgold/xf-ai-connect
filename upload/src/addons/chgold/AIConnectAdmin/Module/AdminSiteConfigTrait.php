@@ -133,8 +133,12 @@ trait AdminSiteConfigTrait
 
     public function execute_listOptionsByGroup($params)
     {
-        if ($err = $this->requireAdmin()) return $err;
-        if ($err = $this->assertPermission('option')) return $err;
+        if ($err = $this->requireAdmin()) {
+            return $err;
+        }
+        if ($err = $this->assertPermission('option')) {
+            return $err;
+        }
 
         $group = (string) $params['group_id'];
         $rows = \XF::db()->fetchAll(
@@ -163,8 +167,12 @@ trait AdminSiteConfigTrait
 
     public function execute_listOptionGroups($params)
     {
-        if ($err = $this->requireAdmin()) return $err;
-        if ($err = $this->assertPermission('option')) return $err;
+        if ($err = $this->requireAdmin()) {
+            return $err;
+        }
+        if ($err = $this->assertPermission('option')) {
+            return $err;
+        }
 
         // xf_option_group has no title column — titles live in phrases:
         // "option_group.{group_id}". Fetch via LEFT JOIN.
@@ -181,7 +189,9 @@ trait AdminSiteConfigTrait
 
     public function execute_getOptionBlocklist($params)
     {
-        if ($err = $this->requireAdmin()) return $err;
+        if ($err = $this->requireAdmin()) {
+            return $err;
+        }
         return $this->success([
             'blocked_option_ids' => self::OPTION_BLOCKLIST,
             'reason' => 'These option_ids can lock the site out if set incorrectly. '
@@ -191,8 +201,12 @@ trait AdminSiteConfigTrait
 
     public function execute_getEmailTransportConfig($params)
     {
-        if ($err = $this->requireAdmin()) return $err;
-        if ($err = $this->assertPermission('option')) return $err;
+        if ($err = $this->requireAdmin()) {
+            return $err;
+        }
+        if ($err = $this->assertPermission('option')) {
+            return $err;
+        }
 
         // XF 2.3 native emailTransport option structure (see XF\Admin\Controller\OptionController
         // ::actionEmailTransport lines 640-655) is an ARRAY with these keys:
@@ -235,8 +249,12 @@ trait AdminSiteConfigTrait
 
     public function execute_setEmailTransportConfig($params)
     {
-        if ($err = $this->requireAdmin()) return $err;
-        if ($err = $this->assertPermission('option')) return $err;
+        if ($err = $this->requireAdmin()) {
+            return $err;
+        }
+        if ($err = $this->assertPermission('option')) {
+            return $err;
+        }
 
         // v1.4.11 stored XF native keys (fixes the missing-smtpSsl crash in
         // XF/Mail/Mailer.php) but had a REGRESSION: transport='default' wiped
@@ -262,10 +280,18 @@ trait AdminSiteConfigTrait
 
         // Overwrite ONLY explicitly-provided SMTP fields (isset means the caller
         // sent the key; passing empty string is intentional clear).
-        if (isset($params['smtp_host']))     $current['smtpHost']          = (string) $params['smtp_host'];
-        if (isset($params['smtp_port']))     $current['smtpPort']          = (int)    $params['smtp_port'];
-        if (isset($params['smtp_auth']))     $current['smtpAuth']          = (string) $params['smtp_auth'];
-        if (isset($params['smtp_username'])) $current['smtpLoginUsername'] = (string) $params['smtp_username'];
+        if (isset($params['smtp_host'])) {
+            $current['smtpHost']          = (string) $params['smtp_host'];
+        }
+        if (isset($params['smtp_port'])) {
+            $current['smtpPort']          = (int)    $params['smtp_port'];
+        }
+        if (isset($params['smtp_auth'])) {
+            $current['smtpAuth']          = (string) $params['smtp_auth'];
+        }
+        if (isset($params['smtp_username'])) {
+            $current['smtpLoginUsername'] = (string) $params['smtp_username'];
+        }
         if (isset($params['smtp_password']) && $params['smtp_password'] !== '') {
             $current['smtpLoginPassword'] = (string) $params['smtp_password'];
         }
@@ -285,7 +311,9 @@ trait AdminSiteConfigTrait
 
         // XF 2.3: XF::app()->options() has no update(). Use Option entity + save.
         $opt = \XF::em()->find('XF:Option', 'emailTransport');
-        if (!$opt) return $this->error('not_found', 'emailTransport option not found');
+        if (!$opt) {
+            return $this->error('not_found', 'emailTransport option not found');
+        }
         $opt->option_value = $current;
         if (!$opt->save()) {
             return $this->error('validation_failed', implode(' ', $opt->getErrors()));
@@ -294,11 +322,17 @@ trait AdminSiteConfigTrait
         // Sender fields are separate string options
         if (isset($params['from_email'])) {
             $o = \XF::em()->find('XF:Option', 'defaultEmailAddress');
-            if ($o) { $o->option_value = (string) $params['from_email']; $o->save(); }
+            if ($o) {
+                $o->option_value = (string) $params['from_email'];
+                $o->save();
+            }
         }
         if (isset($params['from_name'])) {
             $o = \XF::em()->find('XF:Option', 'emailSenderName');
-            if ($o) { $o->option_value = (string) $params['from_name']; $o->save(); }
+            if ($o) {
+                $o->option_value = (string) $params['from_name'];
+                $o->save();
+            }
         }
 
         return $this->success([
@@ -319,7 +353,9 @@ trait AdminSiteConfigTrait
      */
     private static function normalizeEmailTransportConfig($raw): array
     {
-        if (!is_array($raw)) return ['emailTransport' => 'default'];
+        if (!is_array($raw)) {
+            return ['emailTransport' => 'default'];
+        }
 
         // Already in XF native shape → return as-is (defensive on smtpSsl)
         if (isset($raw['smtpHost']) || isset($raw['smtpSsl']) || isset($raw['smtpLoginUsername'])) {
@@ -330,11 +366,21 @@ trait AdminSiteConfigTrait
 
         // Legacy shape (v1.4.0-v1.4.10 bug): {host, port, encryption, username, password}
         $out = ['emailTransport' => (string) ($raw['emailTransport'] ?? 'default')];
-        if (isset($raw['host']))       $out['smtpHost']          = (string) $raw['host'];
-        if (isset($raw['port']))       $out['smtpPort']          = (int)    $raw['port'];
-        if (isset($raw['username']))   $out['smtpLoginUsername'] = (string) $raw['username'];
-        if (isset($raw['password']))   $out['smtpLoginPassword'] = (string) $raw['password'];
-        if (isset($raw['encryption'])) $out['smtpSsl']           = (strtolower((string) $raw['encryption']) === 'ssl');
+        if (isset($raw['host'])) {
+            $out['smtpHost']          = (string) $raw['host'];
+        }
+        if (isset($raw['port'])) {
+            $out['smtpPort']          = (int)    $raw['port'];
+        }
+        if (isset($raw['username'])) {
+            $out['smtpLoginUsername'] = (string) $raw['username'];
+        }
+        if (isset($raw['password'])) {
+            $out['smtpLoginPassword'] = (string) $raw['password'];
+        }
+        if (isset($raw['encryption'])) {
+            $out['smtpSsl']           = (strtolower((string) $raw['encryption']) === 'ssl');
+        }
         $out['smtpAuth'] = 'login';
         $out['smtpSsl'] = (bool) ($out['smtpSsl'] ?? false);
         return $out;
@@ -342,8 +388,12 @@ trait AdminSiteConfigTrait
 
     public function execute_testEmailConfig($params)
     {
-        if ($err = $this->requireAdmin()) return $err;
-        if ($err = $this->assertPermission('option')) return $err;
+        if ($err = $this->requireAdmin()) {
+            return $err;
+        }
+        if ($err = $this->assertPermission('option')) {
+            return $err;
+        }
 
         $to = (string) $params['to_email'];
         $subject = (string) ($params['subject'] ?? 'AI Connect Admin: email test');
@@ -370,8 +420,12 @@ trait AdminSiteConfigTrait
 
     public function execute_getAddonOptions($params)
     {
-        if ($err = $this->requireAdmin()) return $err;
-        if ($err = $this->assertPermission('option')) return $err;
+        if ($err = $this->requireAdmin()) {
+            return $err;
+        }
+        if ($err = $this->assertPermission('option')) {
+            return $err;
+        }
 
         $addonId = (string) $params['addon_id'];
         $rows = \XF::db()->fetchAll(
@@ -392,8 +446,12 @@ trait AdminSiteConfigTrait
 
     public function execute_setAddonOption($params)
     {
-        if ($err = $this->requireAdmin()) return $err;
-        if ($err = $this->assertPermission('option')) return $err;
+        if ($err = $this->requireAdmin()) {
+            return $err;
+        }
+        if ($err = $this->assertPermission('option')) {
+            return $err;
+        }
 
         $addonId  = (string) $params['addon_id'];
         $optionId = (string) $params['option_id'];

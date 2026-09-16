@@ -92,7 +92,7 @@ trait ProReportsTrait
                 'report_id'      => (int)    $r->report_id,
                 'content_type'   => (string) $r->content_type,
                 'content_id'     => (int)    $r->content_id,
-                'content_user_id'=> (int)    $r->content_user_id,
+                'content_user_id' => (int)    $r->content_user_id,
                 'content_info'   => (string) $r->content_info['title'] ?? '',
                 'report_state'   => (string) $r->report_state,
                 'assigner_user_id' => (int)  $r->assigner_user_id,
@@ -108,7 +108,9 @@ trait ProReportsTrait
     public function execute_getReport($params)
     {
         $report = \XF::em()->find('XF:Report', (int) $params['report_id']);
-        if (!$report) return $this->error('not_found', 'Report not found');
+        if (!$report) {
+            return $this->error('not_found', 'Report not found');
+        }
 
         $comments = [];
         foreach ($report->Comments as $c) {
@@ -127,7 +129,7 @@ trait ProReportsTrait
             'report_id'      => (int)    $report->report_id,
             'content_type'   => (string) $report->content_type,
             'content_id'     => (int)    $report->content_id,
-            'content_user_id'=> (int)    $report->content_user_id,
+            'content_user_id' => (int)    $report->content_user_id,
             'report_state'   => (string) $report->report_state,
             'assigned_user_id' => (int)  $report->assigned_user_id,
             'comment_count'  => (int)    $report->comment_count,
@@ -157,7 +159,9 @@ trait ProReportsTrait
         }
 
         $report = \XF::em()->find('XF:Report', (int) $params['report_id']);
-        if (!$report) return $this->error('not_found', 'Report not found');
+        if (!$report) {
+            return $this->error('not_found', 'Report not found');
+        }
         if (!$report->canView()) {
             return $this->error('no_permission', 'You do not have permission to view/reply to this report');
         }
@@ -187,7 +191,9 @@ trait ProReportsTrait
         }
 
         $report = \XF::em()->find('XF:Report', $reportId);
-        if (!$report) return $this->error('not_found', 'Report not found');
+        if (!$report) {
+            return $this->error('not_found', 'Report not found');
+        }
         if (!$report->canView()) {
             return $this->error('no_permission', 'You do not have permission to manage this report');
         }
@@ -195,7 +201,9 @@ trait ProReportsTrait
         /** @var \XF\Service\Report\CommenterService $svc */
         $svc = \XF::service('XF:Report\Commenter', $report, \XF::visitor());
         $svc->setReportState($newState);
-        if ($comment !== '') $svc->setMessage($comment);
+        if ($comment !== '') {
+            $svc->setMessage($comment);
+        }
         $svc->save();
 
         return $this->success([

@@ -54,7 +54,9 @@ trait ProAdvancedModTrait
     public function execute_mergePosts($params)
     {
         $targetPost = \XF::em()->find('XF:Post', (int) $params['target_post_id']);
-        if (!$targetPost) return $this->error('not_found', 'Target post not found');
+        if (!$targetPost) {
+            return $this->error('not_found', 'Target post not found');
+        }
 
         $sourceIds = array_values(array_map('intval', (array) $params['source_post_ids']));
         $sources = \XF::em()->findByIds('XF:Post', $sourceIds);
@@ -87,7 +89,9 @@ trait ProAdvancedModTrait
         }
 
         $forum = \XF::em()->find('XF:Forum', (int) $params['target_forum_id']);
-        if (!$forum) return $this->error('not_found', 'Target forum not found');
+        if (!$forum) {
+            return $this->error('not_found', 'Target forum not found');
+        }
 
         /** @var \XF\Service\Post\MoverService $svc */
         $svc = \XF::service('XF:Post\Mover', $posts);

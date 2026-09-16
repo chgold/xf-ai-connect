@@ -55,6 +55,14 @@ sudo -u xenforo-dev opencode
 
 ---
 
+## Pro License Enforcement (חובה)
+
+תוסף ה-Pro חייב לעמוד ב-SPEC: **Pro License Enforcement v1.0** (`/workspace/.specs/LICENSE-ENFORCEMENT-SPEC.md`).
+
+עיקרון: ה-Pro הוא **סט כלים על הליבה** (לא התקנה עצמאית), ו-`Listener/ModuleInit` חייב לטעון אותו רק כאשר `AICONNECT_EDITION=pro` (env override לאתרי טסט) **או** רישיון מאומת מ-goldnat.ai (עם התאמת `plugin_slug=xenforo-addon-pro`). ללא זה — כלי ה-Pro לא נטענים.
+
+---
+
 ## Token Management (חובה)
 
 תוסף זה חייב לעמוד ב-SPEC: **Token Management UI & Lifecycle v1.0** (`/workspace/.specs/TOKEN-MANAGEMENT-SPEC.md`).

@@ -61,7 +61,7 @@ trait ProNotificationsTrait
                 'alert_id'    => (int)    $a->alert_id,
                 'sender_id'   => (int)    $a->user_id,
                 'sender'      => (string) $a->username,
-                'content_type'=> (string) $a->content_type,
+                'content_type' => (string) $a->content_type,
                 'action'      => (string) $a->action,
                 'event_date'  => (int)    $a->event_date,
                 'read'        => (bool)   $a->read_date,

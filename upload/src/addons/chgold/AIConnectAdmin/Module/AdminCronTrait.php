@@ -40,8 +40,12 @@ trait AdminCronTrait
 
     public function execute_listCronTasks($params)
     {
-        if ($err = $this->requireAdmin()) return $err;
-        if ($err = $this->assertCronPermission()) return $err;
+        if ($err = $this->requireAdmin()) {
+            return $err;
+        }
+        if ($err = $this->assertCronPermission()) {
+            return $err;
+        }
 
         // findCronEntriesForList may not exist on older XF minor versions.
         // Use finder pattern directly.
@@ -64,12 +68,18 @@ trait AdminCronTrait
 
     public function execute_triggerCronTask($params)
     {
-        if ($err = $this->requireAdmin()) return $err;
-        if ($err = $this->assertCronPermission()) return $err;
+        if ($err = $this->requireAdmin()) {
+            return $err;
+        }
+        if ($err = $this->assertCronPermission()) {
+            return $err;
+        }
 
         $entryId = (string) $params['entry_id'];
         $entry = \XF::em()->find('XF:CronEntry', $entryId);
-        if (!$entry) return $this->error('not_found', "Cron entry '$entryId' not found");
+        if (!$entry) {
+            return $this->error('not_found', "Cron entry '$entryId' not found");
+        }
 
         // Guard against dead add-ons (same check XF ACP does in CronEntryController::actionRun)
         if ($entry->addon_id && (!$entry->AddOn || !$entry->AddOn->active)) {

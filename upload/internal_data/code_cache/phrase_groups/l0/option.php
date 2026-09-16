@@ -9,6 +9,7 @@ return array (
   'option.adsDisallowedTemplates' => 'Prevent ads showing in these templates',
   'option.aiconnect_nav_bottom' => 'Show next to RSS button (footer)',
   'option.aiconnect_nav_top' => 'Show AI Connect link to guests and visitors without tool access',
+  'option.aiconnect_pro_license_key' => 'License key',
   'option.aiconnect_translation_provider' => 'Translation provider',
   'option.akismetKey' => 'Akismet API key',
   'option.alertExpiryDays' => 'Days to retain viewed alerts',

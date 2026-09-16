@@ -39,8 +39,12 @@ trait AdminPermissionsSafetyTrait
 
     public function execute_simulatePermissionChange($params)
     {
-        if ($err = $this->requireAdmin()) return $err;
-        if ($err = $this->assertPermission('userGroup')) return $err;
+        if ($err = $this->requireAdmin()) {
+            return $err;
+        }
+        if ($err = $this->assertPermission('userGroup')) {
+            return $err;
+        }
 
         $nodeId  = (int)    $params['node_id'];
         $groupId = (int)    ($params['user_group_id'] ?? 0);
@@ -51,10 +55,15 @@ trait AdminPermissionsSafetyTrait
 
         // Auto-correct viewNode → view (except SYSTEM marker)
         $isPrivateFlag = ($pid === 'viewNode' && $pg === 'general' && $groupId === 0 && $userId === 0);
-        if (!$isPrivateFlag && $pid === 'viewNode') { $pid = 'view'; $pg = 'general'; }
+        if (!$isPrivateFlag && $pid === 'viewNode') {
+            $pid = 'view';
+            $pg = 'general';
+        }
 
         $node = \XF::em()->find('XF:Node', $nodeId);
-        if (!$node) return $this->error('not_found', "Node $nodeId not found");
+        if (!$node) {
+            return $this->error('not_found', "Node $nodeId not found");
+        }
 
         $callerId   = \XF::visitor()->user_id;
         // secondary_group_ids is already an array in XF entity (LIST_COMMA type)
@@ -122,8 +131,13 @@ trait AdminPermissionsSafetyTrait
         foreach ($chain as $nid) {
             // Check if the simulated change would apply here
             if ($nid === $nodeId && $changeGroup === $group && $changeUser === 0) {
-                if ($contentValue === null) $contentValue = $changeVal;
-                if ($changeVal === 'deny') { $contentValue = 'deny'; break; }
+                if ($contentValue === null) {
+                    $contentValue = $changeVal;
+                }
+                if ($changeVal === 'deny') {
+                    $contentValue = 'deny';
+                    break;
+                }
                 continue;
             }
             $rowVal = \XF::db()->fetchOne(
@@ -134,14 +148,25 @@ trait AdminPermissionsSafetyTrait
                 [$group, 'node', $nid, 'general', 'view']
             );
             if ($rowVal) {
-                if ($contentValue === null) $contentValue = $rowVal;
-                if ($rowVal === 'deny') { $contentValue = 'deny'; break; }
+                if ($contentValue === null) {
+                    $contentValue = $rowVal;
+                }
+                if ($rowVal === 'deny') {
+                    $contentValue = 'deny';
+                    break;
+                }
             }
         }
 
-        if ($contentValue === 'deny')           return false;
-        if ($contentValue === 'content_allow')  return true;
-        if ($baseView === 'allow')              return true;
+        if ($contentValue === 'deny') {
+            return false;
+        }
+        if ($contentValue === 'content_allow') {
+            return true;
+        }
+        if ($baseView === 'allow') {
+            return true;
+        }
         return false;
     }
 
@@ -151,7 +176,9 @@ trait AdminPermissionsSafetyTrait
         $cursor = \XF::em()->find('XF:Node', $nodeId);
         while ($cursor) {
             $chain[] = (int) $cursor->node_id;
-            if (!$cursor->parent_node_id) break;
+            if (!$cursor->parent_node_id) {
+                break;
+            }
             $cursor = \XF::em()->find('XF:Node', $cursor->parent_node_id);
         }
         return $chain;
@@ -162,8 +189,12 @@ trait AdminPermissionsSafetyTrait
      * Returns true = would lock out.
      */
     public function wouldLockOutCaller(
-        int $nodeId, int $changeGroup, int $changeUser,
-        string $pg, string $pid, string $val
+        int $nodeId,
+        int $changeGroup,
+        int $changeUser,
+        string $pg,
+        string $pid,
+        string $val
     ): bool {
         $secondary = (array) \XF::visitor()->secondary_group_ids;
         $callerGroups = array_map('intval', array_filter(array_merge(
@@ -172,7 +203,9 @@ trait AdminPermissionsSafetyTrait
         )));
 
         // Only check for view permission changes
-        if ($pg !== 'general' || $pid !== 'view') return false;
+        if ($pg !== 'general' || $pid !== 'view') {
+            return false;
+        }
 
         foreach ($callerGroups as $gid) {
             if (!$this->simulateGroupView($nodeId, $gid, $changeGroup, $changeUser, $pg, $pid, $val)) {

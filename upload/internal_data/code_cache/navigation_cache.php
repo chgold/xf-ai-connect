@@ -398,28 +398,31 @@ return function($__templater, $__selectedNav, array $__vars)
 		}
 	}
 
-	$__navTemp = [
-		'title' => \XF::phrase('nav.ai_connect'),
+	if (
+	$__vars['xf']['options']['aiconnect_nav_top'] && $__vars['xf']['visitor']->hasPermission('aiconnect', 'viewAiConnect') && (!$__vars['xf']['visitor']->user_id || $__vars['xf']['visitor']->hasPermission('aiconnect', 'useTools'))) {
+		$__navTemp = [
+		'title' => 'AI Connect',
 		'href' => $__templater->func('link', array('ai-connect', ), false),
 		'attributes' => [],
 	];
-	if ($__navTemp) {
-		$__tree['ai_connect'] = $__navTemp;
-		$__flat['ai_connect'] =& $__tree['ai_connect'];
-		if (empty($__tree['ai_connect']['children'])) { $__tree['ai_connect']['children'] = []; }
+		if ($__navTemp) {
+			$__tree['ai_connect'] = $__navTemp;
+			$__flat['ai_connect'] =& $__tree['ai_connect'];
+			if (empty($__tree['ai_connect']['children'])) { $__tree['ai_connect']['children'] = []; }
 
-		if (($__vars['xf']['visitor']['user_id'] AND $__templater->method($__vars['xf']['visitor'], 'hasAiConnectActiveTokens', array()))) {
-			$__navTemp = [
+			if (($__vars['xf']['visitor']['user_id'] AND $__templater->method($__vars['xf']['visitor'], 'hasAiConnectActiveTokens', array()))) {
+				$__navTemp = [
 		'title' => \XF::phrase('nav.ai_connect_my_tokens'),
 		'href' => $__templater->func('link', array('ai-connect-tokens', ), false),
 		'attributes' => [],
 	];
-			if ($__navTemp) {
-				$__tree['ai_connect']['children']['ai_connect_my_tokens'] = $__navTemp;
-				$__flat['ai_connect_my_tokens'] =& $__tree['ai_connect']['children']['ai_connect_my_tokens'];
+				if ($__navTemp) {
+					$__tree['ai_connect']['children']['ai_connect_my_tokens'] = $__navTemp;
+					$__flat['ai_connect_my_tokens'] =& $__tree['ai_connect']['children']['ai_connect_my_tokens'];
+				}
 			}
-		}
 
+		}
 	}
 
 

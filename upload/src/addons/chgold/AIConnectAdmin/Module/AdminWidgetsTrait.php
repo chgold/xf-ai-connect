@@ -100,8 +100,12 @@ trait AdminWidgetsTrait
 
     public function execute_listWidgets($params)
     {
-        if ($err = $this->requireAdmin()) return $err;
-        if ($err = $this->assertPermission('style')) return $err;
+        if ($err = $this->requireAdmin()) {
+            return $err;
+        }
+        if ($err = $this->assertPermission('style')) {
+            return $err;
+        }
 
         // xf_widget has NO display_order/active columns — those live per-position
         // inside the positions JSON blob. Order by widget_key for stability.
@@ -114,7 +118,9 @@ trait AdminWidgetsTrait
         $out = [];
         foreach ($finder->fetch() as $w) {
             $positions = $w->positions ?: [];
-            if ($filterPos !== '' && !isset($positions[$filterPos])) continue;
+            if ($filterPos !== '' && !isset($positions[$filterPos])) {
+                continue;
+            }
             $out[] = [
                 'widget_id'            => (int)    $w->widget_id,
                 'widget_key'           => (string) $w->widget_key,
@@ -130,12 +136,18 @@ trait AdminWidgetsTrait
 
     public function execute_getWidget($params)
     {
-        if ($err = $this->requireAdmin()) return $err;
-        if ($err = $this->assertPermission('style')) return $err;
+        if ($err = $this->requireAdmin()) {
+            return $err;
+        }
+        if ($err = $this->assertPermission('style')) {
+            return $err;
+        }
 
         $key = (string) $params['widget_key'];
         $w = \XF::em()->findOne('XF:Widget', ['widget_key' => $key]);
-        if (!$w) return $this->error('not_found', "Widget '$key' not found");
+        if (!$w) {
+            return $this->error('not_found', "Widget '$key' not found");
+        }
 
         return $this->success([
             'widget_id'            => (int)    $w->widget_id,
@@ -150,8 +162,12 @@ trait AdminWidgetsTrait
 
     public function execute_createWidget($params)
     {
-        if ($err = $this->requireAdmin()) return $err;
-        if ($err = $this->assertPermission('style')) return $err;
+        if ($err = $this->requireAdmin()) {
+            return $err;
+        }
+        if ($err = $this->assertPermission('style')) {
+            return $err;
+        }
 
         $key = (string) $params['widget_key'];
         $existing = \XF::em()->findOne('XF:Widget', ['widget_key' => $key]);
@@ -193,12 +209,18 @@ trait AdminWidgetsTrait
 
     public function execute_editWidget($params)
     {
-        if ($err = $this->requireAdmin()) return $err;
-        if ($err = $this->assertPermission('style')) return $err;
+        if ($err = $this->requireAdmin()) {
+            return $err;
+        }
+        if ($err = $this->assertPermission('style')) {
+            return $err;
+        }
 
         $key = (string) $params['widget_key'];
         $w = \XF::em()->findOne('XF:Widget', ['widget_key' => $key]);
-        if (!$w) return $this->error('not_found', "Widget '$key' not found");
+        if (!$w) {
+            return $this->error('not_found', "Widget '$key' not found");
+        }
 
         if (isset($params['positions'])) {
             $w->positions = $this->positionsFromArray(
@@ -242,20 +264,30 @@ trait AdminWidgetsTrait
 
     public function execute_deleteWidget($params)
     {
-        if ($err = $this->requireAdmin()) return $err;
-        if ($err = $this->assertPermission('style')) return $err;
+        if ($err = $this->requireAdmin()) {
+            return $err;
+        }
+        if ($err = $this->assertPermission('style')) {
+            return $err;
+        }
 
         $key = (string) $params['widget_key'];
         $w = \XF::em()->findOne('XF:Widget', ['widget_key' => $key]);
-        if (!$w) return $this->error('not_found', "Widget '$key' not found");
+        if (!$w) {
+            return $this->error('not_found', "Widget '$key' not found");
+        }
         $w->delete();
         return $this->success(['widget_key' => $key, 'deleted' => true]);
     }
 
     public function execute_listWidgetPositions($params)
     {
-        if ($err = $this->requireAdmin()) return $err;
-        if ($err = $this->assertPermission('style')) return $err;
+        if ($err = $this->requireAdmin()) {
+            return $err;
+        }
+        if ($err = $this->assertPermission('style')) {
+            return $err;
+        }
 
         // xf_widget_position schema: position_id, active, addon_id (no title/widget_count)
         $positions = \XF::finder('XF:WidgetPosition')->order('position_id')->fetch();

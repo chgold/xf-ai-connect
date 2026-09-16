@@ -150,8 +150,12 @@ trait AdminAppearanceTrait
 
     public function execute_listStyleProperties($params)
     {
-        if ($err = $this->requireAdmin()) return $err;
-        if ($err = $this->assertPermission('style')) return $err;
+        if ($err = $this->requireAdmin()) {
+            return $err;
+        }
+        if ($err = $this->assertPermission('style')) {
+            return $err;
+        }
 
         $styleId  = (int) ($params['style_id'] ?? 0);
         $group    = trim((string) ($params['group_name'] ?? ''));
@@ -207,8 +211,12 @@ trait AdminAppearanceTrait
 
     public function execute_getStyleProperty($params)
     {
-        if ($err = $this->requireAdmin()) return $err;
-        if ($err = $this->assertPermission('style')) return $err;
+        if ($err = $this->requireAdmin()) {
+            return $err;
+        }
+        if ($err = $this->assertPermission('style')) {
+            return $err;
+        }
 
         $styleId = (int) ($params['style_id'] ?? 0);
         $name    = (string) $params['property_name'];
@@ -246,8 +254,12 @@ trait AdminAppearanceTrait
 
     public function execute_setStyleProperty($params)
     {
-        if ($err = $this->requireAdmin()) return $err;
-        if ($err = $this->assertPermission('style')) return $err;
+        if ($err = $this->requireAdmin()) {
+            return $err;
+        }
+        if ($err = $this->assertPermission('style')) {
+            return $err;
+        }
 
         $styleId = (int) ($params['style_id'] ?? 0);
         $name    = (string) $params['property_name'];
@@ -383,8 +395,12 @@ trait AdminAppearanceTrait
 
     public function execute_unsetStyleProperty($params)
     {
-        if ($err = $this->requireAdmin()) return $err;
-        if ($err = $this->assertPermission('style')) return $err;
+        if ($err = $this->requireAdmin()) {
+            return $err;
+        }
+        if ($err = $this->assertPermission('style')) {
+            return $err;
+        }
 
         $styleId = (int) $params['style_id'];
         $name    = (string) $params['property_name'];
@@ -453,7 +469,9 @@ trait AdminAppearanceTrait
      */
     private static function decodePropertyValue($raw)
     {
-        if ($raw === null || $raw === '') return null;
+        if ($raw === null || $raw === '') {
+            return null;
+        }
         $decoded = json_decode((string) $raw, true);
         if ($decoded === null && json_last_error() !== JSON_ERROR_NONE) {
             return $raw;  // not JSON — return as-is
@@ -473,13 +491,21 @@ trait AdminAppearanceTrait
     private static function unwrapNestedJsonStrings($value, int $maxDepth = 3)
     {
         for ($i = 0; $i < $maxDepth; $i++) {
-            if (!is_string($value) || $value === '') break;
+            if (!is_string($value) || $value === '') {
+                break;
+            }
             $first = $value[0];
-            if ($first !== '"' && $first !== '{' && $first !== '[') break;
+            if ($first !== '"' && $first !== '{' && $first !== '[') {
+                break;
+            }
             $next = json_decode($value, true);
-            if ($next === null && strtolower(trim($value)) !== 'null') break;
+            if ($next === null && strtolower(trim($value)) !== 'null') {
+                break;
+            }
             // Refuse type coercion: bool/int/float are almost never desired.
-            if (!is_string($next) && !is_array($next) && $next !== null) break;
+            if (!is_string($next) && !is_array($next) && $next !== null) {
+                break;
+            }
             $value = $next;
         }
         return $value;
@@ -501,8 +527,12 @@ trait AdminAppearanceTrait
 
     public function execute_uploadSiteLogo($params)
     {
-        if ($err = $this->requireAdmin()) return $err;
-        if ($err = $this->assertPermission('style')) return $err;
+        if ($err = $this->requireAdmin()) {
+            return $err;
+        }
+        if ($err = $this->assertPermission('style')) {
+            return $err;
+        }
 
         $styleId = (int) ($params['style_id'] ?? 0);
         // Derive extension from URL path (agent tests confirmed 'logo' with no
@@ -522,16 +552,24 @@ trait AdminAppearanceTrait
 
     public function execute_deleteSiteLogo($params)
     {
-        if ($err = $this->requireAdmin()) return $err;
-        if ($err = $this->assertPermission('style')) return $err;
+        if ($err = $this->requireAdmin()) {
+            return $err;
+        }
+        if ($err = $this->assertPermission('style')) {
+            return $err;
+        }
         $styleId = (int) ($params['style_id'] ?? 0);
         return $this->clearLogoProperty($styleId);
     }
 
     public function execute_listStyleAssets($params)
     {
-        if ($err = $this->requireAdmin()) return $err;
-        if ($err = $this->assertPermission('style')) return $err;
+        if ($err = $this->requireAdmin()) {
+            return $err;
+        }
+        if ($err = $this->assertPermission('style')) {
+            return $err;
+        }
 
         $styleId = (int) ($params['style_id'] ?? 0);
         $dir = \XF::app()->config('externalDataPath') . '/assets/' . ($styleId ?: 'default');
@@ -553,19 +591,27 @@ trait AdminAppearanceTrait
 
     public function execute_uploadStyleAsset($params)
     {
-        if ($err = $this->requireAdmin()) return $err;
-        if ($err = $this->assertPermission('style')) return $err;
+        if ($err = $this->requireAdmin()) {
+            return $err;
+        }
+        if ($err = $this->assertPermission('style')) {
+            return $err;
+        }
 
         $filename = basename((string) $params['target_filename']);
         if (preg_match('#^(\.|\.\.)#', $filename) || strpos($filename, '/') !== false) {
             return $this->error('validation_failed', 'target_filename must be a plain basename');
         }
         $upload = $this->fetchUrlToUpload((string) $params['file_url'], $filename);
-        if (!($upload instanceof \XF\Http\Upload)) return $upload;
+        if (!($upload instanceof \XF\Http\Upload)) {
+            return $upload;
+        }
 
         $styleId = (int) ($params['style_id'] ?? 0);
         $dir = \XF::app()->config('externalDataPath') . '/assets/' . ($styleId ?: 'default');
-        if (!is_dir($dir)) @mkdir($dir, 0755, true);
+        if (!is_dir($dir)) {
+            @mkdir($dir, 0755, true);
+        }
 
         $target = $dir . '/' . $filename;
         if (!copy($upload->getTempFile(), $target)) {
@@ -580,8 +626,12 @@ trait AdminAppearanceTrait
 
     public function execute_deleteStyleAsset($params)
     {
-        if ($err = $this->requireAdmin()) return $err;
-        if ($err = $this->assertPermission('style')) return $err;
+        if ($err = $this->requireAdmin()) {
+            return $err;
+        }
+        if ($err = $this->assertPermission('style')) {
+            return $err;
+        }
 
         $filename = basename((string) $params['filename']);
         $styleId = (int) ($params['style_id'] ?? 0);
@@ -725,7 +775,9 @@ trait AdminAppearanceTrait
         // Upload::getExtension() returns '' and downstream validation fails.
         if (pathinfo($suggestedName, PATHINFO_EXTENSION) === '') {
             $ext = $this->extFromMime($tmp);
-            if ($ext !== '') $suggestedName .= '.' . $ext;
+            if ($ext !== '') {
+                $suggestedName .= '.' . $ext;
+            }
         }
         return new \XF\Http\Upload($tmp, $suggestedName);
     }
@@ -736,7 +788,9 @@ trait AdminAppearanceTrait
      */
     private function extFromMime(string $path): string
     {
-        if (!is_file($path)) return '';
+        if (!is_file($path)) {
+            return '';
+        }
 
         // getimagesize covers png/jpg/gif/webp reliably
         $info = @getimagesize($path);
@@ -748,13 +802,17 @@ trait AdminAppearanceTrait
                 'image/webp' => 'webp',
                 'image/svg+xml' => 'svg',
             ];
-            if (isset($map[$info['mime']])) return $map[$info['mime']];
+            if (isset($map[$info['mime']])) {
+                return $map[$info['mime']];
+            }
         }
 
         // SVG is XML — getimagesize might not identify it. Sniff the start.
         $head = (string) @file_get_contents($path, false, null, 0, 512);
         if ($head !== '' && (stripos($head, '<svg') !== false || stripos($head, '<?xml') === 0)) {
-            if (stripos($head, '<svg') !== false) return 'svg';
+            if (stripos($head, '<svg') !== false) {
+                return 'svg';
+            }
         }
 
         // finfo as last resort
@@ -763,8 +821,10 @@ trait AdminAppearanceTrait
             if ($f) {
                 $mime = finfo_file($f, $path) ?: '';
                 finfo_close($f);
-                $map = ['image/png'=>'png','image/jpeg'=>'jpg','image/gif'=>'gif','image/webp'=>'webp','image/svg+xml'=>'svg'];
-                if (isset($map[$mime])) return $map[$mime];
+                $map = ['image/png' => 'png','image/jpeg' => 'jpg','image/gif' => 'gif','image/webp' => 'webp','image/svg+xml' => 'svg'];
+                if (isset($map[$mime])) {
+                    return $map[$mime];
+                }
             }
         }
         return '';

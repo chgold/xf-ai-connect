@@ -62,12 +62,18 @@ trait AdminPhrasesTrait
 
     public function execute_searchPhrases($params)
     {
-        if ($err = $this->requireAdmin()) return $err;
+        if ($err = $this->requireAdmin()) {
+            return $err;
+        }
         // Phrases fall under the 'style' admin permission in XF core
-        if ($err = $this->assertPermission('style')) return $err;
+        if ($err = $this->assertPermission('style')) {
+            return $err;
+        }
 
         $search = trim((string) $params['search']);
-        if ($search === '') return $this->error('validation_failed', 'search cannot be empty');
+        if ($search === '') {
+            return $this->error('validation_failed', 'search cannot be empty');
+        }
 
         $like = '%' . str_replace(['%', '_'], ['\%', '\_'], $search) . '%';
         $sql = 'SELECT phrase_id, title, LEFT(phrase_text, 200) AS preview,
@@ -92,8 +98,12 @@ trait AdminPhrasesTrait
 
     public function execute_getPhrase($params)
     {
-        if ($err = $this->requireAdmin()) return $err;
-        if ($err = $this->assertPermission('style')) return $err;
+        if ($err = $this->requireAdmin()) {
+            return $err;
+        }
+        if ($err = $this->assertPermission('style')) {
+            return $err;
+        }
 
         $title = (string) $params['title'];
         $languageId = (int) ($params['language_id'] ?? 0);
@@ -102,7 +112,9 @@ trait AdminPhrasesTrait
             'title' => $title,
             'language_id' => $languageId,
         ]);
-        if (!$phrase) return $this->error('not_found', "Phrase '$title' not found in language $languageId");
+        if (!$phrase) {
+            return $this->error('not_found', "Phrase '$title' not found in language $languageId");
+        }
 
         return $this->success([
             'phrase_id'      => (int)    $phrase->phrase_id,
@@ -116,8 +128,12 @@ trait AdminPhrasesTrait
 
     public function execute_editPhrase($params)
     {
-        if ($err = $this->requireAdmin()) return $err;
-        if ($err = $this->assertPermission('style')) return $err;
+        if ($err = $this->requireAdmin()) {
+            return $err;
+        }
+        if ($err = $this->assertPermission('style')) {
+            return $err;
+        }
 
         $title = (string) $params['title'];
         $languageId = (int) ($params['language_id'] ?? 0);
@@ -126,7 +142,9 @@ trait AdminPhrasesTrait
             'title' => $title,
             'language_id' => $languageId,
         ]);
-        if (!$phrase) return $this->error('not_found', "Phrase '$title' not found");
+        if (!$phrase) {
+            return $this->error('not_found', "Phrase '$title' not found");
+        }
 
         $phrase->phrase_text = (string) $params['phrase_text'];
         if (!$phrase->save()) {

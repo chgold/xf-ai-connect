@@ -52,8 +52,12 @@ trait AdminAddonsTrait
 
     public function execute_listAddons($params)
     {
-        if ($err = $this->requireAdmin()) return $err;
-        if ($err = $this->assertPermission('addOn')) return $err;
+        if ($err = $this->requireAdmin()) {
+            return $err;
+        }
+        if ($err = $this->assertPermission('addOn')) {
+            return $err;
+        }
 
         // getAddOnsForList() signature varies across XF versions and can return
         // arrays instead of entities, causing property-access crashes.
@@ -75,12 +79,18 @@ trait AdminAddonsTrait
 
     public function execute_enableAddon($params)
     {
-        if ($err = $this->requireAdmin()) return $err;
-        if ($err = $this->assertPermission('addOn')) return $err;
+        if ($err = $this->requireAdmin()) {
+            return $err;
+        }
+        if ($err = $this->assertPermission('addOn')) {
+            return $err;
+        }
 
         $addonId = (string) $params['addon_id'];
         $addon = \XF::em()->find('XF:AddOn', $addonId);
-        if (!$addon) return $this->error('not_found', "Add-on '$addonId' not installed");
+        if (!$addon) {
+            return $this->error('not_found', "Add-on '$addonId' not installed");
+        }
 
         if ($addon->active) {
             return $this->success([
@@ -92,7 +102,9 @@ trait AdminAddonsTrait
 
         /** @var \XF\AddOn\AddOn $handler */
         $handler = \XF::app()->addOnManager()->getById($addonId);
-        if (!$handler) return $this->error('not_found', "Add-on handler for '$addonId' missing");
+        if (!$handler) {
+            return $this->error('not_found', "Add-on handler for '$addonId' missing");
+        }
 
         \XF::app()->addOnManager()->enable($handler);
 
@@ -105,8 +117,12 @@ trait AdminAddonsTrait
 
     public function execute_disableAddon($params)
     {
-        if ($err = $this->requireAdmin()) return $err;
-        if ($err = $this->assertPermission('addOn')) return $err;
+        if ($err = $this->requireAdmin()) {
+            return $err;
+        }
+        if ($err = $this->assertPermission('addOn')) {
+            return $err;
+        }
 
         $addonId = (string) $params['addon_id'];
 
@@ -121,7 +137,9 @@ trait AdminAddonsTrait
         }
 
         $addon = \XF::em()->find('XF:AddOn', $addonId);
-        if (!$addon) return $this->error('not_found', "Add-on '$addonId' not installed");
+        if (!$addon) {
+            return $this->error('not_found', "Add-on '$addonId' not installed");
+        }
 
         if (!$addon->active) {
             return $this->success([
@@ -132,7 +150,9 @@ trait AdminAddonsTrait
         }
 
         $handler = \XF::app()->addOnManager()->getById($addonId);
-        if (!$handler) return $this->error('not_found', "Add-on handler for '$addonId' missing");
+        if (!$handler) {
+            return $this->error('not_found', "Add-on handler for '$addonId' missing");
+        }
 
         \XF::app()->addOnManager()->disable($handler);
 

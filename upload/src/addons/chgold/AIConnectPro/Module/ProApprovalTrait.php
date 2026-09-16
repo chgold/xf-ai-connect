@@ -101,10 +101,14 @@ trait ProApprovalTrait
     public function execute_approveContent($params)
     {
         [$shortName, $svcName] = $this->contentTypeMap((string) $params['content_type']);
-        if (!$shortName) return $this->error('invalid_param', 'Unknown content_type');
+        if (!$shortName) {
+            return $this->error('invalid_param', 'Unknown content_type');
+        }
 
         $content = \XF::em()->find($shortName, (int) $params['content_id']);
-        if (!$content) return $this->error('not_found', 'Content not found');
+        if (!$content) {
+            return $this->error('not_found', 'Content not found');
+        }
 
         $svc = \XF::service($svcName, $content);
         $svc->approve();
@@ -126,10 +130,14 @@ trait ProApprovalTrait
         }
 
         [$shortName, ] = $this->contentTypeMap((string) $params['content_type']);
-        if (!$shortName) return $this->error('invalid_param', 'Unknown content_type');
+        if (!$shortName) {
+            return $this->error('invalid_param', 'Unknown content_type');
+        }
 
         $content = \XF::em()->find($shortName, (int) $params['content_id']);
-        if (!$content) return $this->error('not_found', 'Content not found');
+        if (!$content) {
+            return $this->error('not_found', 'Content not found');
+        }
 
         if (method_exists($content, 'canDelete') && !$content->canDelete('soft', $error)) {
             return $this->error('no_permission', $error ?: 'You cannot delete this content');

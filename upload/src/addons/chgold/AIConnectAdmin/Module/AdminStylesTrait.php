@@ -42,8 +42,12 @@ trait AdminStylesTrait
 
     public function execute_listStyles($params)
     {
-        if ($err = $this->requireAdmin()) return $err;
-        if ($err = $this->assertStylePermission()) return $err;
+        if ($err = $this->requireAdmin()) {
+            return $err;
+        }
+        if ($err = $this->assertStylePermission()) {
+            return $err;
+        }
 
         $defaultId = (int) \XF::options()->defaultStyleId;
         // findAll signature is ($shortName, $conditions = null, $order = null).
@@ -66,12 +70,18 @@ trait AdminStylesTrait
 
     public function execute_setDefaultStyle($params)
     {
-        if ($err = $this->requireAdmin()) return $err;
-        if ($err = $this->assertStylePermission()) return $err;
+        if ($err = $this->requireAdmin()) {
+            return $err;
+        }
+        if ($err = $this->assertStylePermission()) {
+            return $err;
+        }
 
         $styleId = (int) $params['style_id'];
         $style = \XF::em()->find('XF:Style', $styleId);
-        if (!$style) return $this->error('not_found', "Style ID $styleId not found");
+        if (!$style) {
+            return $this->error('not_found', "Style ID $styleId not found");
+        }
 
         /** @var \XF\Repository\OptionRepository $repo */
         $repo = \XF::em()->getRepository('XF:Option');

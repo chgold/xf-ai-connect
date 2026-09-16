@@ -460,7 +460,9 @@ class AdminModule extends ModuleBase
                 'SELECT node_id FROM xf_node WHERE node_name = ? LIMIT 1',
                 [$slug]
             );
-            if (!$existing) return $slug;
+            if (!$existing) {
+                return $slug;
+            }
             $slug = $original . '-' . $i;
         }
         // Extremely rare fallback — timestamp-based unique
@@ -481,7 +483,9 @@ class AdminModule extends ModuleBase
         // SECURITY (v1.4.14): only called from execute_createNode / execute_editNode
         // which invoke requireAdmin() + assertPermission('node'). This helper trusts
         // the caller's guards. Referenced here to satisfy CHECK_XF_002 scanner.
-        if (!$typeData) return;
+        if (!$typeData) {
+            return;
+        }
 
         if ($node->node_type_id === 'Page') {
             $changed = false;

@@ -96,8 +96,12 @@ trait AdminUsergroupsTrait
 
     public function execute_createUsergroup($params)
     {
-        if ($err = $this->requireAdmin()) return $err;
-        if ($err = $this->assertPermission("userGroup")) return $err;
+        if ($err = $this->requireAdmin()) {
+            return $err;
+        }
+        if ($err = $this->assertPermission("userGroup")) {
+            return $err;
+        }
 
         $group = \XF::em()->create("XF:UserGroup");
         $group->title = (string) $params["title"];
@@ -113,15 +117,25 @@ trait AdminUsergroupsTrait
 
     public function execute_updateUsergroup($params)
     {
-        if ($err = $this->requireAdmin()) return $err;
-        if ($err = $this->assertPermission("userGroup")) return $err;
+        if ($err = $this->requireAdmin()) {
+            return $err;
+        }
+        if ($err = $this->assertPermission("userGroup")) {
+            return $err;
+        }
 
         $group = \XF::em()->find("XF:UserGroup", (int) $params["user_group_id"]);
-        if (!$group) return $this->error("not_found", "User group not found");
+        if (!$group) {
+            return $this->error("not_found", "User group not found");
+        }
 
-        if ($err = $this->assertCanMutateUsergroup($group)) return $err;
+        if ($err = $this->assertCanMutateUsergroup($group)) {
+            return $err;
+        }
 
-        if (isset($params["title"])) $group->title = (string) $params["title"];
+        if (isset($params["title"])) {
+            $group->title = (string) $params["title"];
+        }
         $this->applyUsergroupParams($group, $params);
 
         if (!$group->preSave()) {
@@ -134,8 +148,12 @@ trait AdminUsergroupsTrait
 
     public function execute_deleteUsergroup($params)
     {
-        if ($err = $this->requireAdmin()) return $err;
-        if ($err = $this->assertPermission("userGroup")) return $err;
+        if ($err = $this->requireAdmin()) {
+            return $err;
+        }
+        if ($err = $this->assertPermission("userGroup")) {
+            return $err;
+        }
 
         $groupId = (int) $params["user_group_id"];
 
@@ -150,9 +168,13 @@ trait AdminUsergroupsTrait
         }
 
         $group = \XF::em()->find("XF:UserGroup", $groupId);
-        if (!$group) return $this->error("not_found", "User group not found");
+        if (!$group) {
+            return $this->error("not_found", "User group not found");
+        }
 
-        if ($err = $this->assertCanMutateUsergroup($group)) return $err;
+        if ($err = $this->assertCanMutateUsergroup($group)) {
+            return $err;
+        }
 
         // Refuse if the group contains any super admin as primary OR secondary,
         // to avoid stripping super-admin association side-effects.
@@ -175,15 +197,23 @@ trait AdminUsergroupsTrait
 
     public function execute_addSecondaryGroup($params)
     {
-        if ($err = $this->requireAdmin()) return $err;
+        if ($err = $this->requireAdmin()) {
+            return $err;
+        }
 
         $user = \XF::em()->find("XF:User", (int) $params["user_id"]);
-        if (!$user) return $this->error("not_found", "User not found");
-        if ($err = $this->assertCanTouchUser($user)) return $err;
+        if (!$user) {
+            return $this->error("not_found", "User not found");
+        }
+        if ($err = $this->assertCanTouchUser($user)) {
+            return $err;
+        }
 
         $groupId = (int) $params["user_group_id"];
         $group = \XF::em()->find("XF:UserGroup", $groupId);
-        if (!$group) return $this->error("not_found", "User group not found");
+        if (!$group) {
+            return $this->error("not_found", "User group not found");
+        }
 
         $current = is_array($user->secondary_group_ids) ? $user->secondary_group_ids : [];
         if (in_array($groupId, $current, true)) {
@@ -208,11 +238,17 @@ trait AdminUsergroupsTrait
 
     public function execute_removeSecondaryGroup($params)
     {
-        if ($err = $this->requireAdmin()) return $err;
+        if ($err = $this->requireAdmin()) {
+            return $err;
+        }
 
         $user = \XF::em()->find("XF:User", (int) $params["user_id"]);
-        if (!$user) return $this->error("not_found", "User not found");
-        if ($err = $this->assertCanTouchUser($user)) return $err;
+        if (!$user) {
+            return $this->error("not_found", "User not found");
+        }
+        if ($err = $this->assertCanTouchUser($user)) {
+            return $err;
+        }
 
         $groupId = (int) $params["user_group_id"];
         $current = is_array($user->secondary_group_ids) ? $user->secondary_group_ids : [];

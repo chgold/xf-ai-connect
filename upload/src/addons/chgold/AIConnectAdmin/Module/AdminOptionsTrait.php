@@ -55,12 +55,18 @@ trait AdminOptionsTrait
 
     public function execute_getOption($params)
     {
-        if ($err = $this->requireAdmin()) return $err;
-        if ($err = $this->assertOptionsPermission()) return $err;
+        if ($err = $this->requireAdmin()) {
+            return $err;
+        }
+        if ($err = $this->assertOptionsPermission()) {
+            return $err;
+        }
 
         $key = (string) $params['option_id'];
         $option = \XF::em()->find('XF:Option', $key);
-        if (!$option) return $this->error('not_found', "Option '$key' not defined");
+        if (!$option) {
+            return $this->error('not_found', "Option '$key' not defined");
+        }
 
         return $this->success([
             'option_id' => $key,
@@ -72,8 +78,12 @@ trait AdminOptionsTrait
 
     public function execute_setOption($params)
     {
-        if ($err = $this->requireAdmin()) return $err;
-        if ($err = $this->assertOptionsPermission()) return $err;
+        if ($err = $this->requireAdmin()) {
+            return $err;
+        }
+        if ($err = $this->assertOptionsPermission()) {
+            return $err;
+        }
 
         $key = (string) $params['option_id'];
         if (in_array($key, self::$optionSetBlocklist, true)) {
@@ -84,7 +94,9 @@ trait AdminOptionsTrait
         }
 
         $option = \XF::em()->find('XF:Option', $key);
-        if (!$option) return $this->error('not_found', "Option '$key' not defined");
+        if (!$option) {
+            return $this->error('not_found', "Option '$key' not defined");
+        }
 
         // v1.4.13 defensive input normalization. Agent may pass value as an
         // already-JSON-encoded string (leading '{', '[', or '"') — happens
@@ -100,14 +112,24 @@ trait AdminOptionsTrait
             if ($first === '{' || $first === '[' || $first === '"') {
                 for ($i = 0; $i < 3; $i++) {
                     $decoded = json_decode($value, true);
-                    if ($decoded === null && strtolower(trim($value)) !== 'null') break;
+                    if ($decoded === null && strtolower(trim($value)) !== 'null') {
+                        break;
+                    }
                     // For array-typed options accept only array; for others accept string/array/null.
-                    if ($dataType === 'array' && !is_array($decoded)) break;
-                    if (!is_string($decoded) && !is_array($decoded) && $decoded !== null) break;
+                    if ($dataType === 'array' && !is_array($decoded)) {
+                        break;
+                    }
+                    if (!is_string($decoded) && !is_array($decoded) && $decoded !== null) {
+                        break;
+                    }
                     $value = $decoded;
-                    if (!is_string($value)) break;
+                    if (!is_string($value)) {
+                        break;
+                    }
                     $first = $value === '' ? '' : $value[0];
-                    if ($first !== '{' && $first !== '[' && $first !== '"') break;
+                    if ($first !== '{' && $first !== '[' && $first !== '"') {
+                        break;
+                    }
                 }
             }
         }

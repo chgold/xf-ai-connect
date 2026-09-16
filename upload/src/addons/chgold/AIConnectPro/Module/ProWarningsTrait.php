@@ -81,13 +81,17 @@ trait ProWarningsTrait
             return $this->error('insufficient_scope', 'The "write" scope is required for this operation');
         }
         $visitor = \XF::visitor();
-        if (!$visitor->user_id) return $this->error('no_permission', 'Must be authenticated');
+        if (!$visitor->user_id) {
+            return $this->error('no_permission', 'Must be authenticated');
+        }
         if (!$visitor->hasPermission('general', 'warn')) {
             return $this->error('no_permission', 'The "warn" permission is required to issue warnings');
         }
 
         $user = \XF::em()->find('XF:User', (int) $params['user_id']);
-        if (!$user) return $this->error('not_found', 'User not found');
+        if (!$user) {
+            return $this->error('not_found', 'User not found');
+        }
         if (!$user->canWarn($error)) {
             return $this->error('no_permission', $error ?: 'This user cannot be warned by you');
         }
@@ -95,10 +99,14 @@ trait ProWarningsTrait
         $contentType = (string) $params['content_type'];
         $contentId   = (int)    $params['content_id'];
         $shortName   = $this->contentTypeToShortName($contentType);
-        if (!$shortName) return $this->error('invalid_param', "Unknown content_type: $contentType");
+        if (!$shortName) {
+            return $this->error('invalid_param', "Unknown content_type: $contentType");
+        }
 
         $content = \XF::em()->find($shortName, $contentId);
-        if (!$content) return $this->error('not_found', "$contentType $contentId not found");
+        if (!$content) {
+            return $this->error('not_found', "$contentType $contentId not found");
+        }
         if (method_exists($content, 'canWarn') && !$content->canWarn($cErr)) {
             return $this->error('no_permission', $cErr ?: "You cannot warn on this $contentType");
         }
@@ -110,7 +118,9 @@ trait ProWarningsTrait
 
         if (!empty($params['warning_definition_id'])) {
             $def = \XF::em()->find('XF:WarningDefinition', (int) $params['warning_definition_id']);
-            if (!$def) return $this->error('not_found', 'Warning definition not found');
+            if (!$def) {
+                return $this->error('not_found', 'Warning definition not found');
+            }
             $svc->setFromDefinition($def);
         } elseif (!empty($params['title']) && isset($params['points'])) {
             $expiry = !empty($params['expiry_days']) ? ['years' => 0, 'months' => 0, 'days' => (int)$params['expiry_days']] : null;
@@ -123,7 +133,9 @@ trait ProWarningsTrait
             return $this->error('invalid_param', 'Provide warning_definition_id OR title+points');
         }
 
-        if (!empty($params['notes'])) $svc->setNotes((string) $params['notes']);
+        if (!empty($params['notes'])) {
+            $svc->setNotes((string) $params['notes']);
+        }
         if (!empty($params['send_conversation']) && !empty($params['conversation_message'])) {
             $svc->withConversation((string) ($params['title'] ?? 'Warning'), (string) $params['conversation_message']);
         }
@@ -148,7 +160,9 @@ trait ProWarningsTrait
         }
 
         $warning = \XF::em()->find('XF:Warning', (int) $params['warning_id']);
-        if (!$warning) return $this->error('not_found', 'Warning not found');
+        if (!$warning) {
+            return $this->error('not_found', 'Warning not found');
+        }
         if (method_exists($warning, 'canDelete') && !$warning->canDelete($error)) {
             return $this->error('no_permission', $error ?: 'You cannot delete this warning');
         }

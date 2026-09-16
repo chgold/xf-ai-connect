@@ -11,3 +11,7 @@ $config['development']['enabled'] = true;
 $config['development']['defaultAddOn'] = 'chgold/AIConnect';
 
 $config['enableAddOnArchiveInstaller'] = true;
+
+// Dev override: grant all Pro bundles without a license key
+putenv('AICONNECT_EDITION=pro');
+$_ENV['AICONNECT_EDITION'] = 'pro';
