@@ -74,11 +74,23 @@ trait ProWarningsTrait
 
     public function execute_issueWarning($params)
     {
+        // v1.2.4 security (CHECK_XF_002): was missing write scope + warn permission.
+        // XF native uses hasPermission('general', 'warn') + $user->canWarn() +
+        // per-content canWarn (on Post/Thread/ProfilePost).
+        if (!\XF::service('chgold\AIConnect:BearerAuth')->checkScope('write')) {
+            return $this->error('insufficient_scope', 'The "write" scope is required for this operation');
+        }
         $visitor = \XF::visitor();
         if (!$visitor->user_id) return $this->error('no_permission', 'Must be authenticated');
+        if (!$visitor->hasPermission('general', 'warn')) {
+            return $this->error('no_permission', 'The "warn" permission is required to issue warnings');
+        }
 
         $user = \XF::em()->find('XF:User', (int) $params['user_id']);
         if (!$user) return $this->error('not_found', 'User not found');
+        if (!$user->canWarn($error)) {
+            return $this->error('no_permission', $error ?: 'This user cannot be warned by you');
+        }
 
         $contentType = (string) $params['content_type'];
         $contentId   = (int)    $params['content_id'];
@@ -87,6 +99,9 @@ trait ProWarningsTrait
 
         $content = \XF::em()->find($shortName, $contentId);
         if (!$content) return $this->error('not_found', "$contentType $contentId not found");
+        if (method_exists($content, 'canWarn') && !$content->canWarn($cErr)) {
+            return $this->error('no_permission', $cErr ?: "You cannot warn on this $contentType");
+        }
 
         // WarnService::__construct(App, User $user, $contentType, Entity $content, User $warningBy)
         // XF::service() auto-injects App, so we pass: user, contentType, content, warningBy
@@ -126,8 +141,17 @@ trait ProWarningsTrait
 
     public function execute_deleteWarning($params)
     {
+        // v1.2.4 security (CHECK_XF_002): was missing write scope + delete permission.
+        // XF native Warning::canDelete uses hasPermission('general', 'manageWarning').
+        if (!\XF::service('chgold\AIConnect:BearerAuth')->checkScope('write')) {
+            return $this->error('insufficient_scope', 'The "write" scope is required for this operation');
+        }
+
         $warning = \XF::em()->find('XF:Warning', (int) $params['warning_id']);
         if (!$warning) return $this->error('not_found', 'Warning not found');
+        if (method_exists($warning, 'canDelete') && !$warning->canDelete($error)) {
+            return $this->error('no_permission', $error ?: 'You cannot delete this warning');
+        }
 
         $userId = $warning->user_id;
         $points = $warning->points;

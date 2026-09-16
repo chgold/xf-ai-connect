@@ -118,11 +118,22 @@ trait ProApprovalTrait
 
     public function execute_rejectContent($params)
     {
+        // v1.2.4 security (CHECK_XF_002): was missing write-scope + can*() checks.
+        // rejectContent is a soft-delete on Post/Thread/ProfilePost — requires
+        // write scope AND canDelete() on the target content.
+        if (!\XF::service('chgold\AIConnect:BearerAuth')->checkScope('write')) {
+            return $this->error('insufficient_scope', 'The "write" scope is required for this operation');
+        }
+
         [$shortName, ] = $this->contentTypeMap((string) $params['content_type']);
         if (!$shortName) return $this->error('invalid_param', 'Unknown content_type');
 
         $content = \XF::em()->find($shortName, (int) $params['content_id']);
         if (!$content) return $this->error('not_found', 'Content not found');
+
+        if (method_exists($content, 'canDelete') && !$content->canDelete('soft', $error)) {
+            return $this->error('no_permission', $error ?: 'You cannot delete this content');
+        }
 
         // Post/Thread/ProfilePost deleters share the same soft-delete API
         $deleterSvc = str_replace(':Approver', ':Deleter', $this->contentTypeMap((string) $params['content_type'])[1]);

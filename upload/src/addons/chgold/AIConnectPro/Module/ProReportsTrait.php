@@ -147,8 +147,20 @@ trait ProReportsTrait
 
     public function execute_replyToReport($params)
     {
+        // v1.2.4 security (CHECK_XF_002): was missing write scope + can*() checks.
+        // XF native ReportController gates on $visitor->is_moderator.
+        if (!\XF::service('chgold\AIConnect:BearerAuth')->checkScope('write')) {
+            return $this->error('insufficient_scope', 'The "write" scope is required for this operation');
+        }
+        if (!\XF::visitor()->is_moderator && !\XF::visitor()->is_admin) {
+            return $this->error('no_permission', 'Report management requires moderator or admin');
+        }
+
         $report = \XF::em()->find('XF:Report', (int) $params['report_id']);
         if (!$report) return $this->error('not_found', 'Report not found');
+        if (!$report->canView()) {
+            return $this->error('no_permission', 'You do not have permission to view/reply to this report');
+        }
 
         /** @var \XF\Service\Report\CommenterService $svc */
         $svc = \XF::service('XF:Report\Commenter', $report, \XF::visitor());
@@ -163,8 +175,22 @@ trait ProReportsTrait
 
     private function changeReportState(int $reportId, string $newState, string $comment): array
     {
+        // v1.2.4 security: this helper is called by both execute_resolveReport
+        // and execute_rejectReport (which have no local guards). Enforce here so
+        // both callers inherit — write scope + moderator/admin permission +
+        // per-report canView.
+        if (!\XF::service('chgold\AIConnect:BearerAuth')->checkScope('write')) {
+            return $this->error('insufficient_scope', 'The "write" scope is required for this operation');
+        }
+        if (!\XF::visitor()->is_moderator && !\XF::visitor()->is_admin) {
+            return $this->error('no_permission', 'Report management requires moderator or admin');
+        }
+
         $report = \XF::em()->find('XF:Report', $reportId);
         if (!$report) return $this->error('not_found', 'Report not found');
+        if (!$report->canView()) {
+            return $this->error('no_permission', 'You do not have permission to manage this report');
+        }
 
         /** @var \XF\Service\Report\CommenterService $svc */
         $svc = \XF::service('XF:Report\Commenter', $report, \XF::visitor());
