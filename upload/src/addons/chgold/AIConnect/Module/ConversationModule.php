@@ -190,20 +190,44 @@ class ConversationModule extends ModuleBase
 
     public function execute_startConversation($params)
     {
+        // v1.2.45 security: bin/check.php CHECK_XF_002 flagged both write methods
+        // in this module as lacking scope + can*() checks. XF Pro's ProModule
+        // enforces the same pattern (lines 452, 480, 530) via checkScope('write')
+        // + $visitor->canStartConversation($error) + per-recipient
+        // canStartConversationWith. Free addon exposes the write via a Free-tier
+        // conversation quota — still needs the same guards.
+        if (!\XF::service('chgold\AIConnect:BearerAuth')->checkScope('write')) {
+            return $this->error('insufficient_scope', 'The "write" scope is required for this operation');
+        }
+
         $visitor = \XF::visitor();
         if (!$visitor->user_id) {
             return $this->error('not_authenticated', 'You must be logged in to start a conversation');
         }
+        if (!$visitor->canStartConversation($error)) {
+            return $this->error('no_permission', $error ?: 'You do not have permission to start a conversation');
+        }
+
         $recipients = [];
+        $rejected = [];
         foreach ((array) $params['recipients'] as $username) {
             $user = \XF::finder('XF:User')->where('username', $username)->fetchOne();
-            if ($user) {
-                $recipients[$user->user_id] = $user;
+            if (!$user) continue;
+            if (!$visitor->canStartConversationWith($user)) {
+                $rejected[] = (string) $user->username;
+                continue;
             }
+            $recipients[$user->user_id] = $user;
         }
         if (!$recipients) {
-            return $this->error('no_recipients', 'None of the given usernames resolved to a user');
+            return $this->error(
+                'no_recipients',
+                $rejected
+                    ? 'None of the given usernames are open to conversations from you (blocked by their privacy settings, ignored, or you lack the permission): ' . implode(', ', $rejected)
+                    : 'None of the given usernames resolved to a user'
+            );
         }
+
         /** @var \XF\Service\Conversation\Creator $creator */
         $creator = \XF::service('XF:Conversation\Creator', $visitor);
         $creator->setRecipientsTrusted($recipients);
@@ -212,20 +236,38 @@ class ConversationModule extends ModuleBase
             return $this->error('validation_error', implode('; ', $errors));
         }
         $conversation = $creator->save();
-        return $this->success([
+        $result = [
             'conversation_id' => (int) $conversation->conversation_id,
-            'title' => (string) $conversation->title,
-            'recipients' => count($recipients),
-        ]);
+            'title'           => (string) $conversation->title,
+            'recipients'      => count($recipients),
+        ];
+        if ($rejected) {
+            $result['rejected_recipients'] = $rejected;   // caller can decide whether to retry / notify
+        }
+        return $this->success($result);
     }
 
     public function execute_replyToConversation($params)
     {
+        // v1.2.45 security: was missing scope + can*() checks per bin/check.php
+        // CHECK_XF_002. XF Conversation entity has canReply(&$error) —
+        // enforce it before invoking the Replier service.
+        if (!\XF::service('chgold\AIConnect:BearerAuth')->checkScope('write')) {
+            return $this->error('insufficient_scope', 'The "write" scope is required for this operation');
+        }
+
         $convUser = $this->loadConversationForVisitor((int) $params['conversation_id'], $error);
         if (!$convUser) {
             return $error;
         }
         $conversation = $convUser->Master;
+        if (!$conversation->canReply($replyError)) {
+            return $this->error(
+                'no_permission',
+                $replyError ?: 'You cannot reply to this conversation (locked, ignored, or your permission is denied)'
+            );
+        }
+
         /** @var \XF\Service\Conversation\Replier $replier */
         $replier = \XF::service('XF:Conversation\Replier', $conversation, \XF::visitor());
         $replier->setMessageContent((string) $params['message']);
@@ -235,7 +277,7 @@ class ConversationModule extends ModuleBase
         $message = $replier->save();
         return $this->success([
             'conversation_id' => (int) $conversation->conversation_id,
-            'message_id' => (int) $message->message_id,
+            'message_id'      => (int) $message->message_id,
         ]);
     }
 }
