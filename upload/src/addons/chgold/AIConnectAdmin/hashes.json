@@ -1,5 +1,5 @@
 {
-    "src/addons/chgold/AIConnectAdmin/addon.json": "1fd2d02a77bd442bd8c1d554c3607db09db03ed753ac6cc9e543ca5e154f8677",
+    "src/addons/chgold/AIConnectAdmin/addon.json": "7d20cad3da91cf8603529e3f31e0c8cc042f899855ab34bf10a61f5cc2e29735",
     "src/addons/chgold/AIConnectAdmin/icon.png": "1a9a2f864835425c7871ad3b0ccf045dc9768db7283833fb5ac50ad50e017c1b",
     "src/addons/chgold/AIConnectAdmin/Listener/ModuleInit.php": "2362d8deed554664144e6730f64234393ffbaeaa2126e3984b384ede7203c6d4",
     "src/addons/chgold/AIConnectAdmin/Listener/SyncPermissions.php": "9221f4f59a9678894dfa24c8acfd392ac04f6ffed0b4de3fc996505200cca7d5",
@@ -7,7 +7,7 @@
     "src/addons/chgold/AIConnectAdmin/Module/AdminAppearanceTrait.php": "f94f33ba5f32d9c724189561067381032a223ae629011ba6b56ed4e235e96282",
     "src/addons/chgold/AIConnectAdmin/Module/AdminCronTrait.php": "8d12d3bda377144f89635018bbcb2fd059f06363a71d87c80768ec9301032349",
     "src/addons/chgold/AIConnectAdmin/Module/AdminDisciplineTrait.php": "6a4c2230ca6fe84b72cd4ff150b1caa01b87c64a9d69a1211799af916a95111c",
-    "src/addons/chgold/AIConnectAdmin/Module/AdminModule.php": "2cb1e1d8aa59cb16ebfccbdd019c04b6f42304a7bea4ba7ce91d6ce28ef231c5",
+    "src/addons/chgold/AIConnectAdmin/Module/AdminModule.php": "fb9848e31544cc217b9e5e37638fcc428c6f15300f017ca9c982da8706050493",
     "src/addons/chgold/AIConnectAdmin/Module/AdminNodesAdvancedTrait.php": "5cd9315f530747244abb165dde255609ad49858683b5c897a9bcda38bb495c7c",
     "src/addons/chgold/AIConnectAdmin/Module/AdminOptionsTrait.php": "6be9339851ac69291d89b7226c54855df6c8e96c2735bf2d46524b3baed67131",
     "src/addons/chgold/AIConnectAdmin/Module/AdminPermissionsSafetyTrait.php": "45b3df5ffd7c364de901fe123c86a1a15eca11cc2e6c1db9ca094c2b709284f2",

@@ -137,9 +137,21 @@ class ProModule extends ModuleBase
      */
     protected function requireWrite()
     {
-        if (!\XF::service('chgold\AIConnect:BearerAuth')->checkScope('write')) {
-            return $this->error('insufficient_scope', 'The "write" scope is required for this operation');
-        }
+        // v1.2.6 — Servio-aligned no-op.
+        //
+        // Previously enforced checkScope('write') on the token as a hard gate.
+        // Per Servio the token is only identity; per-request permission is
+        // authoritative. Every write tool that calls requireWrite() also runs
+        // its own XF-native per-request check (Thread::canReply(),
+        // Post::canEdit(), Conversation::canReply(), etc.) which is the real
+        // authorization. The scope gate was defense-in-depth that instead
+        // created blocking bugs any time the token's stored scope drifted
+        // from what the caller was actually entitled to.
+        //
+        // Kept as a callable stub so existing execute_* methods don't need
+        // to be rewritten; will be repurposed if we later add an explicit
+        // "issue me a write-limited token" flow that voluntarily narrows
+        // caller capability.
         return null;
     }
 
@@ -150,11 +162,14 @@ class ProModule extends ModuleBase
      */
     protected function requireAdmin()
     {
-        if (!\XF::service('chgold\AIConnect:BearerAuth')->checkScope('admin')) {
-            return $this->error('insufficient_scope', 'The "admin" scope is required for this operation');
-        }
+        // v1.2.6 — same Servio alignment as AdminAddon::requireAdmin. Token
+        // scope no longer gates admin actions; the acting XF user's admin
+        // status (per-request) is authoritative.
         if (!\XF::visitor()->is_admin) {
-            return $this->error('no_permission', 'This operation requires an administrator account');
+            return $this->error(
+                'no_permission',
+                'This operation requires an administrator account'
+            );
         }
         return null;
     }

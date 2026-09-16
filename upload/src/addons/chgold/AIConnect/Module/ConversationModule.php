@@ -190,16 +190,11 @@ class ConversationModule extends ModuleBase
 
     public function execute_startConversation($params)
     {
-        // v1.2.45 security: bin/check.php CHECK_XF_002 flagged both write methods
-        // in this module as lacking scope + can*() checks. XF Pro's ProModule
-        // enforces the same pattern (lines 452, 480, 530) via checkScope('write')
-        // + $visitor->canStartConversation($error) + per-recipient
-        // canStartConversationWith. Free addon exposes the write via a Free-tier
-        // conversation quota — still needs the same guards.
-        if (!\XF::service('chgold\AIConnect:BearerAuth')->checkScope('write')) {
-            return $this->error('insufficient_scope', 'The "write" scope is required for this operation');
-        }
-
+        // v1.2.51 — Servio-aligned. Removed the checkScope('write') gate that
+        // v1.2.45 introduced. Per Servio the token is identity only; the
+        // per-request canStartConversation()/canStartConversationWith() calls
+        // below are the authoritative authorization. Rationale + broader
+        // context in AdminModule::requireAdmin (v1.4.16 commit).
         $visitor = \XF::visitor();
         if (!$visitor->user_id) {
             return $this->error('not_authenticated', 'You must be logged in to start a conversation');
@@ -251,12 +246,10 @@ class ConversationModule extends ModuleBase
 
     public function execute_replyToConversation($params)
     {
-        // v1.2.45 security: was missing scope + can*() checks per bin/check.php
-        // CHECK_XF_002. XF Conversation entity has canReply(&$error) —
-        // enforce it before invoking the Replier service.
-        if (!\XF::service('chgold\AIConnect:BearerAuth')->checkScope('write')) {
-            return $this->error('insufficient_scope', 'The "write" scope is required for this operation');
-        }
+        // v1.2.51 — Servio-aligned. Removed the checkScope('write') gate
+        // v1.2.45 introduced. Per Servio the token is identity only; the
+        // Conversation::canReply() check below is the authoritative permission.
+        // Rationale + broader context in AdminModule::requireAdmin (v1.4.16).
 
         $convUser = $this->loadConversationForVisitor((int) $params['conversation_id'], $error);
         if (!$convUser) {

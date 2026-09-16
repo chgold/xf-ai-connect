@@ -233,11 +233,31 @@ class AdminModule extends ModuleBase
      */
     protected function requireAdmin()
     {
-        if (!\XF::service('chgold\AIConnect:BearerAuth')->checkScope('admin')) {
-            return $this->error('insufficient_scope', 'The "admin" scope is required for this operation');
-        }
+        // v1.4.16 — Servio-aligned single check.
+        //
+        // Previously this method ran two gates: (1) checkScope('admin') on
+        // the token, (2) $visitor->is_admin on the current session. Per
+        // Servio the token is an identity credential only — permission is
+        // determined per-request from the caller's actual role. Enforcing
+        // scope-in-token as a hard gate created a whole class of bugs:
+        // legitimate admins whose tokens lacked the "admin" tag (due to
+        // legacy scope format, hardcoded ['read','write'] in the generator,
+        // strict OAuth rejects of unknown scopes like "delete", etc.) were
+        // blocked even though they can perform the same operation manually
+        // via the ACP. The v1.2.47–v1.2.50 patch chain treated each symptom;
+        // this commit removes the underlying design flaw.
+        //
+        // A future opt-in "issue me a limited-scope token" flow can gate on
+        // scope again, but only in that dedicated path — never as the sole
+        // barrier between an admin caller and an admin operation.
+        //
+        // Per-tool per-area authorization (assertPermission('style'/'node'/
+        // 'user'/…)) runs on top of this and remains authoritative.
         if (!\XF::visitor()->is_admin) {
-            return $this->error('no_permission', 'This operation requires an administrator account');
+            return $this->error(
+                'no_permission',
+                'This operation requires an administrator account'
+            );
         }
         return null;
     }
