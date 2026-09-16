@@ -10,8 +10,7 @@ $app->start();
 $request = $app->request();
 $visitor = \XF::visitor();
 
-function aiConnectError(string $phraseKey, int $httpCode = 400): void
-{
+$aiConnectError = function (string $phraseKey, int $httpCode = 400): void {
     $message = \XF::phrase($phraseKey)->render();
     http_response_code($httpCode);
     header('Content-Type: text/html; charset=UTF-8');
@@ -20,7 +19,7 @@ function aiConnectError(string $phraseKey, int $httpCode = 400): void
         . 'p{font-size:16px}</style></head>'
         . '<body><p>' . htmlspecialchars($message) . '</p></body></html>';
     exit;
-}
+};
 
 $clientId = $request->filter('client_id', 'str');
 $redirectUri = $request->filter('redirect_uri', 'str');
@@ -31,31 +30,39 @@ $codeChallenge = $request->filter('code_challenge', 'str');
 $codeChallengeMethod = $request->filter('code_challenge_method', 'str');
 
 if ($responseType !== 'code') {
-    aiConnectError('unsupported_response_type');
+    $aiConnectError('unsupported_response_type');
 }
 
 if (empty($clientId) || empty($redirectUri) || empty($codeChallenge)) {
-    aiConnectError('aiconnect_error_missing_required_params');
+    $aiConnectError('aiconnect_error_missing_required_params');
 }
 
 if ($codeChallengeMethod !== 'S256') {
-    aiConnectError('pkce_required');
+    $aiConnectError('pkce_required');
 }
 
 $oauthServer = \XF::service('chgold\AIConnect:OAuthServer');
 
 if (!$oauthServer->validateClient($clientId)) {
-    aiConnectError('invalid_client');
+    $aiConnectError('invalid_client');
 }
 
 if (!$oauthServer->validateRedirectUri($clientId, $redirectUri)) {
-    aiConnectError('invalid_redirect_uri');
+    $aiConnectError('invalid_redirect_uri');
 }
 
-$scopes = !empty($scope) ? explode(' ', $scope) : ['read'];
+// v1.2.48 — RFC 6749 §3.3 subset grant instead of strict all-or-nothing.
+// Legacy behavior rejected the whole request if ANY requested scope was
+// unknown to this client (e.g. goldnat sends "delete" — never supported —
+// and the whole read+write+admin request died with "Invalid scope"). Now:
+// grant the intersection of (requested ∩ client-allowed); only fail if the
+// intersection is empty.
+$requestedScopes = !empty($scope) ? explode(' ', $scope) : ['read'];
+$scopes          = $oauthServer->filterAllowedScopes($clientId, $requestedScopes);
+$droppedScopes   = array_values(array_diff($requestedScopes, $scopes));
 
-if (!$oauthServer->validateScopes($clientId, $scopes)) {
-    aiConnectError('invalid_scope');
+if (empty($scopes)) {
+    $aiConnectError('invalid_scope');
 }
 
 if ($request->isPost()) {
@@ -63,37 +70,37 @@ if ($request->isPost()) {
     $deny = $request->filter('deny', 'bool');
 
     if (!$visitor->user_id) {
-        aiConnectError('aiconnect_error_not_logged_in', 403);
+        $aiConnectError('aiconnect_error_not_logged_in', 403);
     }
 
     $submittedToken = $request->filter('_xfToken', 'str');
 
     if (!$submittedToken) {
-        aiConnectError('aiconnect_error_csrf_missing', 403);
+        $aiConnectError('aiconnect_error_csrf_missing', 403);
     }
 
     $parts = explode(',', $submittedToken);
     if (count($parts) != 2) {
-        aiConnectError('aiconnect_error_csrf_invalid', 403);
+        $aiConnectError('aiconnect_error_csrf_invalid', 403);
     }
 
     list($tokenTime, $tokenValue) = $parts;
 
     $csrfCookie = $request->getCookie('csrf');
     if (!$csrfCookie) {
-        aiConnectError('aiconnect_error_csrf_missing', 403);
+        $aiConnectError('aiconnect_error_csrf_missing', 403);
     }
 
     $csrfValidator = \XF::app()->container('csrf.validator');
     $expectedValue = $csrfValidator($csrfCookie, $tokenTime);
 
     if ($expectedValue !== $tokenValue) {
-        aiConnectError('aiconnect_error_csrf_invalid', 403);
+        $aiConnectError('aiconnect_error_csrf_invalid', 403);
     }
 
     if ($deny) {
         if ($redirectUri === 'urn:ietf:wg:oauth:2.0:oob') {
-            aiConnectError('authorization_denied');
+            $aiConnectError('authorization_denied');
         }
 
         $redirectUrl = $redirectUri . (strpos($redirectUri, '?') !== false ? '&' : '?')
@@ -112,7 +119,8 @@ if ($request->isPost()) {
             $redirectUri,
             $codeChallenge,
             $codeChallengeMethod,
-            $scopes
+            $scopes,
+            $state ?: null
         );
 
         if ($redirectUri === 'urn:ietf:wg:oauth:2.0:oob') {

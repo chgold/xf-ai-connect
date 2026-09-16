@@ -1122,6 +1122,41 @@ class Setup extends AbstractSetup
         }
     }
 
+    /**
+     * v1.2.48 — sync addon's oauth.php to the XF root so the served copy
+     * matches the shipped code.
+     *
+     * XF serves /oauth.php from the installation root (DocumentRoot + /oauth.php).
+     * The addon ships its own copy at src/addons/chgold/AIConnect/oauth.php —
+     * that copy is authoritative, but there is no built-in mechanism to place it
+     * at the root during addon install. Historically customers were expected to
+     * copy it by hand, and long-lived installs drifted (v1.2.48's subset-grant
+     * fix lived in the addon copy for hours before we discovered the root copy
+     * was serving the pre-fix v1.1.14 logic).
+     *
+     * This step normalizes: on upgrade to 1.2.48 (and every future upgrade that
+     * bumps the addon), copy addon/oauth.php → root/oauth.php. Only touches the
+     * file if the addon's version is strictly newer or the two differ (checked
+     * via sha1). Failure is logged, not fatal — the addon otherwise works and
+     * the root copy is only needed for the oauth authorization endpoint.
+     */
+    public function upgrade1024800Step1(): void
+    {
+        try {
+            $addonPath = \XF::getAddOnDirectory() . '/chgold/AIConnect/oauth.php';
+            $rootPath  = \XF::getRootDirectory() . '/oauth.php';
+            if (!is_file($addonPath)) {
+                return;
+            }
+            if (!is_file($rootPath) || sha1_file($addonPath) !== sha1_file($rootPath)) {
+                @copy($addonPath, $rootPath);
+                @chmod($rootPath, 0644);
+            }
+        } catch (\Throwable $e) {
+            \XF::logException($e, false, 'AIConnect 1.2.48 root oauth.php sync failed: ');
+        }
+    }
+
     public function uninstallStep1()
     {
         $schemaManager = $this->schemaManager();

@@ -51,9 +51,17 @@ if (!$oauthServer->validateRedirectUri($clientId, $redirectUri)) {
     $aiConnectError('invalid_redirect_uri');
 }
 
-$scopes = !empty($scope) ? explode(' ', $scope) : ['read'];
+// v1.2.48 — RFC 6749 §3.3 subset grant instead of strict all-or-nothing.
+// Legacy behavior rejected the whole request if ANY requested scope was
+// unknown to this client (e.g. goldnat sends "delete" — never supported —
+// and the whole read+write+admin request died with "Invalid scope"). Now:
+// grant the intersection of (requested ∩ client-allowed); only fail if the
+// intersection is empty.
+$requestedScopes = !empty($scope) ? explode(' ', $scope) : ['read'];
+$scopes          = $oauthServer->filterAllowedScopes($clientId, $requestedScopes);
+$droppedScopes   = array_values(array_diff($requestedScopes, $scopes));
 
-if (!$oauthServer->validateScopes($clientId, $scopes)) {
+if (empty($scopes)) {
     $aiConnectError('invalid_scope');
 }
 

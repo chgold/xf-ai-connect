@@ -438,11 +438,7 @@ class OAuthServer extends AbstractService
             return false;
         }
 
-        $allowedScopes = json_decode($client['allowed_scopes'], true);
-        if (!is_array($allowedScopes)) {
-            // Fallback: treat as comma-separated string
-            $allowedScopes = array_map('trim', explode(',', $client['allowed_scopes']));
-        }
+        $allowedScopes = self::parseScopes($client['allowed_scopes']);
 
         foreach ($requestedScopes as $scope) {
             if (!in_array($scope, $allowedScopes, true)) {
@@ -451,6 +447,37 @@ class OAuthServer extends AbstractService
         }
 
         return true;
+    }
+
+    /**
+     * v1.2.48 — RFC 6749 §3.3 compliant scope subsetting.
+     *
+     * Legacy validateScopes() was strict all-or-nothing: any unknown scope in
+     * the request → whole request rejected with "Invalid scope". This broke
+     * every agent whose OAuth client sent a default scope list containing a
+     * scope this addon doesn't support (e.g. goldnat's "delete" — never
+     * implemented here). Agents then never received an admin token and every
+     * admin_* call failed with "admin scope required".
+     *
+     * Per RFC 6749 §3.3 the authorization server MAY grant a narrower scope
+     * than requested — it just has to inform the client. This method returns
+     * the intersection of (requested ∩ allowed_for_client). Caller decides:
+     *   - empty result → invalid_scope (nothing to grant)
+     *   - non-empty → grant that subset, echo it back in the response so the
+     *     client sees what was actually granted
+     */
+    public function filterAllowedScopes($clientId, array $requestedScopes): array
+    {
+        $db = \XF::db();
+        $client = $db->fetchRow(
+            'SELECT allowed_scopes FROM xf_ai_connect_oauth_clients WHERE client_id = ?',
+            $clientId
+        );
+        if (!$client) {
+            return [];
+        }
+        $allowedScopes = self::parseScopes($client['allowed_scopes']);
+        return array_values(array_intersect($requestedScopes, $allowedScopes));
     }
 
     /**
