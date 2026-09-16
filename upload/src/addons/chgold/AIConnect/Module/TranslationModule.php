@@ -30,7 +30,9 @@ class TranslationModule extends ModuleBase
         }
 
         $this->registerTool('translate', [
-            'description' => 'Translate text between languages. Supports text of any length (automatically split into chunks if needed). Source language is auto-detected if not specified.',
+            'description' => 'Translate text between languages. Supports text of any length '
+                . '(automatically split into chunks if needed). '
+                . 'Source language is auto-detected if not specified.',
             'input_schema' => [
                 'type' => 'object',
                 'required' => ['text', 'target_lang'],
@@ -41,11 +43,14 @@ class TranslationModule extends ModuleBase
                     ],
                     'source_lang' => [
                         'type' => 'string',
-                        'description' => 'Source language as ISO 639-1 two-letter lowercase code (e.g. "en", "he", "fr", "ru"). Leave empty for auto-detection.',
+                        'description' => 'Source language as ISO 639-1 two-letter lowercase code '
+                            . '(e.g. "en", "he", "fr", "ru"). Leave empty for auto-detection.',
                     ],
                     'target_lang' => [
                         'type' => 'string',
-                        'description' => 'Target language as ISO 639-1 two-letter lowercase code (e.g. "en" English, "he" Hebrew, "fr" French, "ru" Russian, "ar" Arabic, "es" Spanish). Use getSupportedLanguages for full list.',
+                        'description' => 'Target language as ISO 639-1 two-letter lowercase code '
+                            . '(e.g. "en" English, "he" Hebrew, "fr" French, "ru" Russian, '
+                            . '"ar" Arabic, "es" Spanish). Use getSupportedLanguages for full list.',
                     ],
                 ],
             ],
@@ -137,7 +142,8 @@ class TranslationModule extends ModuleBase
             return [
                 'success' => false,
                 'error' => 'quota_exceeded',
-                'message' => 'Daily translation quota exceeded (MyMemory free API limit: ~5,000 chars/day). Try again tomorrow.',
+                'message' => 'Daily translation quota exceeded '
+                    . '(MyMemory free API limit: ~5,000 chars/day). Try again tomorrow.',
             ];
         }
 

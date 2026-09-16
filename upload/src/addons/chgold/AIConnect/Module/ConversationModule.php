@@ -212,7 +212,9 @@ class ConversationModule extends ModuleBase
         $rejected = [];
         foreach ((array) $params['recipients'] as $username) {
             $user = \XF::finder('XF:User')->where('username', $username)->fetchOne();
-            if (!$user) continue;
+            if (!$user) {
+                continue;
+            }
             if (!$visitor->canStartConversationWith($user)) {
                 $rejected[] = (string) $user->username;
                 continue;
@@ -220,12 +222,12 @@ class ConversationModule extends ModuleBase
             $recipients[$user->user_id] = $user;
         }
         if (!$recipients) {
-            return $this->error(
-                'no_recipients',
-                $rejected
-                    ? 'None of the given usernames are open to conversations from you (blocked by their privacy settings, ignored, or you lack the permission): ' . implode(', ', $rejected)
-                    : 'None of the given usernames resolved to a user'
-            );
+            $message = $rejected
+                ? 'None of the given usernames are open to conversations from you '
+                    . '(blocked by their privacy settings, ignored, or you lack the permission): '
+                    . implode(', ', $rejected)
+                : 'None of the given usernames resolved to a user';
+            return $this->error('no_recipients', $message);
         }
 
         /** @var \XF\Service\Conversation\Creator $creator */
