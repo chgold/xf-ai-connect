@@ -1123,6 +1123,65 @@ class Setup extends AbstractSetup
     }
 
     /**
+     * v1.2.50 — one-time backfill: grant "admin" scope to LIVE tokens that
+     * SHOULD have had it but were minted before v1.2.49 fixed the generator
+     * scope hardcoding.
+     *
+     * Symptom: user hands a pre-existing prompt-generator token to their agent,
+     * agent gets 400 "admin scope required" on admin_* tools even though the
+     * site has the Admin addon installed AND the token's user is admin AND the
+     * client allows admin. The v1.2.49 fix affects only NEW tokens minted after
+     * upgrade — existing hand-fed tokens still carry the ["read","write"]
+     * shape from the pre-fix generator. User has no visible signal they need
+     * to regenerate, so their tokens just silently keep failing.
+     *
+     * Conditions for backfill (all must hold):
+     *   - token not revoked (revoked_date = 0)
+     *   - token not expired (expires_date > NOW)
+     *   - token user is admin (xf_user.is_admin = 1) — never elevate a
+     *     non-admin token; without this the backfill would grant admin
+     *     scope on tokens whose users cannot pass requireAdmin() anyway
+     *     (harmless but ugly)
+     *   - client allows admin (client.allowed_scopes contains "admin") —
+     *     only clients the Admin addon upgraded should ever mint admin
+     *     tokens; without this we would over-grant on Free-only sites
+     *   - token's current scopes lack "admin"
+     *
+     * Idempotent — repeat runs process only tokens that still lack admin.
+     * Non-fatal on failure — logged, not fatal.
+     */
+    public function upgrade1025000Step1(): void
+    {
+        try {
+            $db = \XF::db();
+            $candidates = $db->fetchAll(
+                "SELECT t.token_id, t.scopes
+                   FROM xf_ai_connect_oauth_tokens t
+                   JOIN xf_user u                          ON u.user_id  = t.user_id
+                   JOIN xf_ai_connect_oauth_clients c      ON c.client_id = t.client_id
+                  WHERE t.revoked_date = 0
+                    AND t.expires_date > ?
+                    AND u.is_admin = 1
+                    AND c.allowed_scopes LIKE '%\"admin\"%'
+                    AND t.scopes NOT LIKE '%\"admin\"%'",
+                \XF::$time
+            );
+            foreach ($candidates as $row) {
+                $scopes   = \chgold\AIConnect\Service\OAuthServer::parseScopes($row['scopes']);
+                $scopes[] = 'admin';
+                $db->update(
+                    'xf_ai_connect_oauth_tokens',
+                    ['scopes' => json_encode(array_values(array_unique($scopes)))],
+                    'token_id = ?',
+                    $row['token_id']
+                );
+            }
+        } catch (\Throwable $e) {
+            \XF::logException($e, false, 'AIConnect 1.2.50 admin-scope backfill failed: ');
+        }
+    }
+
+    /**
      * v1.2.48 — sync addon's oauth.php to the XF root so the served copy
      * matches the shipped code.
      *
