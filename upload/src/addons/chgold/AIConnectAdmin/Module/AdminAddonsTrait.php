@@ -100,13 +100,12 @@ trait AdminAddonsTrait
             ]);
         }
 
-        /** @var \XF\AddOn\AddOn $handler */
-        $handler = \XF::app()->addOnManager()->getById($addonId);
-        if (!$handler) {
-            return $this->error('not_found', "Add-on handler for '$addonId' missing");
-        }
-
-        \XF::app()->addOnManager()->enable($handler);
+        // XF 2.3.4: enable/disable is done by toggling the AddOn entity's `active`
+        // flag and saving — XF\AddOn\Manager has no enable()/disable() method.
+        // Mirrors XF\Admin\Controller\AddOnController::actionToggle; the entity
+        // _postSave rebuilds caches when `active` changes.
+        $addon->active = true;
+        $addon->save();
 
         return $this->success([
             'addon_id' => $addonId,
@@ -149,12 +148,10 @@ trait AdminAddonsTrait
             ]);
         }
 
-        $handler = \XF::app()->addOnManager()->getById($addonId);
-        if (!$handler) {
-            return $this->error('not_found', "Add-on handler for '$addonId' missing");
-        }
-
-        \XF::app()->addOnManager()->disable($handler);
+        // XF 2.3.4: toggle the AddOn entity's `active` flag + save (Manager has no
+        // disable() method; mirrors AddOnController::actionToggle).
+        $addon->active = false;
+        $addon->save();
 
         return $this->success([
             'addon_id' => $addonId,

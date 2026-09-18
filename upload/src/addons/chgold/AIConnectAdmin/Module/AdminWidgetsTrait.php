@@ -52,7 +52,7 @@ trait AdminWidgetsTrait
                     ],
                     'display_order' => ['type' => 'integer'],
                     'active' => ['type' => 'boolean'],
-                    'options' => ['type' => 'object', 'description' => 'Type-specific config (varies per widget_definition_id)'],
+                    'options' => ['type' => 'object', 'description' => 'Type-specific config (varies per widget_definition_id). For an "html" widget pass {html: "<p>…</p>"} — the tool auto-creates the backing template and sets template_title to "_widget_{widget_key}" (mirrors XenForo); a manually-supplied template_title is intentionally ignored.'],
                 ],
                 'additionalProperties' => false,
             ],
