@@ -276,7 +276,10 @@ class OAuthServer extends AbstractService
             return ['error' => 'invalid_grant', 'error_description' => 'Refresh token not found'];
         }
 
-        if ($tokenData['client_id'] !== $clientId) {
+        // client_id is optional on refresh — the refresh token binds the client.
+        // Reject only when a client_id IS supplied and does not match; when omitted,
+        // the stored client_id is used for the new token (see createAccessToken below).
+        if ($clientId !== '' && $tokenData['client_id'] !== $clientId) {
             return ['error' => 'invalid_client', 'error_description' => 'Client ID mismatch'];
         }
 

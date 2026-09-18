@@ -75,9 +75,13 @@ class Token extends AbstractController
     protected function handleRefreshTokenGrant($input)
     {
         $refreshToken = $input['refresh_token'] ?? '';
+        // client_id is OPTIONAL on refresh (RFC 6749 §6): the refresh token itself
+        // binds the client. goldnat.ai's webhook refresh_site_token does not send a
+        // client_id, which previously produced invalid_request/400 and blocked
+        // auto-renewal — leaving long agent runs stranded when the access token expired.
         $clientId = $input['client_id'] ?? '';
 
-        if (empty($refreshToken) || empty($clientId)) {
+        if (empty($refreshToken)) {
             return $this->error('invalid_request', 400);
         }
 
