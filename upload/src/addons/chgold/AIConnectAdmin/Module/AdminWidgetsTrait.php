@@ -52,6 +52,7 @@ trait AdminWidgetsTrait
                     ],
                     'display_order' => ['type' => 'integer'],
                     'active' => ['type' => 'boolean'],
+                    'display_condition' => ['type' => 'string', 'description' => 'XF display-condition expression targeting where the widget shows (maps to the xf_widget.display_condition column, NOT options). E.g. "$thread.thread_id == 94" or "$xf.visitor.isMemberOf(3)". Empty string = always shown.'],
                     'options' => ['type' => 'object', 'description' => 'Type-specific config (varies per widget_definition_id). For an "html" widget pass {html: "<p>…</p>"} — the tool auto-creates the backing template and sets template_title to "_widget_{widget_key}" (mirrors XenForo); a manually-supplied template_title is intentionally ignored.'],
                 ],
                 'additionalProperties' => false,
@@ -69,6 +70,7 @@ trait AdminWidgetsTrait
                     'positions' => ['type' => 'array', 'items' => ['type' => 'string']],
                     'display_order' => ['type' => 'integer'],
                     'active' => ['type' => 'boolean'],
+                    'display_condition' => ['type' => 'string', 'description' => 'XF display-condition expression (maps to xf_widget.display_condition column, NOT options). E.g. "$thread.thread_id == 94" or "$xf.visitor.isMemberOf(3)". Pass empty string to clear.'],
                     'options' => ['type' => 'object'],
                 ],
                 'additionalProperties' => false,
@@ -184,6 +186,8 @@ trait AdminWidgetsTrait
             (int) ($params['display_order'] ?? 10),
             (bool) ($params['active'] ?? true)
         );
+        // display_condition is a top-level xf_widget column (NOT NULL), NOT part of options.
+        $w->display_condition = (string) ($params['display_condition'] ?? '');
         // Save first (need widget_id + widget_key resolved before creating linked template row for Html widgets)
         $w->options = $this->normalizeOptionsForDefinition(
             (string) $params['widget_definition_id'],
@@ -250,6 +254,11 @@ trait AdminWidgetsTrait
                 (array) $params['options'],
                 (string) $w->widget_key
             );
+        }
+        // display_condition is a top-level xf_widget column (NOT NULL). Update when provided
+        // (pass empty string to clear an existing condition).
+        if (isset($params['display_condition'])) {
+            $w->display_condition = (string) $params['display_condition'];
         }
 
         if (!$w->save()) {
