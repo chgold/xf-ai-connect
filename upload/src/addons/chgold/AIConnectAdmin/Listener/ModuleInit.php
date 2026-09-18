@@ -7,23 +7,20 @@ class ModuleInit
     /**
      * Registers the administrative tool-set onto the core.
      *
-     * Gated on the same licence the Pro add-on uses, under its own 'admin'
-     * bundle, so an administrator tool-set can be sold — or withheld —
-     * independently of the Pro bundles. Without that bundle the tools are never
-     * registered, which is stronger than refusing them at call time: they do not
-     * appear in the manifest at all.
+     * Admin is a STANDALONE product: it depends only on the free Core add-on and
+     * validates its OWN licence (xenforo-addon-admin) independently of Pro.
+     * Precedence: AICONNECT_EDITION dev override ('admin'/'pro'/'all', for dev/test
+     * sites without a licence) -> a verified Admin licence. Validator::isValid()
+     * fail-opens on 'error_cached' so a paying customer is never hard-blocked by a
+     * network blip. Without a valid Admin licence the tools never load — they do
+     * not appear in the manifest at all (fail-closed, exactly like Pro).
      */
     public static function aiConnectModulesInit(array &$modules, \chgold\AIConnect\Service\Manifest $manifestService)
     {
-        if (!class_exists('\chgold\AIConnectPro\License\Validator')) {
-            return;
-        }
-
         $envEdition = strtolower((string) (getenv('AICONNECT_EDITION') ?: ''));
-        $licensed   = \chgold\AIConnectPro\License\Validator::isValid()
-            && \chgold\AIConnectPro\License\Validator::hasBundle('admin');
-
-        if ($envEdition !== 'pro' && !$licensed) {
+        if (!in_array($envEdition, ['admin', 'pro', 'all'], true)
+            && !\chgold\AIConnectAdmin\License\Validator::isValid()
+        ) {
             return;
         }
 

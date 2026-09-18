@@ -2,8 +2,8 @@
     "legacy_addon_id": "",
     "title": "AI Connect Admin for XenForo",
     "description": "Administrative tool-set for AI Connect - node, user and avatar management for AI agents. Requires the 'admin' OAuth scope and a real administrator account.",
-    "version_id": 1041600,
-    "version_string": "1.4.16",
+    "version_id": 1041900,
+    "version_string": "1.4.19",
     "dev": "chgold",
     "dev_url": "https://plugins.goldnat.ai/xenforo",
     "faq_url": "",
@@ -21,10 +21,6 @@
         "chgold/AIConnect": [
             "1024000",
             "AI Connect 1.2.40+"
-        ],
-        "chgold/AIConnectPro": [
-            "1003800",
-            "AI Connect Pro 1.0.38+"
         ]
     },
     "icon": "icon.png"

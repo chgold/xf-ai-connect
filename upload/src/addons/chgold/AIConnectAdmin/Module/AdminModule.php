@@ -289,6 +289,20 @@ class AdminModule extends ModuleBase
 
     // phpcs:disable PSR1.Methods.CamelCapsMethodName.NotCamelCaps -- dynamic dispatch execute_<name>
 
+    /**
+     * Normalise a plain-text, user-facing field (node title / description).
+     *
+     * Node title and description are stored as PLAIN TEXT — XenForo HTML-escapes
+     * them on output. An AI agent that HTML-encodes its input (e.g. sends
+     * "Support &amp; Help" thinking the field accepts HTML) would otherwise be
+     * double-escaped and render the literal "&amp;". Decoding entities here stores
+     * the real characters, so both plain "&" and pre-encoded "&amp;" end up correct.
+     */
+    private function plainText(string $value): string
+    {
+        return html_entity_decode(trim($value), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+    }
+
     public function execute_createNode($params)
     {
         if ($err = $this->requireAdmin()) {
@@ -303,9 +317,9 @@ class AdminModule extends ModuleBase
         }
         $node = \XF::em()->create('XF:Node');
         $node->node_type_id = $params['node_type_id'];
-        $node->title = $params['title'];
+        $node->title = $this->plainText((string) $params['title']);
         if (isset($params['description'])) {
-            $node->description = $params['description'];
+            $node->description = $this->plainText((string) $params['description']);
         }
         if (!empty($params['parent_node_id'])) {
             $node->parent_node_id = (int) $params['parent_node_id'];
@@ -315,7 +329,7 @@ class AdminModule extends ModuleBase
         // node_name (URL slug) — XF routes ALL node types by node_name, not title.
         // Without it, URL is just "?pages/" and doesn't resolve. Auto-generate
         // from title if caller did not provide one.
-        $node->node_name = $this->buildNodeName($params['node_name'] ?? '', $params['title']);
+        $node->node_name = $this->buildNodeName($params['node_name'] ?? '', $node->title);
 
         // Set fields that must be present BEFORE node->save() (validation gates).
         // LinkForum entity fails "valid URL" validation unless link_url is set.
@@ -347,10 +361,10 @@ class AdminModule extends ModuleBase
             return $this->error('not_found', 'Node not found');
         }
         if (isset($params['title']) && trim($params['title']) !== '') {
-            $node->title = $params['title'];
+            $node->title = $this->plainText((string) $params['title']);
         }
         if (isset($params['description'])) {
-            $node->description = $params['description'];
+            $node->description = $this->plainText((string) $params['description']);
         }
         if (isset($params['parent_node_id'])) {
             $node->parent_node_id = (int) $params['parent_node_id'];
