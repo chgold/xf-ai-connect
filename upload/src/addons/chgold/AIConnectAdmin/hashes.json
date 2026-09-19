@@ -1,10 +1,10 @@
 {
-    "src/addons/chgold/AIConnectAdmin/addon.json": "5aef7a15af087b055ae3a2ac308e0d9f5df952e49aab418ae048e4c028939604",
+    "src/addons/chgold/AIConnectAdmin/addon.json": "626c5272b9fdfc421f0aa7298747b917daf722c531616c4c145ef4564f33b83c",
     "src/addons/chgold/AIConnectAdmin/Admin/Controller/License.php": "43eb4ac3b3d2bf43c0953a0cad9e6881b0bf2ce7600090393e4139fcf925d332",
     "src/addons/chgold/AIConnectAdmin/Cron/LicenseCheck.php": "63aa74f911d874bd387681d38f6cc1d22b8194b1aebaa3dc8053df2ba47b6072",
     "src/addons/chgold/AIConnectAdmin/icon.png": "1a9a2f864835425c7871ad3b0ccf045dc9768db7283833fb5ac50ad50e017c1b",
-    "src/addons/chgold/AIConnectAdmin/License/Validator.php": "e590fb765784054963946fc6c20f6a1683acfacc528dc6b468233402543648d9",
-    "src/addons/chgold/AIConnectAdmin/Listener/ModuleInit.php": "c8dab717f241e2164c71ae9ff6bbc51b25835a7b20303bf30d1d248e7e8c4b0c",
+    "src/addons/chgold/AIConnectAdmin/License/Validator.php": "4badf17ef55541c363fd4f88311ec6e7350a5452f7259bfe849de3c655f69712",
+    "src/addons/chgold/AIConnectAdmin/Listener/ModuleInit.php": "74283a5310fd8c041a573c0d458fc9f1b1cbb3d55f330bbb9100ea9d0f7cdf3a",
     "src/addons/chgold/AIConnectAdmin/Listener/SyncPermissions.php": "9221f4f59a9678894dfa24c8acfd392ac04f6ffed0b4de3fc996505200cca7d5",
     "src/addons/chgold/AIConnectAdmin/Module/AdminAddonsTrait.php": "ccd64b61dafd98a4d2ab6a187ff1617a86a2b02a814ff3c8ef388538fb812ad3",
     "src/addons/chgold/AIConnectAdmin/Module/AdminAppearanceTrait.php": "f94f33ba5f32d9c724189561067381032a223ae629011ba6b56ed4e235e96282",

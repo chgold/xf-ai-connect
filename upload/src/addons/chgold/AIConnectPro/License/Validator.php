@@ -159,10 +159,7 @@ class Validator
      */
     public static function getBundles(): array
     {
-        // AICONNECT_EDITION=pro dev override → grant all bundles unconditionally.
-        if (strtolower((string)(getenv('AICONNECT_EDITION') ?: '')) === 'pro') {
-            return ['*'];
-        }
+        // Bundles are granted ONLY by a verified licence — no env/config bypass.
         // No key on file → no bundles. Checked BEFORE the fail-open branch,
         // otherwise a stale 'error_cached' verdict would keep granting full
         // access to a site whose licence key has been removed.

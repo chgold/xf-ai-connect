@@ -17,9 +17,9 @@ use chgold\AIConnectPro\License\Validator;
  * <xf:callback> (method name must pass Php::nameIndicatesReadOnly, hence
  * the render* prefix). Shows ONLY when the module gate would actually keep
  * the Pro tools from loading, i.e. the exact same condition as
- * Listener\ModuleInit: no AICONNECT_EDITION=pro env override AND
- * Validator::isValid() false. Reads the cached verdict only — never
- * triggers a licence-server HTTP call on an admin page view.
+ * Listener\ModuleInit: Validator::isValid() false (licence-only gating, no
+ * env bypass). Reads the cached verdict only — never triggers a
+ * licence-server HTTP call on an admin page view.
  *
  * @param string                  $contents  Tag children (unused)
  * @param array                   $params    ['addOn' => \XF\AddOn\AddOn]
@@ -38,8 +38,7 @@ class LicenseBadge
             return '';
         }
 
-        $envEdition = strtolower((string) (getenv('AICONNECT_EDITION') ?: ''));
-        if ($envEdition === 'pro' || Validator::isValid()) {
+        if (Validator::isValid()) {
             return '';
         }
 

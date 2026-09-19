@@ -9,18 +9,18 @@ class ModuleInit
      *
      * Admin is a STANDALONE product: it depends only on the free Core add-on and
      * validates its OWN licence (xenforo-addon-admin) independently of Pro.
-     * Precedence: AICONNECT_EDITION dev override ('admin'/'pro'/'all', for dev/test
-     * sites without a licence) -> a verified Admin licence. Validator::isValid()
-     * fail-opens on 'error_cached' so a paying customer is never hard-blocked by a
-     * network blip. Without a valid Admin licence the tools never load — they do
-     * not appear in the manifest at all (fail-closed, exactly like Pro).
+     *
+     * Gating is LICENCE-ONLY: a verified Admin licence from goldnat.ai is the sole
+     * way the tools load. There is deliberately NO environment/config bypass — a
+     * site cannot self-grant the paid tool-set. Validator::isValid() fail-opens on
+     * 'error_cached' so a paying customer is never hard-blocked by a network blip.
+     * Without a valid Admin licence the tools never load — they do not appear in
+     * the manifest at all (fail-closed, exactly like Pro). Dev/test sites obtain a
+     * real Admin licence keyed to their domain, same as any customer.
      */
     public static function aiConnectModulesInit(array &$modules, \chgold\AIConnect\Service\Manifest $manifestService)
     {
-        $envEdition = strtolower((string) (getenv('AICONNECT_EDITION') ?: ''));
-        if (!in_array($envEdition, ['admin', 'pro', 'all'], true)
-            && !\chgold\AIConnectAdmin\License\Validator::isValid()
-        ) {
+        if (!\chgold\AIConnectAdmin\License\Validator::isValid()) {
             return;
         }
 

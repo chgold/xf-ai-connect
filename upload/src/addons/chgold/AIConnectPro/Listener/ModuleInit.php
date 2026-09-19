@@ -7,12 +7,13 @@ class ModuleInit
     public static function aiConnectModulesInit(array &$modules, \chgold\AIConnect\Service\Manifest $manifestService)
     {
         // The Pro tool-set is only registered onto the core when Pro is licensed.
-        // Precedence: AICONNECT_EDITION=pro env override (dev/test sites that have
-        // no license) -> a verified license. Validator::isValid() also fail-opens
+        // Gating is LICENCE-ONLY: a verified Pro licence from goldnat.ai is the sole
+        // way the tools load. There is deliberately NO environment/config bypass — a
+        // site cannot self-grant the paid tool-set. Validator::isValid() fail-opens
         // on 'error_cached' so a paying customer is never hard-blocked by a network
-        // blip. Without a valid license the Pro tools simply never load.
-        $envEdition = strtolower((string)(getenv('AICONNECT_EDITION') ?: ''));
-        if ($envEdition !== 'pro' && !\chgold\AIConnectPro\License\Validator::isValid()) {
+        // blip. Without a valid license the Pro tools simply never load. Dev/test
+        // sites obtain a real Pro licence keyed to their domain, same as any customer.
+        if (!\chgold\AIConnectPro\License\Validator::isValid()) {
             return;
         }
 
