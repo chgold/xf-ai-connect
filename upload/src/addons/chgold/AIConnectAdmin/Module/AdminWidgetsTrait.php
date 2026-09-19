@@ -52,7 +52,7 @@ trait AdminWidgetsTrait
                     ],
                     'display_order' => ['type' => 'integer'],
                     'active' => ['type' => 'boolean'],
-                    'display_condition' => ['type' => 'string', 'description' => 'XF display-condition expression targeting where the widget shows (maps to the xf_widget.display_condition column, NOT options). E.g. "$thread.thread_id == 94" or "$xf.visitor.isMemberOf(3)". Empty string = always shown.'],
+                    'display_condition' => ['type' => 'string', 'description' => 'XF display-condition expression targeting where the widget shows (maps to the xf_widget.display_condition column, NOT options). Empty string = always shown. IMPORTANT: content-scoped vars are exposed by XF as $context.{name}, NOT bare: use "$context.thread.thread_id == 94", "$context.forum.node_id == 5", "$context.user.user_id == 7". Globals stay bare: "$xf.visitor.isMemberOf(3)". A bare "$thread.*"/"$forum.*"/etc. is auto-corrected to "$context.*" (a bare form never evaluates at render time). Numeric literals like "1" are NOT valid conditions in XF.'],
                     'options' => ['type' => 'object', 'description' => 'Type-specific config (varies per widget_definition_id). For an "html" widget pass {html: "<p>…</p>"} — the tool auto-creates the backing template and sets template_title to "_widget_{widget_key}" (mirrors XenForo); a manually-supplied template_title is intentionally ignored.'],
                 ],
                 'additionalProperties' => false,
@@ -70,7 +70,7 @@ trait AdminWidgetsTrait
                     'positions' => ['type' => 'array', 'items' => ['type' => 'string']],
                     'display_order' => ['type' => 'integer'],
                     'active' => ['type' => 'boolean'],
-                    'display_condition' => ['type' => 'string', 'description' => 'XF display-condition expression (maps to xf_widget.display_condition column, NOT options). E.g. "$thread.thread_id == 94" or "$xf.visitor.isMemberOf(3)". Pass empty string to clear.'],
+                    'display_condition' => ['type' => 'string', 'description' => 'XF display-condition expression (maps to xf_widget.display_condition column, NOT options). Pass empty string to clear. Content-scoped vars use the $context prefix: "$context.thread.thread_id == 94", "$context.forum.node_id == 5". Globals stay bare: "$xf.visitor.isMemberOf(3)". A bare "$thread.*"/"$forum.*"/etc. is auto-corrected to "$context.*".'],
                     'options' => ['type' => 'object'],
                 ],
                 'additionalProperties' => false,
@@ -187,7 +187,12 @@ trait AdminWidgetsTrait
             (bool) ($params['active'] ?? true)
         );
         // display_condition is a top-level xf_widget column (NOT NULL), NOT part of options.
-        $w->display_condition = (string) ($params['display_condition'] ?? '');
+        // Auto-normalize content-scoped vars ($thread.* -> $context.thread.*) so the
+        // condition actually evaluates at render time (see normalizeDisplayCondition).
+        [$condNormalized, $condRewritten] = $this->normalizeDisplayCondition(
+            (string) ($params['display_condition'] ?? '')
+        );
+        $w->display_condition = $condNormalized;
         // Save first (need widget_id + widget_key resolved before creating linked template row for Html widgets)
         $w->options = $this->normalizeOptionsForDefinition(
             (string) $params['widget_definition_id'],
@@ -204,11 +209,17 @@ trait AdminWidgetsTrait
             $this->writeWidgetTitle($w->widget_key, (string) $params['title']);
         }
 
-        return $this->success([
+        $result = [
             'widget_id'  => $w->widget_id,
             'widget_key' => $w->widget_key,
             'created'    => true,
-        ]);
+        ];
+        if ($condRewritten) {
+            $result['display_condition_normalized'] = $condNormalized;
+            $result['note'] = 'display_condition was auto-corrected to the $context.* form '
+                . 'XenForo populates at render time (a bare $thread/$forum/... never evaluates).';
+        }
+        return $this->success($result);
     }
 
     public function execute_editWidget($params)
@@ -256,9 +267,15 @@ trait AdminWidgetsTrait
             );
         }
         // display_condition is a top-level xf_widget column (NOT NULL). Update when provided
-        // (pass empty string to clear an existing condition).
+        // (pass empty string to clear an existing condition). Auto-normalize
+        // content-scoped vars ($thread.* -> $context.thread.*) — see createWidget.
+        $condRewritten = false;
+        $condNormalized = null;
         if (isset($params['display_condition'])) {
-            $w->display_condition = (string) $params['display_condition'];
+            [$condNormalized, $condRewritten] = $this->normalizeDisplayCondition(
+                (string) $params['display_condition']
+            );
+            $w->display_condition = $condNormalized;
         }
 
         if (!$w->save()) {
@@ -268,7 +285,13 @@ trait AdminWidgetsTrait
         if (isset($params['title'])) {
             $this->writeWidgetTitle($w->widget_key, (string) $params['title']);
         }
-        return $this->success(['widget_key' => $key, 'updated' => true]);
+        $result = ['widget_key' => $key, 'updated' => true];
+        if ($condRewritten) {
+            $result['display_condition_normalized'] = $condNormalized;
+            $result['note'] = 'display_condition was auto-corrected to the $context.* form '
+                . 'XenForo populates at render time (a bare $thread/$forum/... never evaluates).';
+        }
+        return $this->success($result);
     }
 
     public function execute_deleteWidget($params)
@@ -336,6 +359,58 @@ trait AdminWidgetsTrait
             // when $active=false, simply omit the position — widget invisible there
         }
         return $out;
+    }
+
+    /**
+     * Content-scoped variables that XF exposes to a widget's display_condition
+     * ONLY through the position's context bag, i.e. as $context.{name}.{...}.
+     * These are the context-* params XF core passes on its widget positions
+     * (verified against every <xf:widgetpos ... context-X="{$X}"> in the default
+     * templates): thread → thread_view_*, forum → forum_view_sidebar,
+     * category → category_view_sidebar, user → member_view_sidebar,
+     * conversation → conversation_view_sidebar.
+     *
+     * A bare "$thread.thread_id == 94" compiles to $__vars['thread'][...],
+     * which is ALWAYS empty at widget-render time, so the widget silently never
+     * shows. The correct form is "$context.thread.thread_id == 94". Globals such
+     * as $xf.visitor / $xf.options are NOT context-scoped and must be left alone.
+     */
+    private const CONTEXT_VARS = ['thread', 'forum', 'category', 'user', 'conversation', 'node', 'page', 'resource'];
+
+    /**
+     * Auto-normalize a display_condition so content-scoped vars use the $context
+     * prefix XF actually populates at render time. Rewrites a bare leading
+     * "$thread" / "$forum" / ... to "$context.thread" / "$context.forum" / ...,
+     * without touching an already-correct "$context.thread", globals like
+     * "$xf.visitor", or substrings inside other identifiers.
+     *
+     * Returns [normalized_condition, was_rewritten].
+     *
+     * @return array{0:string,1:bool}
+     */
+    private function normalizeDisplayCondition(string $condition): array
+    {
+        if ($condition === '') {
+            return ['', false];
+        }
+
+        $rewritten = false;
+        $alt = implode('|', self::CONTEXT_VARS);
+        // Match $var only when it's a whole leading token: preceded by a non-word,
+        // non-"." char (so "$context.thread" and "$foothread" are untouched),
+        // and followed by "." or "->" (a property access — not "$thread" alone,
+        // which would never be a useful boolean anyway).
+        $pattern = '/(?<![\w.$])\$(' . $alt . ')(?=\s*(?:\.|->))/';
+        $normalized = preg_replace_callback(
+            $pattern,
+            function (array $m) use (&$rewritten) {
+                $rewritten = true;
+                return '$context.' . $m[1];
+            },
+            $condition
+        );
+
+        return [$normalized ?? $condition, $rewritten];
     }
 
     /**
