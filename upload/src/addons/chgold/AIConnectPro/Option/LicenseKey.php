@@ -86,7 +86,7 @@ class LicenseKey extends AbstractOption
         return self::getTextboxRow($option, array_merge($htmlParams, [
             'inputType'   => 'text',
             'explainHtml' => $badge . '<br>' . $portal . $checkBtn
-                . '<br><small>Format: <code>XFP-XXXX-XXXX-XXXX-XXXX</code></small><br>'
+                . '<br><small>Format: <code>XXX-XXXX-XXXX-XXXX-XXXX</code> (the exact key emailed to you by goldnat.ai)</small><br>'
                 . $steps . $account,
         ]));
     }
@@ -209,12 +209,17 @@ class LicenseKey extends AbstractOption
     public static function verifyOption(&$value, Option $option): bool
     {
         $value = trim((string) $value);
-        // Accept empty (clears the license) OR a valid-looking XFP key.
-        if ($value === '' || preg_match('/^XFP-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/i', $value)) {
+        // Accept empty (clears the license) OR a valid-looking goldnat key.
+        //
+        // The prefix is PRODUCT-specific and set server-side by goldnat.ai (Pro
+        // ships as "XFP-…", Admin as "GEN-…", more may be issued in future). We
+        // validate only the STRUCTURE and let goldnat.ai be the authority on the
+        // key itself — hardcoding a single prefix rejected legitimately-issued keys.
+        if ($value === '' || preg_match('/^[A-Z0-9]{2,4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/i', $value)) {
             return true;
         }
         $option->error(
-            'License key format is invalid. Expected: XFP-XXXX-XXXX-XXXX-XXXX (letters + digits, dashes required).',
+            'License key format is invalid. Expected: XXX-XXXX-XXXX-XXXX-XXXX (letters + digits, dashes required).',
             $option->option_id
         );
         return false;

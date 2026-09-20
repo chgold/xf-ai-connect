@@ -1,9 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <phrases>
+  <phrase title="option.aiconnect_admin_license_checked" version_id="1042400" version_string="1.4.24"><![CDATA[License last checked (internal)]]></phrase>
   <phrase title="option.aiconnect_admin_license_key" version_id="1041800" version_string="1.4.18"><![CDATA[License key]]></phrase>
-  <phrase title="option_explain.aiconnect_admin_license_key" version_id="1041800" version_string="1.4.18"><![CDATA[Enter the license key you received in your purchase confirmation email (format: XFA-XXXX-XXXX-XXXX-XXXX). Leave blank to disable Pro features.]]></phrase>
+  <phrase title="option.aiconnect_admin_license_status" version_id="1042400" version_string="1.4.24"><![CDATA[License status (internal)]]></phrase>
+  <phrase title="option_explain.aiconnect_admin_license_checked" version_id="1042400" version_string="1.4.24"><![CDATA[Unix timestamp of the last license check. Managed automatically — do not edit.]]></phrase>
+  <phrase title="option_explain.aiconnect_admin_license_key" version_id="1042400" version_string="1.4.24"><![CDATA[Enter the license key you received in your goldnat.ai purchase confirmation email (format: XXX-XXXX-XXXX-XXXX-XXXX). Leave blank to disable the Admin tools.]]></phrase>
+  <phrase title="option_explain.aiconnect_admin_license_status" version_id="1042400" version_string="1.4.24"><![CDATA[Cached verdict from the last license check. Managed automatically — do not edit.]]></phrase>
   <phrase title="option_group.aiconnect_admin_license" version_id="1041800" version_string="1.4.18"><![CDATA[AI Connect Admin License]]></phrase>
-  <phrase title="option_group.aiconnect_admin_license_description" version_id="1041800" version_string="1.4.18"><![CDATA[Manage your AI Connect Admin license key. When a valid license is entered the Pro tools will be enabled automatically.]]></phrase>
+  <phrase title="option_group_description.aiconnect_admin_license" version_id="1042400" version_string="1.4.24"><![CDATA[Manage your AI Connect Admin license key. When a valid license is entered the Admin tools will be enabled automatically.]]></phrase>
   <phrase title="permission.aiconnect_t_01171b452975" version_id="1000000" version_string="1.0.0"><![CDATA[deleteNode]]></phrase>
   <phrase title="permission.aiconnect_t_0562df061abd" version_id="1000000" version_string="1.0.0"><![CDATA[createUser]]></phrase>
   <phrase title="permission.aiconnect_t_0cc87f41d8cb" version_id="1000000" version_string="1.0.0"><![CDATA[createNode]]></phrase>
