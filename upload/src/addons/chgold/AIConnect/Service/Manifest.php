@@ -180,7 +180,7 @@ class Manifest extends AbstractService
     }
 
     /**
-     * Generate WebMCP manifest
+     * Generate Servio manifest
      */
     public function generate()
     {
@@ -193,7 +193,7 @@ class Manifest extends AbstractService
             'schema_version' => '1.0',
             'name' => 'xenforo-ai-connect',
             'version' => $version,
-            'description' => 'WebMCP bridge for XenForo - manage forum content and users',
+            'description' => 'Servio bridge for XenForo - manage forum content and users',
             'api_version' => 'v1',
             'capabilities' => [
                 'tools' => true,

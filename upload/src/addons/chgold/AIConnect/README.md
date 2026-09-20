@@ -4,9 +4,9 @@
 [![XenForo](https://img.shields.io/badge/XenForo-2.2.0+-orange.svg)](https://xenforo.com)
 [![License](https://img.shields.io/badge/license-GPL--3.0-green.svg)](upload/src/addons/chgold/AIConnect/LICENSE-GPL.txt)
 
-**Connect AI agents to your XenForo forum through the WebMCP Protocol.**
+**Connect AI agents to your XenForo forum through the Servio Protocol.**
 
-A WebMCP Protocol Bridge that allows AI agents (ChatGPT, Claude, Gemini, Copilot, etc.) to interact with XenForo forums through standardized API endpoints using OAuth 2.0 with PKCE for secure authentication.
+A Servio Protocol Bridge that allows AI agents (ChatGPT, Claude, Gemini, Copilot, etc.) to interact with XenForo forums through standardized API endpoints using OAuth 2.0 with PKCE for secure authentication.
 
 **Website**: [ai-connect.gold-t.co.il](https://ai-connect.gold-t.co.il)
 
@@ -33,7 +33,7 @@ A WebMCP Protocol Bridge that allows AI agents (ChatGPT, Claude, Gemini, Copilot
 
 ## Features
 
-- **WebMCP Protocol Compliant** — Standard manifest and tool execution endpoints
+- **Servio Protocol Compliant** — Standard manifest and tool execution endpoints
 - **OAuth 2.0 + PKCE** — Secure authentication flow, no passwords stored
 - **11 Built-in Tools** — 5 free core + optional translation module + 5 pro (create, reply, edit, message, browse)
 - **Pre-configured AI Clients** — ChatGPT, Claude, Gemini, Copilot, Grok, DeepSeek, Perplexity, Meta AI
@@ -87,7 +87,7 @@ A WebMCP Protocol Bridge that allows AI agents (ChatGPT, Claude, Gemini, Copilot
 
 ### The Right Way: MCP (Recommended)
 
-AI Connect implements the WebMCP protocol. Connect AI agents via **MCP** for full, reliable access:
+AI Connect implements the Servio protocol. Connect AI agents via **MCP** for full, reliable access:
 
 | Client | How to connect |
 |--------|----------------|
@@ -151,8 +151,8 @@ AI Connect provides a public info page at `/ai-connect/` with:
 
 | Endpoint | Method | Auth | Description |
 |----------|--------|------|-------------|
-| `/api/aiconnect-manifest` | GET | No | WebMCP manifest (public discovery) |
-| `/api/ai-connect/manifest` | GET | No | WebMCP manifest (alternative URL) |
+| `/api/aiconnect-manifest` | GET | No | Servio manifest (public discovery) |
+| `/api/ai-connect/manifest` | GET | No | Servio manifest (alternative URL) |
 | `/oauth.php` | GET | No | OAuth 2.0 consent screen |
 | `/api/aiconnect-oauth` | POST | No | Token exchange (authorization_code, refresh_token) |
 | `/api/aiconnect-oauth` | GET | No | Token exchange via query params (for web agents) |
@@ -370,7 +370,7 @@ php cmd.php xf-addon:build-release chgold/AIConnect
 
 ## Credits
 
-- **[WebMCP Protocol](https://webmcp.org)** — The open protocol specification for AI-to-web integration
+- **[Servio Protocol](https://github.com/chgold/servio)** — The open protocol specification for AI-to-web integration
 - **[XenForo](https://xenforo.com)** — The forum platform this addon extends
 
 ---
