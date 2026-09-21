@@ -15,6 +15,14 @@ trait ProConversationTrait
     {
         $convId = ['type' => 'integer', 'description' => 'Conversation id'];
 
+        $this->registerTool('getConversation', [
+            'description' => 'Get one private conversation (title, participants, message count).',
+            'input_schema' => [
+                'type' => 'object',
+                'required' => ['conversation_id'],
+                'properties' => ['conversation_id' => $convId],
+            ],
+        ]);
         $this->registerTool('getConversationMessages', [
             'description' => 'Get the messages in a private conversation',
             'input_schema' => [
@@ -71,6 +79,34 @@ trait ProConversationTrait
     }
 
     // phpcs:disable PSR1.Methods.CamelCapsMethodName.NotCamelCaps -- dynamic dispatch execute_<name>
+
+    public function execute_getConversation($params)
+    {
+        // Load through the visitor's own conversation record (participation +
+        // permission check), same pattern as the other conversation tools.
+        $userConv = $this->getVisitorConversation($params['conversation_id']);
+        if (!$userConv || !$userConv->Master) {
+            return $this->error('not_found', 'Conversation not found or not accessible');
+        }
+        $conv = $userConv->Master;
+        $recipients = [];
+        foreach ($conv->recipients as $userId => $recipient) {
+            $recipients[] = [
+                'user_id'  => (int) $userId,
+                'username' => (string) ($recipient->Recipient->username ?? ''),
+            ];
+        }
+        return $this->success([
+            'conversation_id'   => (int) $conv->conversation_id,
+            'title'             => (string) $conv->title,
+            'start_date'        => (int) $conv->start_date,
+            'last_message_date' => (int) $conv->last_message_date,
+            'reply_count'       => (int) $conv->reply_count,
+            'recipient_count'   => (int) $conv->recipient_count,
+            'is_unread'         => (bool) $userConv->is_unread,
+            'recipients'        => $recipients,
+        ]);
+    }
 
     public function execute_getConversationMessages($params)
     {

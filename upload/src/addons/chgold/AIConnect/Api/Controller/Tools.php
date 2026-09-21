@@ -21,11 +21,10 @@ class Tools extends AbstractController
         $manifestService = \XF::service('chgold\AIConnect:Manifest');
         $coreModule = new \chgold\AIConnect\Module\CoreModule($manifestService);
         $translationModule = new \chgold\AIConnect\Module\TranslationModule($manifestService);
-        $conversationModule = new \chgold\AIConnect\Module\ConversationModule($manifestService);
+        // Conversation (DM) tools moved to Pro (xenforo_pro.*) — see Manifest controller.
 
         $this->modules[$coreModule->getModuleName()] = $coreModule;
         $this->modules[$translationModule->getModuleName()] = $translationModule;
-        $this->modules[$conversationModule->getModuleName()] = $conversationModule;
 
         \XF::fire('ai_connect_modules_init', [&$this->modules, $manifestService], 'chgold/AIConnect');
     }
