@@ -23,6 +23,20 @@ class Setup extends AbstractSetup
         $this->rebuildProData();
     }
 
+    /**
+     * Drop the code-event listener cache on uninstall so our
+     * ai_connect_modules_init listener stops injecting the Pro tools into the
+     * manifest the moment the add-on is removed. Without this the manifest kept
+     * advertising the Pro tools (from the stale listener cache) until a manual
+     * Rebuild Caches — mirror image of the fresh-install visibility bug fixed in
+     * postInstall(). XF drops the listener rows on uninstall, but the cache the
+     * manifest builds from is not guaranteed to be rebuilt in the same request.
+     */
+    public function uninstallStep1(): void
+    {
+        \XF::repository('XF:CodeEventListener')->rebuildListenerCache();
+    }
+
     protected function rebuildProData(): void
     {
         \XF::runOnce('aiconnectPro_rebuild', function () {

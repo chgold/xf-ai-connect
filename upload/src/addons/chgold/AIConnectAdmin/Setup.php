@@ -142,6 +142,16 @@ class Setup extends AbstractSetup
                 [\XF::$time]
             );
         }
+
+        // Drop the code-event listener cache so our ai_connect_modules_init
+        // listener stops injecting the Admin tools into the manifest the moment
+        // the add-on is removed. Without this the manifest kept advertising the
+        // Admin tools (from the stale listener cache) until a manual Rebuild
+        // Caches — the mirror image of the fresh-install visibility bug fixed in
+        // postInstall(). XF drops the listener rows on uninstall, but the cache
+        // that the manifest builds from is not guaranteed to be rebuilt in the
+        // same request, so we force it here.
+        \XF::repository('XF:CodeEventListener')->rebuildListenerCache();
     }
 
     protected function addAdminScopeToClients(): void
