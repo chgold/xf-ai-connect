@@ -796,24 +796,26 @@ class Setup extends AbstractSetup
                     // Always persist phrase — idempotent, keeps Admin CP labels fresh
                     self::persistPhrase($phraseKey, $toolLabel, $addonId);
 
-                    // Default Allow for Registered (group 2)
-                    $entryExists = $db->fetchOne(
-                        'SELECT permission_value FROM xf_permission_entry
-                         WHERE user_group_id = 2 AND user_id = 0
-                           AND permission_group_id = ? AND permission_id = ?',
-                        ['aiconnect', $permId]
-                    );
-                    if ($entryExists === false || $entryExists === null) {
-                        $db->insert('xf_permission_entry', [
-                            'user_group_id'        => 2,
-                            'user_id'              => 0,
-                            'permission_group_id'  => 'aiconnect',
-                            'permission_id'        => $permId,
-                            'permission_value'     => 'allow',
-                            'permission_value_int' => 0,
-                        ]);
-                        $rebuild = true;
-                    }
+                    // FAIL-CLOSED for NEW per-tool permissions (security).
+                    //
+                    // We deliberately do NOT insert a default 'allow' entry for a
+                    // per-tool permission. A newly-introduced tool — especially a
+                    // destructive or administrative one shipped in a future update
+                    // — must default to DENIED until an administrator explicitly
+                    // grants it, even when the surrounding package/bundle was
+                    // already enabled. Auto-allowing new tools under an already-
+                    // granted package would silently widen an AI account's power
+                    // on every upgrade, which is exactly the behaviour security-
+                    // conscious admins must be able to rely on NOT happening.
+                    //
+                    // Backward compatibility: this only affects permissions that
+                    // do not yet have an entry (i.e. genuinely new tools). Any
+                    // grant an admin has already made is stored as its own
+                    // xf_permission_entry row and is never touched here, so
+                    // existing installs keep every capability they already allow.
+                    // The package master switch (use_package_*) still defaults to
+                    // allow above, so enabling a bundle is one toggle; enabling a
+                    // brand-new tool inside it is a deliberate second action.
                 }
             }
         }
