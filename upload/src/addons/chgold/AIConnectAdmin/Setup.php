@@ -108,31 +108,40 @@ class Setup extends AbstractSetup
     {
         $db = $this->db();
 
-        $clients = $db->fetchAll('SELECT client_id, allowed_scopes FROM xf_ai_connect_oauth_clients');
-        foreach ($clients as $client) {
-            $scopes = json_decode((string) $client['allowed_scopes'], true);
-            if (!is_array($scopes) || !in_array('admin', $scopes, true)) {
-                continue;
-            }
+        // These two tables belong to the free Core add-on (chgold/AIConnect), not
+        // to Admin. Admin only withdraws the 'admin' scope it added on install. If
+        // Core was already uninstalled (its tables dropped), there is nothing to
+        // clean up here — guard each access so uninstalling Admin never crashes
+        // with "Table ... doesn't exist" [1146].
+        if ($this->tableExists('xf_ai_connect_oauth_clients')) {
+            $clients = $db->fetchAll('SELECT client_id, allowed_scopes FROM xf_ai_connect_oauth_clients');
+            foreach ($clients as $client) {
+                $scopes = json_decode((string) $client['allowed_scopes'], true);
+                if (!is_array($scopes) || !in_array('admin', $scopes, true)) {
+                    continue;
+                }
 
-            $scopes = array_values(array_diff($scopes, ['admin']));
-            $db->update(
-                'xf_ai_connect_oauth_clients',
-                ['allowed_scopes' => json_encode($scopes)],
-                'client_id = ?',
-                $client['client_id']
-            );
+                $scopes = array_values(array_diff($scopes, ['admin']));
+                $db->update(
+                    'xf_ai_connect_oauth_clients',
+                    ['allowed_scopes' => json_encode($scopes)],
+                    'client_id = ?',
+                    $client['client_id']
+                );
+            }
         }
 
         // Tokens already carrying the scope must lose their power too, otherwise
         // uninstalling would leave live admin-capable tokens behind.
-        $db->query(
-            "UPDATE xf_ai_connect_oauth_tokens
-                SET revoked_date = ?
-              WHERE revoked_date = 0
-                AND scopes LIKE '%admin%'",
-            [\XF::$time]
-        );
+        if ($this->tableExists('xf_ai_connect_oauth_tokens')) {
+            $db->query(
+                "UPDATE xf_ai_connect_oauth_tokens
+                    SET revoked_date = ?
+                  WHERE revoked_date = 0
+                    AND scopes LIKE '%admin%'",
+                [\XF::$time]
+            );
+        }
     }
 
     protected function addAdminScopeToClients(): void
