@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<permissions>
+  <permission permission_group_id="aiconnect" permission_id="t_020be3f963d0" permission_type="flag" depend_permission_id="use_package_moderation" interface_group_id="aiconnect_pkg_moderation" display_order="10"/>
+  <permission permission_group_id="aiconnect" permission_id="t_0c2df052f6bb" permission_type="flag" depend_permission_id="use_package_moderation" interface_group_id="aiconnect_pkg_moderation" display_order="10"/>
+  <permission permission_group_id="aiconnect" permission_id="t_1a22827134fc" permission_type="flag" depend_permission_id="use_package_moderation" interface_group_id="aiconnect_pkg_moderation" display_order="10"/>
+  <permission permission_group_id="aiconnect" permission_id="t_2750ffff7f73" permission_type="flag" depend_permission_id="use_package_moderation" interface_group_id="aiconnect_pkg_moderation" display_order="10"/>
+  <permission permission_group_id="aiconnect" permission_id="t_2c451b29eff2" permission_type="flag" depend_permission_id="use_package_warnings" interface_group_id="aiconnect_pkg_warnings" display_order="10"/>
+  <permission permission_group_id="aiconnect" permission_id="t_3123e19f6055" permission_type="flag" depend_permission_id="use_package_moderation" interface_group_id="aiconnect_pkg_moderation" display_order="10"/>
+  <permission permission_group_id="aiconnect" permission_id="t_33b37baba762" permission_type="flag" depend_permission_id="use_package_reports" interface_group_id="aiconnect_pkg_reports" display_order="10"/>
+  <permission permission_group_id="aiconnect" permission_id="t_4014f7e2d77f" permission_type="flag" depend_permission_id="use_package_approval" interface_group_id="aiconnect_pkg_approval" display_order="10"/>
+  <permission permission_group_id="aiconnect" permission_id="t_48a268030fbf" permission_type="flag" depend_permission_id="use_package_reports" interface_group_id="aiconnect_pkg_reports" display_order="10"/>
+  <permission permission_group_id="aiconnect" permission_id="t_4dfce9cc40f7" permission_type="flag" depend_permission_id="use_package_moderation" interface_group_id="aiconnect_pkg_moderation" display_order="10"/>
+  <permission permission_group_id="aiconnect" permission_id="t_4e990cd8d20e" permission_type="flag" depend_permission_id="use_package_moderation" interface_group_id="aiconnect_pkg_moderation" display_order="10"/>
+  <permission permission_group_id="aiconnect" permission_id="t_5496a8430ff7" permission_type="flag" depend_permission_id="use_package_moderation" interface_group_id="aiconnect_pkg_moderation" display_order="10"/>
+  <permission permission_group_id="aiconnect" permission_id="t_5e4e99cee26f" permission_type="flag" depend_permission_id="use_package_moderation" interface_group_id="aiconnect_pkg_moderation" display_order="10"/>
+  <permission permission_group_id="aiconnect" permission_id="t_6072f0d07289" permission_type="flag" depend_permission_id="use_package_approval" interface_group_id="aiconnect_pkg_approval" display_order="10"/>
+  <permission permission_group_id="aiconnect" permission_id="t_760af99dd92c" permission_type="flag" depend_permission_id="use_package_warnings" interface_group_id="aiconnect_pkg_warnings" display_order="10"/>
+  <permission permission_group_id="aiconnect" permission_id="t_77ee146942a6" permission_type="flag" depend_permission_id="use_package_moderation" interface_group_id="aiconnect_pkg_moderation" display_order="10"/>
+  <permission permission_group_id="aiconnect" permission_id="t_7ae3a4fbea91" permission_type="flag" depend_permission_id="use_package_moderation" interface_group_id="aiconnect_pkg_moderation" display_order="10"/>
+  <permission permission_group_id="aiconnect" permission_id="t_7b59b6ed6cb4" permission_type="flag" depend_permission_id="use_package_reports" interface_group_id="aiconnect_pkg_reports" display_order="10"/>
+  <permission permission_group_id="aiconnect" permission_id="t_7c77c3dd0547" permission_type="flag" depend_permission_id="use_package_reports" interface_group_id="aiconnect_pkg_reports" display_order="10"/>
+  <permission permission_group_id="aiconnect" permission_id="t_89b2f95367d8" permission_type="flag" depend_permission_id="use_package_advanced_mod" interface_group_id="aiconnect_pkg_advanced_mod" display_order="10"/>
+  <permission permission_group_id="aiconnect" permission_id="t_928475ab5cf3" permission_type="flag" depend_permission_id="use_package_approval" interface_group_id="aiconnect_pkg_approval" display_order="10"/>
+  <permission permission_group_id="aiconnect" permission_id="t_a59874b750b5" permission_type="flag" depend_permission_id="use_package_advanced_mod" interface_group_id="aiconnect_pkg_advanced_mod" display_order="10"/>
+  <permission permission_group_id="aiconnect" permission_id="t_a681c1989f34" permission_type="flag" depend_permission_id="use_package_moderation" interface_group_id="aiconnect_pkg_moderation" display_order="10"/>
+  <permission permission_group_id="aiconnect" permission_id="t_aecb08f29a8c" permission_type="flag" depend_permission_id="use_package_warnings" interface_group_id="aiconnect_pkg_warnings" display_order="10"/>
+  <permission permission_group_id="aiconnect" permission_id="t_b51f7bfbf4a8" permission_type="flag" depend_permission_id="use_package_approval" interface_group_id="aiconnect_pkg_approval" display_order="10"/>
+  <permission permission_group_id="aiconnect" permission_id="t_ced6242a1049" permission_type="flag" depend_permission_id="use_package_warnings" interface_group_id="aiconnect_pkg_warnings" display_order="10"/>
+  <permission permission_group_id="aiconnect" permission_id="t_e56da445a8c9" permission_type="flag" depend_permission_id="use_package_moderation" interface_group_id="aiconnect_pkg_moderation" display_order="10"/>
+  <permission permission_group_id="aiconnect" permission_id="t_ea06be6718a3" permission_type="flag" depend_permission_id="use_package_moderation" interface_group_id="aiconnect_pkg_moderation" display_order="10"/>
+  <permission permission_group_id="aiconnect" permission_id="t_fec94c148498" permission_type="flag" depend_permission_id="use_package_reports" interface_group_id="aiconnect_pkg_reports" display_order="10"/>
+  <permission permission_group_id="aiconnect" permission_id="use_package_advanced_mod" permission_type="flag" depend_permission_id="useTools" interface_group_id="aiconnect_pkg_advanced_mod" display_order="5"/>
+  <permission permission_group_id="aiconnect" permission_id="use_package_approval" permission_type="flag" depend_permission_id="useTools" interface_group_id="aiconnect_pkg_approval" display_order="5"/>
+  <permission permission_group_id="aiconnect" permission_id="use_package_moderation" permission_type="flag" depend_permission_id="useTools" interface_group_id="aiconnect_pkg_moderation" display_order="5"/>
+  <permission permission_group_id="aiconnect" permission_id="use_package_reports" permission_type="flag" depend_permission_id="useTools" interface_group_id="aiconnect_pkg_reports" display_order="5"/>
+  <permission permission_group_id="aiconnect" permission_id="use_package_warnings" permission_type="flag" depend_permission_id="useTools" interface_group_id="aiconnect_pkg_warnings" display_order="5"/>
+</permissions>

@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<phrases>
+  <phrase title="option.aiconnect_moderation_license_checked" version_id="1000000" version_string="1.0.0"><![CDATA[License last checked (internal)]]></phrase>
+  <phrase title="option.aiconnect_moderation_license_key" version_id="1000000" version_string="1.0.0"><![CDATA[License key]]></phrase>
+  <phrase title="option.aiconnect_moderation_license_status" version_id="1000000" version_string="1.0.0"><![CDATA[License status (internal)]]></phrase>
+  <phrase title="option_explain.aiconnect_moderation_license_checked" version_id="1000000" version_string="1.0.0"><![CDATA[Unix timestamp of the last license check. Managed automatically — do not edit.]]></phrase>
+  <phrase title="option_explain.aiconnect_moderation_license_key" version_id="1000000" version_string="1.0.0"><![CDATA[Enter the license key you received in your goldnat.ai purchase confirmation email (format: XXX-XXXX-XXXX-XXXX-XXXX). Leave blank to disable the Moderation tools.]]></phrase>
+  <phrase title="option_explain.aiconnect_moderation_license_status" version_id="1000000" version_string="1.0.0"><![CDATA[Cached verdict from the last license check. Managed automatically — do not edit.]]></phrase>
+  <phrase title="option_group.aiconnect_moderation_license" version_id="1000000" version_string="1.0.0"><![CDATA[AI Connect Moderation License]]></phrase>
+  <phrase title="option_group_description.aiconnect_moderation_license" version_id="1000000" version_string="1.0.0"><![CDATA[Manage your AI Connect Moderation license key. When a valid license is entered the Moderation tools will be enabled automatically.]]></phrase>
+  <phrase title="permission.aiconnect_t_020be3f963d0" version_id="1000000" version_string="1.0.0"><![CDATA[changeThreadType]]></phrase>
+  <phrase title="permission.aiconnect_t_0c2df052f6bb" version_id="1000000" version_string="1.0.0"><![CDATA[unlockThread]]></phrase>
+  <phrase title="permission.aiconnect_t_1a22827134fc" version_id="1000000" version_string="1.0.0"><![CDATA[unfeatureThread]]></phrase>
+  <phrase title="permission.aiconnect_t_2750ffff7f73" version_id="1000000" version_string="1.0.0"><![CDATA[moveThread]]></phrase>
+  <phrase title="permission.aiconnect_t_2c451b29eff2" version_id="1000000" version_string="1.0.0"><![CDATA[listWarnings]]></phrase>
+  <phrase title="permission.aiconnect_t_3123e19f6055" version_id="1000000" version_string="1.0.0"><![CDATA[deleteThread]]></phrase>
+  <phrase title="permission.aiconnect_t_33b37baba762" version_id="1000000" version_string="1.0.0"><![CDATA[rejectReport]]></phrase>
+  <phrase title="permission.aiconnect_t_4014f7e2d77f" version_id="1000000" version_string="1.0.0"><![CDATA[listDeletionLog]]></phrase>
+  <phrase title="permission.aiconnect_t_48a268030fbf" version_id="1000000" version_string="1.0.0"><![CDATA[replyToReport]]></phrase>
+  <phrase title="permission.aiconnect_t_4dfce9cc40f7" version_id="1000000" version_string="1.0.0"><![CDATA[editThread]]></phrase>
+  <phrase title="permission.aiconnect_t_4e990cd8d20e" version_id="1000000" version_string="1.0.0"><![CDATA[deleteProfilePostComment]]></phrase>
+  <phrase title="permission.aiconnect_t_5496a8430ff7" version_id="1000000" version_string="1.0.0"><![CDATA[deletePost]]></phrase>
+  <phrase title="permission.aiconnect_t_5e4e99cee26f" version_id="1000000" version_string="1.0.0"><![CDATA[stickThread]]></phrase>
+  <phrase title="permission.aiconnect_t_6072f0d07289" version_id="1000000" version_string="1.0.0"><![CDATA[rejectContent]]></phrase>
+  <phrase title="permission.aiconnect_t_760af99dd92c" version_id="1000000" version_string="1.0.0"><![CDATA[issueWarning]]></phrase>
+  <phrase title="permission.aiconnect_t_77ee146942a6" version_id="1000000" version_string="1.0.0"><![CDATA[featureThread]]></phrase>
+  <phrase title="permission.aiconnect_t_7ae3a4fbea91" version_id="1000000" version_string="1.0.0"><![CDATA[markSolution]]></phrase>
+  <phrase title="permission.aiconnect_t_7b59b6ed6cb4" version_id="1000000" version_string="1.0.0"><![CDATA[listReports]]></phrase>
+  <phrase title="permission.aiconnect_t_7c77c3dd0547" version_id="1000000" version_string="1.0.0"><![CDATA[resolveReport]]></phrase>
+  <phrase title="permission.aiconnect_t_89b2f95367d8" version_id="1000000" version_string="1.0.0"><![CDATA[splitPosts]]></phrase>
+  <phrase title="permission.aiconnect_t_928475ab5cf3" version_id="1000000" version_string="1.0.0"><![CDATA[listApprovalQueue]]></phrase>
+  <phrase title="permission.aiconnect_t_a59874b750b5" version_id="1000000" version_string="1.0.0"><![CDATA[mergePosts]]></phrase>
+  <phrase title="permission.aiconnect_t_a681c1989f34" version_id="1000000" version_string="1.0.0"><![CDATA[deleteProfilePost]]></phrase>
+  <phrase title="permission.aiconnect_t_aecb08f29a8c" version_id="1000000" version_string="1.0.0"><![CDATA[deleteWarning]]></phrase>
+  <phrase title="permission.aiconnect_t_b51f7bfbf4a8" version_id="1000000" version_string="1.0.0"><![CDATA[approveContent]]></phrase>
+  <phrase title="permission.aiconnect_t_ced6242a1049" version_id="1000000" version_string="1.0.0"><![CDATA[listWarningDefinitions]]></phrase>
+  <phrase title="permission.aiconnect_t_e56da445a8c9" version_id="1000000" version_string="1.0.0"><![CDATA[unstickThread]]></phrase>
+  <phrase title="permission.aiconnect_t_ea06be6718a3" version_id="1000000" version_string="1.0.0"><![CDATA[lockThread]]></phrase>
+  <phrase title="permission.aiconnect_t_fec94c148498" version_id="1000000" version_string="1.0.0"><![CDATA[getReport]]></phrase>
+  <phrase title="permission.aiconnect_use_package_advanced_mod" version_id="1000000" version_string="1.0.0"><![CDATA[Use Advanced Mod (merge/split) (package switch)]]></phrase>
+  <phrase title="permission.aiconnect_use_package_approval" version_id="1000000" version_string="1.0.0"><![CDATA[Use Approval Queue (package switch)]]></phrase>
+  <phrase title="permission.aiconnect_use_package_moderation" version_id="1000000" version_string="1.0.0"><![CDATA[Use Moderation (package switch)]]></phrase>
+  <phrase title="permission.aiconnect_use_package_reports" version_id="1000000" version_string="1.0.0"><![CDATA[Use Reports Queue (package switch)]]></phrase>
+  <phrase title="permission.aiconnect_use_package_warnings" version_id="1000000" version_string="1.0.0"><![CDATA[Use Warnings (issue/list/delete) (package switch)]]></phrase>
+  <phrase title="permission_interface.aiconnect_pkg_advanced_mod" version_id="1000000" version_string="1.0.0"><![CDATA[Advanced Mod (merge/split)]]></phrase>
+  <phrase title="permission_interface.aiconnect_pkg_approval" version_id="1000000" version_string="1.0.0"><![CDATA[Approval Queue]]></phrase>
+  <phrase title="permission_interface.aiconnect_pkg_moderation" version_id="1000000" version_string="1.0.0"><![CDATA[Moderation]]></phrase>
+  <phrase title="permission_interface.aiconnect_pkg_reports" version_id="1000000" version_string="1.0.0"><![CDATA[Reports Queue]]></phrase>
+  <phrase title="permission_interface.aiconnect_pkg_warnings" version_id="1000000" version_string="1.0.0"><![CDATA[Warnings (issue/list/delete)]]></phrase>
+</phrases>

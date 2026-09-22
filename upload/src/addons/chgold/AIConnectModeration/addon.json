@@ -1,0 +1,27 @@
+{
+    "legacy_addon_id": "",
+    "title": "AI Connect Moderation for XenForo",
+    "description": "Moderation tool-set for AI Connect - reports queue, approval queue, warnings, and thread/post moderation for AI agents. Requires the 'admin' OAuth scope.",
+    "version_id": 1000000,
+    "version_string": "1.0.0",
+    "dev": "chgold",
+    "dev_url": "https://plugins.goldnat.ai/xenforo",
+    "faq_url": "",
+    "support_url": "https://plugins.goldnat.ai/xenforo",
+    "extra_urls": [],
+    "require": {
+        "php": [
+            "7.2.0",
+            "PHP 7.2.0+"
+        ],
+        "XF": [
+            "2020000",
+            "XenForo 2.2.0+"
+        ],
+        "chgold/AIConnect": [
+            "1024000",
+            "AI Connect 1.2.40+"
+        ]
+    },
+    "icon": "icon.png"
+}

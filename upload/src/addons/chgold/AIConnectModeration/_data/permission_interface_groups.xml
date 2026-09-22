@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<permission_interface_groups>
+  <interface_group interface_group_id="aiconnect_pkg_advanced_mod" display_order="424" is_moderator="0"/>
+  <interface_group interface_group_id="aiconnect_pkg_approval" display_order="422" is_moderator="0"/>
+  <interface_group interface_group_id="aiconnect_pkg_moderation" display_order="420" is_moderator="0"/>
+  <interface_group interface_group_id="aiconnect_pkg_reports" display_order="421" is_moderator="0"/>
+  <interface_group interface_group_id="aiconnect_pkg_warnings" display_order="423" is_moderator="0"/>
+</permission_interface_groups>
