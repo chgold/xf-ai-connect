@@ -86,7 +86,8 @@ class LicenseKey extends AbstractOption
         return self::getTextboxRow($option, array_merge($htmlParams, [
             'inputType'   => 'text',
             'explainHtml' => $badge . '<br>' . $portal . $checkBtn
-                . '<br><small>Format: <code>XXX-XXXX-XXXX-XXXX-XXXX</code> (the exact key emailed to you by goldnat.ai)</small><br>'
+                . '<br><small>Format: <code>XXX-XXXX-XXXX-XXXX-XXXX</code> (the exact key emailed to '
+                . 'you by goldnat.ai)</small><br>'
                 . $steps . $account,
         ]));
     }
@@ -103,11 +104,13 @@ class LicenseKey extends AbstractOption
             'valid'           => '<span class="u-flexNoShrink" style="color:#2e7d32;font-weight:bold">✅ Active</span>'
                                   . ' — updates valid until '
                                   . self::formatLicenseDate($status['updates_expire_at'] ?? null),
-            'valid_no_updates'=> '<span class="u-flexNoShrink" style="color:#f57c00;font-weight:bold">✅ Perpetual</span>'
-                                  . ' — updates expired '
-                                  . self::formatLicenseDate($status['updates_expire_at'] ?? null, '')
-                                  . '. <a href="mailto:' . self::SUPPORT_EMAIL . '?subject=Renew%20AI%20Connect%20Pro%20updates">'
-                                  . 'Contact us to renew</a>',
+            'valid_no_updates'=> '<span class="u-flexNoShrink" style="color:#f57c00;font-weight:bold">'
+                                   . '✅ Perpetual</span>'
+                                   . ' — updates expired '
+                                   . self::formatLicenseDate($status['updates_expire_at'] ?? null, '')
+                                   . '. <a href="mailto:' . self::SUPPORT_EMAIL
+                                   . '?subject=Renew%20AI%20Connect%20Pro%20updates">'
+                                   . 'Contact us to renew</a>',
             // Domain transfer has no self-service endpoint yet, so point the
             // admin at support with the two facts we already know (the key's
             // registered domain and this site's domain) pre-filled.
@@ -131,8 +134,10 @@ class LicenseKey extends AbstractOption
                                   . self::SUPPORT_EMAIL . '</a>',
             'error_cached'    => '<span style="color:#f57c00;font-weight:bold">⚠️ Server unreachable</span>'
                                   . ' — using cached verdict, will retry automatically',
-            'no_license'      => '<span class="badge badge--secondary">Key saved but not yet verified — click "Check license now"</span>',
-            default           => '<span class="badge badge--secondary">Unknown status — click "Check license now"</span>',
+             'no_license'      => '<span class="badge badge--secondary">Key saved but not yet verified '
+                                   . '— click "Check license now"</span>',
+             default           => '<span class="badge badge--secondary">Unknown status — click "Check '
+                                   . 'license now"</span>',
         };
     }
 

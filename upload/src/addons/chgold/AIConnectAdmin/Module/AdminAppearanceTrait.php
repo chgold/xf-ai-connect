@@ -25,8 +25,15 @@ trait AdminAppearanceTrait
                 'type' => 'object',
                 'properties' => [
                     'style_id' => ['type' => 'integer', 'description' => 'Style to inspect (default: master 0)'],
-                    'group_name' => ['type' => 'string', 'description' => 'Filter to a property group (color, general, fonts)'],
-                    'only_overridden' => ['type' => 'boolean', 'description' => 'If true, return only properties overridden on this style (default false — return all)'],
+                    'group_name' => [
+                        'type' => 'string',
+                        'description' => 'Filter to a property group (color, general, fonts)',
+                    ],
+                    'only_overridden' => [
+                        'type' => 'boolean',
+                        'description' => 'If true, return only properties overridden on this style '
+                            . '(default false — return all)',
+                    ],
                 ],
                 'additionalProperties' => false,
             ],
@@ -57,8 +64,14 @@ trait AdminAppearanceTrait
                 'type' => 'object',
                 'required' => ['property_name', 'value'],
                 'properties' => [
-                    'property_name' => ['type' => 'string', 'description' => 'e.g. publicColorPrimary, fontFamilyBody'],
-                    'value' => ['description' => 'New value — plain string for fonts/dims, object {default,alternate} for colors'],
+                    'property_name' => [
+                        'type' => 'string',
+                        'description' => 'e.g. publicColorPrimary, fontFamilyBody',
+                    ],
+                    'value' => [
+                        'description' => 'New value — plain string for fonts/dims, '
+                            . 'object {default,alternate} for colors',
+                    ],
                     'style_id' => ['type' => 'integer', 'description' => 'Style ID (default 0 = master)'],
                 ],
                 'additionalProperties' => false,
@@ -125,7 +138,10 @@ trait AdminAppearanceTrait
                 'required' => ['file_url', 'target_filename'],
                 'properties' => [
                     'file_url' => ['type' => 'string'],
-                    'target_filename' => ['type' => 'string', 'description' => 'Basename only, no paths — e.g. custom-bg.jpg'],
+                    'target_filename' => [
+                        'type' => 'string',
+                        'description' => 'Basename only, no paths — e.g. custom-bg.jpg',
+                    ],
                     'style_id' => ['type' => 'integer'],
                 ],
                 'additionalProperties' => false,
@@ -821,7 +837,13 @@ trait AdminAppearanceTrait
             if ($f) {
                 $mime = finfo_file($f, $path) ?: '';
                 finfo_close($f);
-                $map = ['image/png' => 'png','image/jpeg' => 'jpg','image/gif' => 'gif','image/webp' => 'webp','image/svg+xml' => 'svg'];
+                $map = [
+                    'image/png' => 'png',
+                    'image/jpeg' => 'jpg',
+                    'image/gif' => 'gif',
+                    'image/webp' => 'webp',
+                    'image/svg+xml' => 'svg',
+                ];
                 if (isset($map[$mime])) {
                     return $map[$mime];
                 }

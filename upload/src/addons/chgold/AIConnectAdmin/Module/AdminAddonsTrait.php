@@ -38,7 +38,8 @@ trait AdminAddonsTrait
         ]);
 
         $this->registerTool('disableAddon', [
-            'description' => 'Disable a currently-enabled add-on. Rebuilds caches. Refuses to disable our own AIConnect chain (would lock the API out).',
+            'description' => 'Disable a currently-enabled add-on. Rebuilds caches. '
+                . 'Refuses to disable our own AIConnect chain (would lock the API out).',
             'input_schema' => [
                 'type' => 'object',
                 'required' => ['addon_id'],

@@ -29,7 +29,11 @@ trait AdminUserCredentialsTrait
                 "properties" => [
                     "user_id" => ["type" => "integer", "description" => "User whose email to change"],
                     "email" => ["type" => "string", "description" => "New email address (must be valid RFC-5322)"],
-                    "mark_confirmed" => ["type" => "boolean", "description" => "If true, mark the new address as already-confirmed (skip email_confirm state). Default false = user must confirm via email."],
+                    "mark_confirmed" => [
+                        "type" => "boolean",
+                        "description" => "If true, mark the new address as already-confirmed (skip "
+                            . "email_confirm state). Default false = user must confirm via email.",
+                    ],
                 ],
                 "additionalProperties" => false,
             ],
@@ -44,8 +48,16 @@ trait AdminUserCredentialsTrait
                 "required" => ["user_id"],
                 "properties" => [
                     "user_id" => ["type" => "integer"],
-                    "new_password" => ["type" => "string", "description" => "Explicit new password. Mutually exclusive with generate_password. Min 6 chars."],
-                    "generate_password" => ["type" => "boolean", "description" => "If true, generate a strong random password and return it. Mutually exclusive with new_password."],
+                    "new_password" => [
+                        "type" => "string",
+                        "description" => "Explicit new password. Mutually exclusive with generate_password. "
+                            . "Min 6 chars.",
+                    ],
+                    "generate_password" => [
+                        "type" => "boolean",
+                        "description" => "If true, generate a strong random password and return it. "
+                            . "Mutually exclusive with new_password.",
+                    ],
                 ],
                 "additionalProperties" => false,
             ],
@@ -151,12 +163,16 @@ trait AdminUserCredentialsTrait
             return $this->error("no_permission", "The user admin permission is required");
         }
         if ($user->is_super_admin && !$visitor->is_super_admin) {
-            return $this->error("no_permission", "Only a super administrator can change credentials of a super administrator");
+            return $this->error(
+                "no_permission",
+                "Only a super administrator can change credentials of a super administrator"
+            );
         }
         if ($user->user_id === $visitor->user_id) {
             return $this->error(
                 "no_permission",
-                "Refusing to change your own credentials via API. Use the standard change-email / password-reset flow (which has proper re-auth)."
+                "Refusing to change your own credentials via API. Use the standard change-email / "
+                    . "password-reset flow (which has proper re-auth)."
             );
         }
         return null;

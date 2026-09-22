@@ -66,7 +66,11 @@ trait AdminNodesAdvancedTrait
                 'required' => ['node_id', 'is_private'],
                 'properties' => [
                     'node_id' => ['type' => 'integer'],
-                    'is_private' => ['type' => 'boolean', 'description' => 'true = mark as private (only explicitly-allowed groups view); false = clear the flag'],
+                    'is_private' => [
+                        'type' => 'boolean',
+                        'description' => 'true = mark as private (only explicitly-allowed groups view); '
+                            . 'false = clear the flag',
+                    ],
                 ],
                 'additionalProperties' => false,
             ],
@@ -94,8 +98,14 @@ trait AdminNodesAdvancedTrait
                 'required' => ['node_id'],
                 'properties' => [
                     'node_id' => ['type' => 'integer'],
-                    'permission_id' => ['type' => 'string', 'description' => 'Filter to one permission (e.g. view). Omit for all.'],
-                    'permission_group_id' => ['type' => 'string', 'description' => 'Filter to one permission group (e.g. general). Omit for all.'],
+                    'permission_id' => [
+                        'type' => 'string',
+                        'description' => 'Filter to one permission (e.g. view). Omit for all.',
+                    ],
+                    'permission_group_id' => [
+                        'type' => 'string',
+                        'description' => 'Filter to one permission group (e.g. general). Omit for all.',
+                    ],
                 ],
                 'additionalProperties' => false,
             ],
@@ -157,17 +167,41 @@ trait AdminNodesAdvancedTrait
                 'properties' => [
                     'node_id' => ['type' => 'integer'],
                     'user_group_id' => ['type' => 'integer'],
-                    'permission_group_id' => ['type' => 'string', 'description' => 'Group: general (for basic node access), forum, thread, post. NOT "node".'],
-                    'permission_id' => ['type' => 'string', 'description' => 'Common: general.view (Node::canView checks THIS — NOT viewNode which does not exist), forum.viewContent, forum.postThread, forum.postReply, forum.uploadAttachment. viewNode/viewForum auto-corrected to general.view.'],
-                    'user_id' => ['type' => 'integer', 'description' => 'Set permission for a specific user instead of a usergroup. When provided (>0), user_group_id is set to 0. Useful to override group perms per-user without creating a helper usergroup.'],
+                    'permission_group_id' => [
+                        'type' => 'string',
+                        'description' => 'Group: general (for basic node access), forum, thread, post. '
+                            . 'NOT "node".',
+                    ],
+                    'permission_id' => [
+                        'type' => 'string',
+                        'description' => 'Common: general.view (Node::canView checks THIS — NOT viewNode '
+                            . 'which does not exist), forum.viewContent, forum.postThread, forum.postReply, '
+                            . 'forum.uploadAttachment. viewNode/viewForum auto-corrected to general.view.',
+                    ],
+                    'user_id' => [
+                        'type' => 'integer',
+                        'description' => 'Set permission for a specific user instead of a usergroup. When '
+                            . 'provided (>0), user_group_id is set to 0. Useful to override group perms '
+                            . 'per-user without creating a helper usergroup.',
+                    ],
                     'permission_value' => [
                         'type' => 'string',
                         'enum' => ['content_allow', 'deny', 'reset', 'unset', 'use_int', 'allow'],
                         'description' => 'For node/content permissions: use content_allow (NOT allow). '
-                            . 'unset removes the entry (inheritance). "allow" is auto-mapped to content_allow for convenience.',
+                            . 'unset removes the entry (inheritance). "allow" is auto-mapped to '
+                            . 'content_allow for convenience.',
                     ],
-                    'permission_value_int' => ['type' => 'integer', 'description' => 'Numeric override for count-type permissions (default 0)'],
-                    'confirm_self_lockout' => ['type' => 'boolean', 'description' => 'Explicit override to allow a change that would lock the caller (or their groups) out of this node. Default false — the change is refused with lockout_risk error if this flag is not set. Use simulatePermissionChange first to preview.'],
+                    'permission_value_int' => [
+                        'type' => 'integer',
+                        'description' => 'Numeric override for count-type permissions (default 0)',
+                    ],
+                    'confirm_self_lockout' => [
+                        'type' => 'boolean',
+                        'description' => 'Explicit override to allow a change that would lock the caller '
+                            . '(or their groups) out of this node. Default false — the change is refused with '
+                            . 'lockout_risk error if this flag is not set. Use simulatePermissionChange first '
+                            . 'to preview.',
+                    ],
                 ],
                 'additionalProperties' => false,
             ],
@@ -456,7 +490,8 @@ trait AdminNodesAdvancedTrait
             'is_private' => $marker === 'reset',
             'marker'     => $marker,
             'note'       => $makePrivate
-                ? 'Node is now private. Grant explicit content_allow per group/user via setNodePermission to allow view.'
+                ? 'Node is now private. Grant explicit content_allow per group/user via '
+                    . 'setNodePermission to allow view.'
                 : 'Private flag cleared. Base group permissions apply again.',
         ]);
     }

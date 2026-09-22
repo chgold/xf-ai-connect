@@ -27,7 +27,10 @@ trait AdminSiteConfigTrait
                 'type' => 'object',
                 'required' => ['group_id'],
                 'properties' => [
-                    'group_id' => ['type' => 'string', 'description' => 'Option group id — see listOptionGroups helper'],
+                    'group_id' => [
+                        'type' => 'string',
+                        'description' => 'Option group id — see listOptionGroups helper',
+                    ],
                 ],
                 'additionalProperties' => false,
             ],
@@ -78,10 +81,21 @@ trait AdminSiteConfigTrait
                     // SMTP-specific
                     'smtp_host' => ['type' => 'string'],
                     'smtp_port' => ['type' => 'integer'],
-                    'smtp_encryption' => ['type' => 'string', 'enum' => ['', 'ssl', 'tls'], 'description' => 'ssl→smtpSsl=true, tls or empty→false'],
-                    'smtp_auth' => ['type' => 'string', 'enum' => ['', 'login', 'plain'], 'description' => 'SMTP auth method (default: login)'],
+                    'smtp_encryption' => [
+                        'type' => 'string',
+                        'enum' => ['', 'ssl', 'tls'],
+                        'description' => 'ssl→smtpSsl=true, tls or empty→false',
+                    ],
+                    'smtp_auth' => [
+                        'type' => 'string',
+                        'enum' => ['', 'login', 'plain'],
+                        'description' => 'SMTP auth method (default: login)',
+                    ],
                     'smtp_username' => ['type' => 'string'],
-                    'smtp_password' => ['type' => 'string', 'description' => 'Plain password (stored server-side, never returned)'],
+                    'smtp_password' => [
+                        'type' => 'string',
+                        'description' => 'Plain password (stored server-side, never returned)',
+                    ],
                 ],
                 'additionalProperties' => false,
             ],
@@ -397,7 +411,8 @@ trait AdminSiteConfigTrait
 
         $to = (string) $params['to_email'];
         $subject = (string) ($params['subject'] ?? 'AI Connect Admin: email test');
-        $body = (string) ($params['body'] ?? "This is a test email sent via XF's configured transport.\n\nIf you receive it, email is working.");
+         $body = (string) ($params['body'] ?? "This is a test email sent via XF's configured transport.\n\n"
+             . "If you receive it, email is working.");
 
         try {
             // XF 2.3: Mail has no setSubject(). setContent($subject, $html, $text)

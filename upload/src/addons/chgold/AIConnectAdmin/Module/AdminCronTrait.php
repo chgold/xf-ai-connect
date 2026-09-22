@@ -31,7 +31,10 @@ trait AdminCronTrait
                 'type' => 'object',
                 'required' => ['entry_id'],
                 'properties' => [
-                    'entry_id' => ['type' => 'string', 'description' => 'Cron entry_id (e.g. "cleanUpSessions", from listCronTasks)'],
+                    'entry_id' => [
+                        'type' => 'string',
+                        'description' => 'Cron entry_id (e.g. "cleanUpSessions", from listCronTasks)',
+                    ],
                 ],
                 'additionalProperties' => false,
             ],

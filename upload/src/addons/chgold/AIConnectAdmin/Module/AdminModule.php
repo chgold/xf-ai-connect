@@ -49,17 +49,29 @@ class AdminModule extends ModuleBase
         'base'             => ['label' => 'Base — nodes & users',        'method' => null],
         'usergroups'       => ['label' => 'Usergroups & memberships',    'method' => 'registerUsergroupsTools'],
         'discipline'       => ['label' => 'User discipline (ban/unban)', 'method' => 'registerDisciplineTools'],
-        'user_credentials' => ['label' => 'User credentials (email/password)', 'method' => 'registerUserCredentialsTools'],
-        'nodes_advanced'   => ['label' => 'Nodes advanced (reorder/permissions)', 'method' => 'registerNodesAdvancedTools'],
+         'user_credentials' => [
+             'label' => 'User credentials (email/password)',
+             'method' => 'registerUserCredentialsTools',
+         ],
+         'nodes_advanced'   => [
+             'label' => 'Nodes advanced (reorder/permissions)',
+             'method' => 'registerNodesAdvancedTools',
+         ],
         'addons'           => ['label' => 'Add-ons (list/enable/disable)', 'method' => 'registerAddonsTools'],
         'options'          => ['label' => 'Site options (get/set)',       'method' => 'registerOptionsTools'],
         'cron'             => ['label' => 'Cron tasks (list/trigger)',    'method' => 'registerCronTools'],
         'styles'           => ['label' => 'Styles (list/set default)',    'method' => 'registerStylesTools'],
         'appearance'       => ['label' => 'Appearance (CSS + logo + assets)', 'method' => 'registerAppearanceTools'],
         'widgets'          => ['label' => 'Widgets (list/create/edit/delete)', 'method' => 'registerWidgetsTools'],
-        'site_config'      => ['label' => 'Site config (options/email/addon opts)', 'method' => 'registerSiteConfigTools'],
-        'phrases'          => ['label' => 'Phrases (search/edit)',        'method' => 'registerPhrasesTools'],
-        'permissions_safety' => ['label' => 'Permission safety (simulate/lockout guard)', 'method' => 'registerPermissionsSafetyTools'],
+         'site_config'      => [
+             'label' => 'Site config (options/email/addon opts)',
+             'method' => 'registerSiteConfigTools',
+         ],
+         'phrases'          => ['label' => 'Phrases (search/edit)',        'method' => 'registerPhrasesTools'],
+         'permissions_safety' => [
+             'label' => 'Permission safety (simulate/lockout guard)',
+             'method' => 'registerPermissionsSafetyTools',
+         ],
     ];
 
     protected function registerTools()
@@ -73,16 +85,36 @@ class AdminModule extends ModuleBase
                 'properties' => [
                     'node_type_id' => ['type' => 'string', 'description' => 'Forum, Category, Page or LinkForum'],
                     'title' => ['type' => 'string', 'description' => 'Node title (displayed)'],
-                    'node_name' => ['type' => 'string', 'description' => 'URL slug (varchar 50). If omitted, auto-generated from title. XF routes by this, not by title.'],
+                    'node_name' => [
+                        'type' => 'string',
+                        'description' => 'URL slug (varchar 50). If omitted, auto-generated from title. '
+                            . 'XF routes by this, not by title.',
+                    ],
                     'parent_node_id' => ['type' => 'integer', 'description' => 'Parent node id (0 = root)'],
                     'description' => ['type' => 'string', 'description' => 'Node description (optional)'],
                     // Page-specific fields
-                    'content' => ['type' => 'string', 'description' => 'Page: template body (HTML/BBCode). Stored in xf_template row _page_node.{node_id}. Ignored for non-Page nodes.'],
-                    'log_visits' => ['type' => 'boolean', 'description' => 'Page: increment view_count on each visit (default false).'],
-                    'list_siblings' => ['type' => 'boolean', 'description' => 'Page: show sibling pages in navigation (default false).'],
-                    'list_children' => ['type' => 'boolean', 'description' => 'Page: show child pages in navigation (default false).'],
+                    'content' => [
+                        'type' => 'string',
+                        'description' => 'Page: template body (HTML/BBCode). Stored in xf_template row '
+                            . '_page_node.{node_id}. Ignored for non-Page nodes.',
+                    ],
+                    'log_visits' => [
+                        'type' => 'boolean',
+                        'description' => 'Page: increment view_count on each visit (default false).',
+                    ],
+                    'list_siblings' => [
+                        'type' => 'boolean',
+                        'description' => 'Page: show sibling pages in navigation (default false).',
+                    ],
+                    'list_children' => [
+                        'type' => 'boolean',
+                        'description' => 'Page: show child pages in navigation (default false).',
+                    ],
                     // LinkForum-specific fields
-                    'link_url' => ['type' => 'string', 'description' => 'LinkForum: target URL. Ignored for non-LinkForum nodes.'],
+                    'link_url' => [
+                        'type' => 'string',
+                        'description' => 'LinkForum: target URL. Ignored for non-LinkForum nodes.',
+                    ],
                 ],
             ],
         ]);
@@ -95,16 +127,35 @@ class AdminModule extends ModuleBase
                 'properties' => [
                     'node_id' => ['type' => 'integer', 'description' => 'Node to edit'],
                     'title' => ['type' => 'string', 'description' => 'New title (optional)'],
-                    'node_name' => ['type' => 'string', 'description' => 'New URL slug (varchar 50, optional). If title changes and node_name was empty, it will be auto-regenerated.'],
+                    'node_name' => [
+                        'type' => 'string',
+                        'description' => 'New URL slug (varchar 50, optional). If title changes and '
+                            . 'node_name was empty, it will be auto-regenerated.',
+                    ],
                     'description' => ['type' => 'string', 'description' => 'New description (optional)'],
                     'parent_node_id' => ['type' => 'integer', 'description' => 'New parent node id (optional)'],
                     // Page-specific fields
-                    'content' => ['type' => 'string', 'description' => 'Page: new template body (HTML/BBCode). Ignored for non-Page nodes.'],
-                    'log_visits' => ['type' => 'boolean', 'description' => 'Page: increment view_count on each visit.'],
-                    'list_siblings' => ['type' => 'boolean', 'description' => 'Page: show sibling pages in navigation.'],
-                    'list_children' => ['type' => 'boolean', 'description' => 'Page: show child pages in navigation.'],
+                    'content' => [
+                        'type' => 'string',
+                        'description' => 'Page: new template body (HTML/BBCode). Ignored for non-Page nodes.',
+                    ],
+                    'log_visits' => [
+                        'type' => 'boolean',
+                        'description' => 'Page: increment view_count on each visit.',
+                    ],
+                    'list_siblings' => [
+                        'type' => 'boolean',
+                        'description' => 'Page: show sibling pages in navigation.',
+                    ],
+                    'list_children' => [
+                        'type' => 'boolean',
+                        'description' => 'Page: show child pages in navigation.',
+                    ],
                     // LinkForum-specific fields
-                    'link_url' => ['type' => 'string', 'description' => 'LinkForum: new target URL. Ignored for non-LinkForum nodes.'],
+                    'link_url' => [
+                        'type' => 'string',
+                        'description' => 'LinkForum: new target URL. Ignored for non-LinkForum nodes.',
+                    ],
                 ],
             ],
         ]);
@@ -115,7 +166,10 @@ class AdminModule extends ModuleBase
                 'required' => ['node_id'],
                 'properties' => [
                     'node_id' => ['type' => 'integer', 'description' => 'Node to delete'],
-                    'delete_children' => ['type' => 'boolean', 'description' => 'Delete child nodes too (default false = reparent)'],
+                    'delete_children' => [
+                        'type' => 'boolean',
+                        'description' => 'Delete child nodes too (default false = reparent)',
+                    ],
                 ],
             ],
         ]);
@@ -128,7 +182,11 @@ class AdminModule extends ModuleBase
                     'username' => ['type' => 'string', 'description' => 'Username'],
                     'email' => ['type' => 'string', 'description' => 'Email address'],
                     'password' => ['type' => 'string', 'description' => 'Password (optional)'],
-                    'require_email_confirm' => ['type' => 'boolean', 'description' => 'If true, create in user_state="email_confirm" (user must click a link before login). Default false — admin-created users are immediately valid.'],
+                    'require_email_confirm' => [
+                        'type' => 'boolean',
+                        'description' => 'If true, create in user_state="email_confirm" (user must click '
+                            . 'a link before login). Default false — admin-created users are immediately valid.',
+                    ],
                 ],
             ],
         ]);
@@ -144,7 +202,11 @@ class AdminModule extends ModuleBase
                     'user_id' => ['type' => 'integer', 'description' => 'User to update'],
                     'about' => ['type' => 'string', 'description' => 'New about text (optional)'],
                     'user_group_id' => ['type' => 'integer', 'description' => 'New primary user group id (optional)'],
-                    'confirm_self_demote' => ['type' => 'boolean', 'description' => 'Explicit override to allow demoting yourself if is_super_admin (lockout risk).'],
+                    'confirm_self_demote' => [
+                        'type' => 'boolean',
+                        'description' => 'Explicit override to allow demoting yourself if is_super_admin '
+                            . '(lockout risk).',
+                    ],
                 ],
             ],
         ]);
@@ -823,8 +885,9 @@ class AdminModule extends ModuleBase
             ],
             'setNodePrivate' => [
                 'hint' => 'FIRST step to make a node private — flips XF s built-in Private checkbox. '
-                    . 'After setting is_private=true, call setNodePermission with content_allow for each allowed group. '
-                    . 'This is the correct XF pattern — writes SYSTEM marker (viewNode=reset at ug=0/u=0).',
+                    . 'After setting is_private=true, call setNodePermission with content_allow for '
+                    . 'each allowed group. This is the correct XF pattern — writes SYSTEM marker '
+                    . '(viewNode=reset at ug=0/u=0).',
                 'url_params' => [],
             ],
             'setNodePermission' => [

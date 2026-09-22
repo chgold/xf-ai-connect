@@ -32,7 +32,10 @@ trait AdminOptionsTrait
                 'type' => 'object',
                 'required' => ['option_id'],
                 'properties' => [
-                    'option_id' => ['type' => 'string', 'description' => 'Option key (e.g. "boardTitle", "defaultStyleId")'],
+                    'option_id' => [
+                        'type' => 'string',
+                        'description' => 'Option key (e.g. "boardTitle", "defaultStyleId")',
+                    ],
                 ],
                 'additionalProperties' => false,
             ],
@@ -46,7 +49,10 @@ trait AdminOptionsTrait
                 'required' => ['option_id', 'value'],
                 'properties' => [
                     'option_id' => ['type' => 'string'],
-                    'value' => ['description' => 'Any scalar (string/int/bool) or array/object; XF stores per option_value_type'],
+                    'value' => [
+                        'description' => 'Any scalar (string/int/bool) or array/object; XF stores per '
+                            . 'option_value_type',
+                    ],
                 ],
                 'additionalProperties' => false,
             ],

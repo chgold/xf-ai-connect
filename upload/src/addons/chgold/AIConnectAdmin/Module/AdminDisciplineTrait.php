@@ -26,9 +26,20 @@ trait AdminDisciplineTrait
                 "required" => ["user_id"],
                 "properties" => [
                     "user_id" => ["type" => "integer", "description" => "User to ban"],
-                    "reason" => ["type" => "string", "description" => "Public reason shown to the banned user (optional)"],
-                    "duration_days" => ["type" => "integer", "description" => "Ban length in days (mutually exclusive with ends_at). Omit for permanent."],
-                    "ends_at" => ["type" => "integer", "description" => "Unix timestamp when ban expires (mutually exclusive with duration_days). Omit for permanent."],
+                    "reason" => [
+                        "type" => "string",
+                        "description" => "Public reason shown to the banned user (optional)",
+                    ],
+                    "duration_days" => [
+                        "type" => "integer",
+                        "description" => "Ban length in days (mutually exclusive with ends_at). "
+                            . "Omit for permanent.",
+                    ],
+                    "ends_at" => [
+                        "type" => "integer",
+                        "description" => "Unix timestamp when ban expires (mutually exclusive with "
+                            . "duration_days). Omit for permanent.",
+                    ],
                 ],
                 "additionalProperties" => false,
             ],

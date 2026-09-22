@@ -74,8 +74,11 @@ class License extends AbstractController
     public static function describeStatus(array $status): string
     {
         return match ($status['status'] ?? '') {
-            'valid'            => 'License valid — updates active until ' . self::formatDate($status['updates_expire_at'] ?? null),
-            'valid_no_updates' => 'License valid (perpetual) — updates expired ' . self::formatDate($status['updates_expire_at'] ?? null, '') . '. Renew for updates.',
+            'valid'            => 'License valid — updates active until '
+                                  . self::formatDate($status['updates_expire_at'] ?? null),
+            'valid_no_updates' => 'License valid (perpetual) — updates expired '
+                                  . self::formatDate($status['updates_expire_at'] ?? null, '')
+                                  . '. Renew for updates.',
             'invalid_domain'   => 'License is registered to a different domain: ' . ($status['licensed_domain'] ?? '?')
                                   . '. Change the licensed domain in your goldnat.ai account, then re-check.',
             'plugin_mismatch'  => 'This license belongs to a different product'
@@ -84,7 +87,8 @@ class License extends AbstractController
             'invalid_key'      => 'License key not found. Check that the key matches your confirmation email exactly.',
             'suspended'        => 'License suspended. Contact support@gold-t.co.il.',
             'no_license'       => 'No license key entered.',
-            'error_cached'     => 'Could not reach the license server — keeping the cached verdict, will retry automatically.',
+            'error_cached'     => 'Could not reach the license server — keeping the cached verdict, '
+                                  . 'will retry automatically.',
             default            => 'Unknown response from the license server.',
         };
     }

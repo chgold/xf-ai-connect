@@ -28,7 +28,10 @@ trait AdminUsergroupsTrait
                 "properties" => [
                     "title" => ["type" => "string", "description" => "Group title"],
                     "user_title" => ["type" => "string", "description" => "Custom user title override (optional)"],
-                    "display_style_priority" => ["type" => "integer", "description" => "Display priority (higher wins on multi-group users)"],
+                    "display_style_priority" => [
+                        "type" => "integer",
+                        "description" => "Display priority (higher wins on multi-group users)",
+                    ],
                     "username_css" => ["type" => "string", "description" => "CSS for username styling (optional)"],
                     "banner_text" => ["type" => "string", "description" => "Banner text (optional)"],
                     "banner_css_class" => ["type" => "string", "description" => "Banner CSS class (optional)"],
@@ -56,7 +59,8 @@ trait AdminUsergroupsTrait
         ]);
 
         $this->registerTool("deleteUsergroup", [
-            "description" => "Delete a user group. Refuses to delete the built-in groups (1-4) and groups containing super admins.",
+            "description" => "Delete a user group. Refuses to delete the built-in groups (1-4) and "
+                . "groups containing super admins.",
             "input_schema" => [
                 "type" => "object",
                 "required" => ["user_group_id"],
@@ -275,7 +279,14 @@ trait AdminUsergroupsTrait
 
     private function applyUsergroupParams(\XF\Entity\UserGroup $group, array $params): void
     {
-        foreach (["user_title", "display_style_priority", "username_css", "banner_text", "banner_css_class"] as $field) {
+        $fields = [
+            "user_title",
+            "display_style_priority",
+            "username_css",
+            "banner_text",
+            "banner_css_class",
+        ];
+        foreach ($fields as $field) {
             if (isset($params[$field])) {
                 $group->$field = $params[$field];
             }

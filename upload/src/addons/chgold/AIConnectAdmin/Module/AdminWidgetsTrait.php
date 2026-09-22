@@ -43,7 +43,10 @@ trait AdminWidgetsTrait
                 'required' => ['widget_key', 'widget_definition_id', 'positions'],
                 'properties' => [
                     'widget_key' => ['type' => 'string', 'description' => 'Unique identifier (URL-safe)'],
-                    'widget_definition_id' => ['type' => 'string', 'description' => 'Widget type — see listWidgetDefinitions'],
+                    'widget_definition_id' => [
+                        'type' => 'string',
+                        'description' => 'Widget type — see listWidgetDefinitions',
+                    ],
                     'title' => ['type' => 'string'],
                     'positions' => [
                         'type' => 'array',
@@ -52,8 +55,23 @@ trait AdminWidgetsTrait
                     ],
                     'display_order' => ['type' => 'integer'],
                     'active' => ['type' => 'boolean'],
-                    'display_condition' => ['type' => 'string', 'description' => 'XF display-condition expression targeting where the widget shows (maps to the xf_widget.display_condition column, NOT options). Empty string = always shown. IMPORTANT: content-scoped vars are exposed by XF as $context.{name}, NOT bare: use "$context.thread.thread_id == 94", "$context.forum.node_id == 5", "$context.user.user_id == 7". Globals stay bare: "$xf.visitor.isMemberOf(3)". A bare "$thread.*"/"$forum.*"/etc. is auto-corrected to "$context.*" (a bare form never evaluates at render time). Numeric literals like "1" are NOT valid conditions in XF.'],
-                    'options' => ['type' => 'object', 'description' => 'Type-specific config (varies per widget_definition_id). For an "html" widget pass {html: "<p>…</p>"} — the tool auto-creates the backing template and sets template_title to "_widget_{widget_key}" (mirrors XenForo); a manually-supplied template_title is intentionally ignored.'],
+                    'display_condition' => [
+                        'type' => 'string',
+                        'description' => 'XF display-condition expression targeting where the widget shows '
+                            . '(maps to the xf_widget.display_condition column, NOT options). Empty string = '
+                            . 'always shown. IMPORTANT: content-scoped vars are exposed by XF as $context.{name}, '
+                            . 'NOT bare: use "$context.thread.thread_id == 94", "$context.forum.node_id == 5", '
+                            . '"$context.user.user_id == 7". Globals stay bare: "$xf.visitor.isMemberOf(3)". A bare '
+                            . '"$thread.*"/"$forum.*"/etc. is auto-corrected to "$context.*" (a bare form never '
+                            . 'evaluates at render time). Numeric literals like "1" are NOT valid conditions in XF.',
+                    ],
+                    'options' => [
+                        'type' => 'object',
+                        'description' => 'Type-specific config (varies per widget_definition_id). For an "html" '
+                            . 'widget pass {html: "<p>…</p>"} — the tool auto-creates the backing template and sets '
+                            . 'template_title to "_widget_{widget_key}" (mirrors XenForo); a manually-supplied '
+                            . 'template_title is intentionally ignored.',
+                    ],
                 ],
                 'additionalProperties' => false,
             ],
@@ -70,7 +88,14 @@ trait AdminWidgetsTrait
                     'positions' => ['type' => 'array', 'items' => ['type' => 'string']],
                     'display_order' => ['type' => 'integer'],
                     'active' => ['type' => 'boolean'],
-                    'display_condition' => ['type' => 'string', 'description' => 'XF display-condition expression (maps to xf_widget.display_condition column, NOT options). Pass empty string to clear. Content-scoped vars use the $context prefix: "$context.thread.thread_id == 94", "$context.forum.node_id == 5". Globals stay bare: "$xf.visitor.isMemberOf(3)". A bare "$thread.*"/"$forum.*"/etc. is auto-corrected to "$context.*".'],
+                    'display_condition' => [
+                        'type' => 'string',
+                        'description' => 'XF display-condition expression (maps to xf_widget.display_condition '
+                            . 'column, NOT options). Pass empty string to clear. Content-scoped vars use the '
+                            . '$context prefix: "$context.thread.thread_id == 94", "$context.forum.node_id == 5". '
+                            . 'Globals stay bare: "$xf.visitor.isMemberOf(3)". A bare "$thread.*"/"$forum.*"/etc. is '
+                            . 'auto-corrected to "$context.*".',
+                    ],
                     'options' => ['type' => 'object'],
                 ],
                 'additionalProperties' => false,
