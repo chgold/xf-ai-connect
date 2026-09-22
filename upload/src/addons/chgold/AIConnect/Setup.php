@@ -828,6 +828,131 @@ class Setup extends AbstractSetup
                 false
             );
         }
+
+        // Drop permissions/phrases for bundles this add-on NO LONGER ships.
+        //
+        // syncPackagePermissions above is insert/update-only, so when a bundle
+        // is retired (e.g. the moderation set moving out to its own add-on) its
+        // package master switch, per-tool permissions, interface group and
+        // phrases would linger in the DB forever — and, worse, keep XF's export
+        // (permissions.xml/phrases.xml) advertising tools the code no longer
+        // registers. Computed from the CURRENT $packageDefs so it can never rot:
+        // anything owned by $addonId that isn't in the live set is stale.
+        self::purgeStalePackagePermissions($db, $packageDefs, $addonId);
+    }
+
+    /**
+     * Remove package/tool permissions + phrases owned by $addonId that are not
+     * present in the currently-registered $packageDefs. Runs on every
+     * install/upgrade so a retired bundle leaves no orphaned permission rows.
+     *
+     * @param array $packageDefs  [packageId => ['modules'=>[module=>[tool=>label]]]]
+     */
+    public static function purgeStalePackagePermissions(
+        \XF\Db\AbstractAdapter $db,
+        array $packageDefs,
+        string $addonId
+    ): void {
+        // 1. Build the set of permission ids the live code still wants.
+        $validPkgPerms = [];   // use_package_* (truncated to 25)
+        $validToolPerms = [];  // t_{hash}
+        $validIfaceGroups = []; // aiconnect_pkg_*
+        foreach ($packageDefs as $packageId => $packageConfig) {
+            $rawPkgPerm = 'use_package_' . $packageId;
+            $validPkgPerms[strlen($rawPkgPerm) <= 25 ? $rawPkgPerm : substr($rawPkgPerm, 0, 25)] = true;
+            $validIfaceGroups['aiconnect_pkg_' . $packageId] = true;
+            foreach (($packageConfig['modules'] ?? []) as $moduleName => $tools) {
+                foreach ($tools as $toolName => $toolLabel) {
+                    $validToolPerms[\chgold\AIConnect\Helper\Permission::toolPermId($moduleName, $toolName)] = true;
+                }
+            }
+        }
+
+        // 2. Find every permission this add-on owns in the aiconnect group.
+        $owned = $db->fetchAll(
+            'SELECT permission_id, interface_group_id FROM xf_permission
+              WHERE permission_group_id = ? AND addon_id = ?',
+            ['aiconnect', $addonId]
+        );
+
+        $rebuild = false;
+        foreach ($owned as $row) {
+            $permId = $row['permission_id'];
+            // Only consider ids this method manages: package switches or hashed tools.
+            $isPkg  = str_starts_with($permId, 'use_package_');
+            $isTool = str_starts_with($permId, 't_');
+            if (!$isPkg && !$isTool) {
+                continue;
+            }
+            $stale = ($isPkg && !isset($validPkgPerms[$permId]))
+                  || ($isTool && !isset($validToolPerms[$permId]));
+            if (!$stale) {
+                continue;
+            }
+
+            $db->delete('xf_permission', 'permission_group_id = ? AND permission_id = ?', ['aiconnect', $permId]);
+            $db->delete('xf_permission_entry', 'permission_group_id = ? AND permission_id = ?', ['aiconnect', $permId]);
+            self::deletePhrase('permission.aiconnect_' . $permId, $addonId);
+            $rebuild = true;
+        }
+
+        // 3. Remove now-empty interface groups this add-on owns (aiconnect_pkg_*)
+        //    that are no longer in the live set — after their permissions are gone.
+        $ownedGroups = $db->fetchAllColumn(
+            'SELECT interface_group_id FROM xf_permission_interface_group WHERE addon_id = ?',
+            [$addonId]
+        );
+        foreach ($ownedGroups as $igId) {
+            if (!str_starts_with((string) $igId, 'aiconnect_pkg_') || isset($validIfaceGroups[$igId])) {
+                continue;
+            }
+            $stillUsed = $db->fetchOne(
+                'SELECT permission_id FROM xf_permission WHERE interface_group_id = ?',
+                [$igId]
+            );
+            if ($stillUsed) {
+                continue;
+            }
+            $db->delete('xf_permission_interface_group', 'interface_group_id = ?', [$igId]);
+            self::deletePhrase('permission_interface.' . $igId, $addonId);
+            $rebuild = true;
+        }
+
+        if ($rebuild) {
+            \XF::app()->jobManager()->enqueueUnique(
+                'aiconnect_perm_rebuild',
+                'XF:PermissionRebuild',
+                [],
+                false
+            );
+        }
+    }
+
+    /**
+     * Delete a phrase (and its map/compiled rows) previously created by
+     * persistPhrase, so a retired permission's label does not linger.
+     */
+    public static function deletePhrase(string $title, string $addonId = 'chgold/AIConnect'): void
+    {
+        $phrase = \XF::em()->findOne('XF:Phrase', [
+            'title'         => $title,
+            'language_id'   => 0,
+            'addon_id'      => $addonId,
+        ]);
+        if (!$phrase) {
+            return;
+        }
+        // Suppress the DevOutputWritable behaviour on delete. When an install
+        // has development output enabled, deleting a phrase entity triggers an
+        // unlink() of a _output/ file that may not exist here, which throws an
+        // ErrorException and aborts the whole upgrade before the version row is
+        // written. The phrase row + its map/compiled rows are still removed;
+        // only the (irrelevant during a package retirement) dev-output file
+        // write is skipped.
+        if ($phrase->hasBehavior('XF:DevOutputWritable')) {
+            $phrase->getBehavior('XF:DevOutputWritable')->setOption('write_dev_output', false);
+        }
+        $phrase->delete();
     }
 
     /**

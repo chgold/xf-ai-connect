@@ -2,85 +2,59 @@
 <phrases>
   <phrase title="aiconnect_pro_license_required" version_id="1003100" version_string="1.0.31"><![CDATA[License required]]></phrase>
   <phrase title="aiconnect_pro_license_required_explain" version_id="1003100" version_string="1.0.31"><![CDATA[AI Connect Pro tools are disabled until a valid license is active. Click to open the license page and enter your key.]]></phrase>
-  <phrase title="option.aiconnect_pro_license_checked" version_id="1020900" version_string="1.2.9"><![CDATA[License last checked (internal)]]></phrase>
+  <phrase title="option.aiconnect_pro_license_checked" version_id="1021100" version_string="1.2.11"><![CDATA[License last checked (internal)]]></phrase>
   <phrase title="option.aiconnect_pro_license_key" version_id="1002000" version_string="1.0.20"><![CDATA[License key]]></phrase>
-  <phrase title="option.aiconnect_pro_license_status" version_id="1020900" version_string="1.2.9"><![CDATA[License status (internal)]]></phrase>
-  <phrase title="option_explain.aiconnect_pro_license_checked" version_id="1020900" version_string="1.2.9"><![CDATA[Unix timestamp of the last license check. Managed automatically — do not edit.]]></phrase>
+  <phrase title="option.aiconnect_pro_license_status" version_id="1021100" version_string="1.2.11"><![CDATA[License status (internal)]]></phrase>
+  <phrase title="option_explain.aiconnect_pro_license_checked" version_id="1021100" version_string="1.2.11"><![CDATA[Unix timestamp of the last license check. Managed automatically — do not edit.]]></phrase>
   <phrase title="option_explain.aiconnect_pro_license_key" version_id="1002000" version_string="1.0.20"><![CDATA[Enter the license key you received in your goldnat.ai purchase confirmation email (format: XXX-XXXX-XXXX-XXXX-XXXX). Leave blank to disable Pro features.]]></phrase>
-  <phrase title="option_explain.aiconnect_pro_license_status" version_id="1020900" version_string="1.2.9"><![CDATA[Cached verdict from the last license check. Managed automatically — do not edit.]]></phrase>
+  <phrase title="option_explain.aiconnect_pro_license_status" version_id="1021100" version_string="1.2.11"><![CDATA[Cached verdict from the last license check. Managed automatically — do not edit.]]></phrase>
   <phrase title="option_group.aiconnect_pro_license" version_id="1002000" version_string="1.0.20"><![CDATA[AI Connect Pro License]]></phrase>
-  <phrase title="option_group_description.aiconnect_pro_license" version_id="1020900" version_string="1.2.9"><![CDATA[Manage your AI Connect Pro license key. When a valid license is entered the Pro tools will be enabled automatically.]]></phrase>
+  <phrase title="option_group_description.aiconnect_pro_license" version_id="1021100" version_string="1.2.11"><![CDATA[Manage your AI Connect Pro license key. When a valid license is entered the Pro tools will be enabled automatically.]]></phrase>
   <phrase title="permission.aiconnect_t_0498bdc13a42" version_id="1021100" version_string="1.2.11"><![CDATA[List Usergroups]]></phrase>
   <phrase title="permission.aiconnect_t_04f024fc39fb" version_id="1021100" version_string="1.2.11"><![CDATA[List Drafts]]></phrase>
   <phrase title="permission.aiconnect_t_08f2337c0b9a" version_id="1021100" version_string="1.2.11"><![CDATA[Get Unread Notifications Count]]></phrase>
   <phrase title="permission.aiconnect_t_097aa605ce0c" version_id="1021100" version_string="1.2.11"><![CDATA[Download Attachment]]></phrase>
   <phrase title="permission.aiconnect_t_0a07c31805a8" version_id="1021500" version_string="1.2.15"><![CDATA[React To Conversation Msg]]></phrase>
-  <phrase title="permission.aiconnect_t_0b78f475f48d" version_id="1021500" version_string="1.2.15"><![CDATA[Upload User Avatar]]></phrase>
   <phrase title="permission.aiconnect_t_0fec20521e95" version_id="1021500" version_string="1.2.15"><![CDATA[Read Attachment Text]]></phrase>
-  <phrase title="permission.aiconnect_t_143aff40eec7" version_id="1021100" version_string="1.2.11"><![CDATA[Issue Warning]]></phrase>
   <phrase title="permission.aiconnect_t_1828d39b6b31" version_id="1021500" version_string="1.2.15"><![CDATA[Get Forum List]]></phrase>
-  <phrase title="permission.aiconnect_t_195e887931e3" version_id="1021100" version_string="1.2.11"><![CDATA[List Approval Queue]]></phrase>
-  <phrase title="permission.aiconnect_t_1ad6d0e7e302" version_id="1021100" version_string="1.2.11"><![CDATA[Delete Warning]]></phrase>
-  <phrase title="permission.aiconnect_t_229e92a87a49" version_id="1021500" version_string="1.2.15"><![CDATA[Unstick Thread]]></phrase>
   <phrase title="permission.aiconnect_t_22a943fdc644" version_id="1021100" version_string="1.2.11"><![CDATA[Search Tags]]></phrase>
   <phrase title="permission.aiconnect_t_2506d5e33881" version_id="1021500" version_string="1.2.15"><![CDATA[Create Thread]]></phrase>
-  <phrase title="permission.aiconnect_t_26bcace33053" version_id="1021100" version_string="1.2.11"><![CDATA[Split Posts]]></phrase>
   <phrase title="permission.aiconnect_t_28ef7a7bac47" version_id="1021100" version_string="1.2.11"><![CDATA[Get Unanswered Threads]]></phrase>
   <phrase title="permission.aiconnect_t_29550fa536fe" version_id="1021500" version_string="1.2.15"><![CDATA[Mark Thread Read]]></phrase>
   <phrase title="permission.aiconnect_t_2aca77337c4b" version_id="1021500" version_string="1.2.15"><![CDATA[List Alerts]]></phrase>
   <phrase title="permission.aiconnect_t_2b03ca3f1629" version_id="1021100" version_string="1.2.11"><![CDATA[List Watched Forums]]></phrase>
   <phrase title="permission.aiconnect_t_2f3dbebb68c8" version_id="1021100" version_string="1.2.11"><![CDATA[Watch Forum]]></phrase>
   <phrase title="permission.aiconnect_t_31ef5f2eef27" version_id="1021500" version_string="1.2.15"><![CDATA[Reply To Conversation]]></phrase>
-  <phrase title="permission.aiconnect_t_34999cf0876f" version_id="1021100" version_string="1.2.11"><![CDATA[List Warnings]]></phrase>
-  <phrase title="permission.aiconnect_t_34e7133e40ee" version_id="1021500" version_string="1.2.15"><![CDATA[Delete User]]></phrase>
   <phrase title="permission.aiconnect_t_380aafd50755" version_id="1021500" version_string="1.2.15"><![CDATA[List Nodes]]></phrase>
   <phrase title="permission.aiconnect_t_39404c22e35c" version_id="1021500" version_string="1.2.15"><![CDATA[Star Conversation]]></phrase>
   <phrase title="permission.aiconnect_t_3cf744a1c84b" version_id="1021500" version_string="1.2.15"><![CDATA[Delete My Avatar]]></phrase>
-  <phrase title="permission.aiconnect_t_3d36555631d5" version_id="1021500" version_string="1.2.15"><![CDATA[Edit Thread]]></phrase>
   <phrase title="permission.aiconnect_t_3e953a072e0b" version_id="1021500" version_string="1.2.15"><![CDATA[Edit Profile Post Comment]]></phrase>
   <phrase title="permission.aiconnect_t_43a9b1cf36c6" version_id="1021500" version_string="1.2.15"><![CDATA[Comment On Profile Post]]></phrase>
-  <phrase title="permission.aiconnect_t_4681396f4d5a" version_id="1021100" version_string="1.2.11"><![CDATA[Approve Content]]></phrase>
   <phrase title="permission.aiconnect_t_4857cf0eb158" version_id="1021100" version_string="1.2.11"><![CDATA[Get Draft Content]]></phrase>
   <phrase title="permission.aiconnect_t_4d70945c883e" version_id="1021100" version_string="1.2.11"><![CDATA[List Users]]></phrase>
   <phrase title="permission.aiconnect_t_4e5a46e0daea" version_id="1021100" version_string="1.2.11"><![CDATA[Search Users]]></phrase>
-  <phrase title="permission.aiconnect_t_4ea792b0ae8f" version_id="1021100" version_string="1.2.11"><![CDATA[Reject Report]]></phrase>
   <phrase title="permission.aiconnect_t_4ebb558bef48" version_id="1021500" version_string="1.2.15"><![CDATA[Send Conversation]]></phrase>
   <phrase title="permission.aiconnect_t_4f0c2d49b889" version_id="1003100" version_string="1.0.31"><![CDATA[Get Thread Tags]]></phrase>
-  <phrase title="permission.aiconnect_t_504c7d722304" version_id="1021100" version_string="1.2.11"><![CDATA[Reply To Report]]></phrase>
   <phrase title="permission.aiconnect_t_50d0529cf2d0" version_id="1003100" version_string="1.0.31"><![CDATA[Get Recent Threads]]></phrase>
   <phrase title="permission.aiconnect_t_562252e547ab" version_id="1021100" version_string="1.2.11"><![CDATA[Get Usergroup Members]]></phrase>
-  <phrase title="permission.aiconnect_t_606bdc79708f" version_id="1021500" version_string="1.2.15"><![CDATA[Get Me]]></phrase>
   <phrase title="permission.aiconnect_t_60e9539a7eed" version_id="1021500" version_string="1.2.15"><![CDATA[Remove Thread Tags]]></phrase>
   <phrase title="permission.aiconnect_t_628b0055722b" version_id="1021500" version_string="1.2.15"><![CDATA[Mark Conversation Read]]></phrase>
   <phrase title="permission.aiconnect_t_657b4e1bf08b" version_id="1021500" version_string="1.2.15"><![CDATA[Edit Conversation Msg]]></phrase>
-  <phrase title="permission.aiconnect_t_670edfd5c673" version_id="1021500" version_string="1.2.15"><![CDATA[Delete User Avatar]]></phrase>
   <phrase title="permission.aiconnect_t_67f2f62a8cd7" version_id="1003100" version_string="1.0.31"><![CDATA[Get User Profile]]></phrase>
   <phrase title="permission.aiconnect_t_68a25c8e98f5" version_id="1021500" version_string="1.2.15"><![CDATA[Update My Profile]]></phrase>
-  <phrase title="permission.aiconnect_t_68a5d97d4901" version_id="1021500" version_string="1.2.15"><![CDATA[Unlock Thread]]></phrase>
-  <phrase title="permission.aiconnect_t_6c7ead3056ce" version_id="1021500" version_string="1.2.15"><![CDATA[Update User]]></phrase>
   <phrase title="permission.aiconnect_t_6cf7331e5704" version_id="1021500" version_string="1.2.15"><![CDATA[Reply To Thread]]></phrase>
   <phrase title="permission.aiconnect_t_6e2df6e24388" version_id="1021500" version_string="1.2.15"><![CDATA[List Nodes Flat]]></phrase>
   <phrase title="permission.aiconnect_t_72d4c26f9781" version_id="1021500" version_string="1.2.15"><![CDATA[Add Thread Tags]]></phrase>
-  <phrase title="permission.aiconnect_t_72e7a3e24d4e" version_id="1021500" version_string="1.2.15"><![CDATA[Mark Solution]]></phrase>
   <phrase title="permission.aiconnect_t_75485e223f44" version_id="1021500" version_string="1.2.15"><![CDATA[Get Attachment Info]]></phrase>
-  <phrase title="permission.aiconnect_t_766702be7242" version_id="1021500" version_string="1.2.15"><![CDATA[Stick Thread]]></phrase>
-  <phrase title="permission.aiconnect_t_7885b570da27" version_id="1021100" version_string="1.2.11"><![CDATA[Resolve Report]]></phrase>
   <phrase title="permission.aiconnect_t_7b4e9dc86d35" version_id="1021500" version_string="1.2.15"><![CDATA[Get Node]]></phrase>
   <phrase title="permission.aiconnect_t_7b65371f74a3" version_id="1021500" version_string="1.2.15"><![CDATA[Get Alert]]></phrase>
   <phrase title="permission.aiconnect_t_7db85116f3ab" version_id="1021500" version_string="1.2.15"><![CDATA[Find User By Name]]></phrase>
   <phrase title="permission.aiconnect_t_7f3176082ac9" version_id="1021500" version_string="1.2.15"><![CDATA[Post Profile Message]]></phrase>
-  <phrase title="permission.aiconnect_t_8150f8352837" version_id="1021500" version_string="1.2.15"><![CDATA[Create Node]]></phrase>
   <phrase title="permission.aiconnect_t_840ab57d258f" version_id="1021100" version_string="1.2.11"><![CDATA[Get User Activity]]></phrase>
-  <phrase title="permission.aiconnect_t_84125267f648" version_id="1021500" version_string="1.2.15"><![CDATA[Change Thread Type]]></phrase>
   <phrase title="permission.aiconnect_t_8855af30edfd" version_id="1021500" version_string="1.2.15"><![CDATA[Get Attachment Thumbnail]]></phrase>
-  <phrase title="permission.aiconnect_t_8ab186375123" version_id="1021100" version_string="1.2.11"><![CDATA[Get Report]]></phrase>
-  <phrase title="permission.aiconnect_t_8b2442ab9a66" version_id="1021500" version_string="1.2.15"><![CDATA[Unfeature Thread]]></phrase>
-  <phrase title="permission.aiconnect_t_8b7ee62b04ff" version_id="1021100" version_string="1.2.11"><![CDATA[Reject Content]]></phrase>
   <phrase title="permission.aiconnect_t_8e38c4095b87" version_id="1021100" version_string="1.2.11"><![CDATA[Get Threads By Forum]]></phrase>
-  <phrase title="permission.aiconnect_t_8ec7d578f71b" version_id="1021500" version_string="1.2.15"><![CDATA[Delete Node]]></phrase>
   <phrase title="permission.aiconnect_t_953c91158cdf" version_id="1021500" version_string="1.2.15"><![CDATA[Vote Poll]]></phrase>
   <phrase title="permission.aiconnect_t_9583643524ba" version_id="1021500" version_string="1.2.15"><![CDATA[Vote Post]]></phrase>
-  <phrase title="permission.aiconnect_t_98d67dfac5aa" version_id="1021500" version_string="1.2.15"><![CDATA[Feature Thread]]></phrase>
   <phrase title="permission.aiconnect_t_98f9e609b748" version_id="1021500" version_string="1.2.15"><![CDATA[Edit Profile Post]]></phrase>
   <phrase title="permission.aiconnect_t_99bc5ec8b292" version_id="1021100" version_string="1.2.11"><![CDATA[Get Attachments By Post]]></phrase>
   <phrase title="permission.aiconnect_t_99de721d3d4f" version_id="1021100" version_string="1.2.11"><![CDATA[Get Notifications]]></phrase>
@@ -90,45 +64,33 @@
   <phrase title="permission.aiconnect_t_a3a586b7b5d2" version_id="1003100" version_string="1.0.31"><![CDATA[Get Post Reactions]]></phrase>
   <phrase title="permission.aiconnect_t_a5cba6a08e61" version_id="1021500" version_string="1.2.15"><![CDATA[List Attachments By Key]]></phrase>
   <phrase title="permission.aiconnect_t_a822c4c10225" version_id="1003100" version_string="1.0.31"><![CDATA[Get Forum Node]]></phrase>
-  <phrase title="permission.aiconnect_t_a885a43ad3ab" version_id="1021100" version_string="1.2.11"><![CDATA[List Reports]]></phrase>
-  <phrase title="permission.aiconnect_t_a8e748a4cf3d" version_id="1021500" version_string="1.2.15"><![CDATA[Delete Profile Post Comment]]></phrase>
   <phrase title="permission.aiconnect_t_a99bbeb916e8" version_id="1021100" version_string="1.2.11"><![CDATA[Get Thread Poll Results]]></phrase>
-  <phrase title="permission.aiconnect_t_a9ba14178075" version_id="1021500" version_string="1.2.15"><![CDATA[Lock Thread]]></phrase>
   <phrase title="permission.aiconnect_t_ae56146c630c" version_id="1021500" version_string="1.2.15"><![CDATA[Update Conversation]]></phrase>
-  <phrase title="permission.aiconnect_t_b4172980815d" version_id="1021500" version_string="1.2.15"><![CDATA[Move Thread]]></phrase>
   <phrase title="permission.aiconnect_t_b57baf754a5c" version_id="1021100" version_string="1.2.11"><![CDATA[Get Forum Activity]]></phrase>
   <phrase title="permission.aiconnect_t_bc5261a8e2ae" version_id="1021500" version_string="1.2.15"><![CDATA[Leave Conversation]]></phrase>
   <phrase title="permission.aiconnect_t_bd242afc267a" version_id="1021100" version_string="1.2.11"><![CDATA[Unwatch Forum]]></phrase>
   <phrase title="permission.aiconnect_t_bda55d886130" version_id="1021100" version_string="1.2.11"><![CDATA[Get Posts By Thread]]></phrase>
   <phrase title="permission.aiconnect_t_c28c3d4279ea" version_id="1003100" version_string="1.0.31"><![CDATA[Get Trending Threads]]></phrase>
-  <phrase title="permission.aiconnect_t_c4aa38615dc2" version_id="1021100" version_string="1.2.11"><![CDATA[Merge Posts]]></phrase>
   <phrase title="permission.aiconnect_t_c4e3dcdaf1f0" version_id="1021500" version_string="1.2.15"><![CDATA[Edit Post]]></phrase>
   <phrase title="permission.aiconnect_t_ca58d6f217c8" version_id="1003100" version_string="1.0.31"><![CDATA[Get Forum Stats]]></phrase>
-  <phrase title="permission.aiconnect_t_cb3fb04476c4" version_id="1021500" version_string="1.2.15"><![CDATA[Delete Thread]]></phrase>
   <phrase title="permission.aiconnect_t_cc60e4b53b09" version_id="1021500" version_string="1.2.15"><![CDATA[Create Poll]]></phrase>
   <phrase title="permission.aiconnect_t_ce8dd2793c51" version_id="1021500" version_string="1.2.15"><![CDATA[Mark All Alerts Read]]></phrase>
-  <phrase title="permission.aiconnect_t_d083fb8981de" version_id="1021100" version_string="1.2.11"><![CDATA[List Warning Definitions]]></phrase>
   <phrase title="permission.aiconnect_t_d41c5a9bb3a9" version_id="1021100" version_string="1.2.11"><![CDATA[Get User Watched Threads]]></phrase>
   <phrase title="permission.aiconnect_t_d6121de057a0" version_id="1021500" version_string="1.2.15"><![CDATA[Mark Alert Read]]></phrase>
   <phrase title="permission.aiconnect_t_d9d5215024a8" version_id="1021100" version_string="1.2.11"><![CDATA[Get User Conversations]]></phrase>
   <phrase title="permission.aiconnect_t_d9e5588787e9" version_id="1021500" version_string="1.2.15"><![CDATA[Get Profile Posts]]></phrase>
   <phrase title="permission.aiconnect_t_da82e50c487b" version_id="1021100" version_string="1.2.11"><![CDATA[Get User Drafts]]></phrase>
-  <phrase title="permission.aiconnect_t_dcfdde1f8635" version_id="1021100" version_string="1.2.11"><![CDATA[List Deletion Log]]></phrase>
   <phrase title="permission.aiconnect_t_de8b45e2f5b8" version_id="1021500" version_string="1.2.15"><![CDATA[Upload My Avatar]]></phrase>
   <phrase title="permission.aiconnect_t_df3ce4e46fcd" version_id="1021500" version_string="1.2.15"><![CDATA[React To Profile Post]]></phrase>
-  <phrase title="permission.aiconnect_t_df6c1a3b230b" version_id="1021500" version_string="1.2.15"><![CDATA[Delete Profile Post]]></phrase>
   <phrase title="permission.aiconnect_t_e2a8f5b652dd" version_id="1021500" version_string="1.2.15"><![CDATA[React To Post]]></phrase>
   <phrase title="permission.aiconnect_t_e7bec733d28a" version_id="1003100" version_string="1.0.31"><![CDATA[Get Thread Poll]]></phrase>
   <phrase title="permission.aiconnect_t_e7d0a18d655f" version_id="1021100" version_string="1.2.11"><![CDATA[Get Thread Reactions]]></phrase>
-  <phrase title="permission.aiconnect_t_e854370c5b22" version_id="1021500" version_string="1.2.15"><![CDATA[Edit Node]]></phrase>
-  <phrase title="permission.aiconnect_t_ee256fce9635" version_id="1021500" version_string="1.2.15"><![CDATA[Delete Post]]></phrase>
   <phrase title="permission.aiconnect_t_ee36794ad609" version_id="1021500" version_string="1.2.15"><![CDATA[Delete Attachment]]></phrase>
   <phrase title="permission.aiconnect_t_f02d2c5b0ff7" version_id="1021500" version_string="1.2.15"><![CDATA[Get Conversation Messages]]></phrase>
   <phrase title="permission.aiconnect_t_f126d88c8680" version_id="1021100" version_string="1.2.11"><![CDATA[Get Thread Watchers]]></phrase>
   <phrase title="permission.aiconnect_t_f1be08696d47" version_id="1021500" version_string="1.2.15"><![CDATA[Get Post Attachments]]></phrase>
   <phrase title="permission.aiconnect_t_f24250b46faf" version_id="1021500" version_string="1.2.15"><![CDATA[Invite To Conversation]]></phrase>
   <phrase title="permission.aiconnect_t_f2ca6dc389a7" version_id="1021100" version_string="1.2.11"><![CDATA[Get Usergroup]]></phrase>
-  <phrase title="permission.aiconnect_t_f3b020961fe2" version_id="1021500" version_string="1.2.15"><![CDATA[Create User]]></phrase>
   <phrase title="permission.aiconnect_t_f41976af2074" version_id="1021100" version_string="1.2.11"><![CDATA[Get Bookmarked Threads]]></phrase>
   <phrase title="permission.aiconnect_t_fefcafe6ec6a" version_id="1021100" version_string="1.2.11"><![CDATA[Get User Bookmarks]]></phrase>
   <phrase title="permission.aiconnect_t_ffe147185115" version_id="1021100" version_string="1.2.11"><![CDATA[Get Thread Attachments]]></phrase>
@@ -138,43 +100,31 @@
   <phrase title="permission.aiconnect_tool_xenforo_pro_replyToT" version_id="1021500" version_string="1.2.15"><![CDATA[Tool: Reply to thread]]></phrase>
   <phrase title="permission.aiconnect_tool_xenforo_pro_sendConv" version_id="1021500" version_string="1.2.15"><![CDATA[Tool: Send conversation]]></phrase>
   <phrase title="permission.aiconnect_use_package_activity_anal" version_id="1021100" version_string="1.2.11"><![CDATA[Use AI Connect Pro — Activity & Analytics (package switch)]]></phrase>
-  <phrase title="permission.aiconnect_use_package_advanced_mod" version_id="1021100" version_string="1.2.11"><![CDATA[Use AI Connect Pro — Advanced Mod (merge/split) (package switch)]]></phrase>
-  <phrase title="permission.aiconnect_use_package_approval" version_id="1021100" version_string="1.2.11"><![CDATA[Use AI Connect Pro — Approval Queue (package switch)]]></phrase>
-  <phrase title="permission.aiconnect_use_package_automation" version_id="1003100" version_string="1.0.31"><![CDATA[Use AI Connect Pro — Automation (package switch)]]></phrase>
   <phrase title="permission.aiconnect_use_package_conversation" version_id="1003100" version_string="1.0.31"><![CDATA[Use AI Connect Pro — Conversation (package switch)]]></phrase>
   <phrase title="permission.aiconnect_use_package_core" version_id="1003100" version_string="1.0.31"><![CDATA[Use AI Connect Pro — Core (package switch)]]></phrase>
   <phrase title="permission.aiconnect_use_package_discovery" version_id="1003100" version_string="1.0.31"><![CDATA[Use AI Connect Pro — Discovery (package switch)]]></phrase>
   <phrase title="permission.aiconnect_use_package_engagement" version_id="1003100" version_string="1.0.31"><![CDATA[Use AI Connect Pro — Engagement (package switch)]]></phrase>
   <phrase title="permission.aiconnect_use_package_forum_watch" version_id="1021100" version_string="1.2.11"><![CDATA[Use AI Connect Pro — Forum Watch (watch/unwatch) (package switch)]]></phrase>
   <phrase title="permission.aiconnect_use_package_media" version_id="1003100" version_string="1.0.31"><![CDATA[Use AI Connect Pro — Media (package switch)]]></phrase>
-  <phrase title="permission.aiconnect_use_package_moderation" version_id="1003100" version_string="1.0.31"><![CDATA[Use AI Connect Pro — Moderation (package switch)]]></phrase>
   <phrase title="permission.aiconnect_use_package_notifications" version_id="1021100" version_string="1.2.11"><![CDATA[Use AI Connect Pro — Notifications & Alerts (package switch)]]></phrase>
   <phrase title="permission.aiconnect_use_package_profile" version_id="1003100" version_string="1.0.31"><![CDATA[Use AI Connect Pro — Profile (package switch)]]></phrase>
-  <phrase title="permission.aiconnect_use_package_reports" version_id="1021100" version_string="1.2.11"><![CDATA[Use AI Connect Pro — Reports Queue (package switch)]]></phrase>
   <phrase title="permission.aiconnect_use_package_thread_conten" version_id="1021100" version_string="1.2.11"><![CDATA[Use AI Connect Pro — Thread Content (posts/polls) (package switch)]]></phrase>
   <phrase title="permission.aiconnect_use_package_user_content" version_id="1021100" version_string="1.2.11"><![CDATA[Use AI Connect Pro — User Content (bookmarks/DMs) (package switch)]]></phrase>
   <phrase title="permission.aiconnect_use_package_users_groups" version_id="1021100" version_string="1.2.11"><![CDATA[Use AI Connect Pro — Users & Groups (package switch)]]></phrase>
-  <phrase title="permission.aiconnect_use_package_warnings" version_id="1021100" version_string="1.2.11"><![CDATA[Use AI Connect Pro — Warnings (issue/list/delete) (package switch)]]></phrase>
   <phrase title="permission.aiconnect_use_package_watched_bookm" version_id="1021100" version_string="1.2.11"><![CDATA[Use AI Connect Pro — Watched & Bookmarks (package switch)]]></phrase>
   <phrase title="permission.aiconnect_use_package_writing" version_id="1003100" version_string="1.0.31"><![CDATA[Use AI Connect Pro — Writing (package switch)]]></phrase>
   <phrase title="permission_interface.aiconnect_pkg_activity_analytics" version_id="1021100" version_string="1.2.11"><![CDATA[AI Connect Pro — Activity & Analytics]]></phrase>
-  <phrase title="permission_interface.aiconnect_pkg_advanced_mod" version_id="1021100" version_string="1.2.11"><![CDATA[AI Connect Pro — Advanced Mod (merge/split)]]></phrase>
-  <phrase title="permission_interface.aiconnect_pkg_approval" version_id="1021100" version_string="1.2.11"><![CDATA[AI Connect Pro — Approval Queue]]></phrase>
-  <phrase title="permission_interface.aiconnect_pkg_automation" version_id="1003100" version_string="1.0.31"><![CDATA[AI Connect Pro — Automation]]></phrase>
   <phrase title="permission_interface.aiconnect_pkg_conversation" version_id="1003100" version_string="1.0.31"><![CDATA[AI Connect Pro — Conversation]]></phrase>
   <phrase title="permission_interface.aiconnect_pkg_core" version_id="1003100" version_string="1.0.31"><![CDATA[AI Connect Pro — Core]]></phrase>
   <phrase title="permission_interface.aiconnect_pkg_discovery" version_id="1003100" version_string="1.0.31"><![CDATA[AI Connect Pro — Discovery]]></phrase>
   <phrase title="permission_interface.aiconnect_pkg_engagement" version_id="1003100" version_string="1.0.31"><![CDATA[AI Connect Pro — Engagement]]></phrase>
   <phrase title="permission_interface.aiconnect_pkg_forum_watch" version_id="1021100" version_string="1.2.11"><![CDATA[AI Connect Pro — Forum Watch (watch/unwatch)]]></phrase>
   <phrase title="permission_interface.aiconnect_pkg_media" version_id="1003100" version_string="1.0.31"><![CDATA[AI Connect Pro — Media]]></phrase>
-  <phrase title="permission_interface.aiconnect_pkg_moderation" version_id="1003100" version_string="1.0.31"><![CDATA[AI Connect Pro — Moderation]]></phrase>
   <phrase title="permission_interface.aiconnect_pkg_notifications" version_id="1021100" version_string="1.2.11"><![CDATA[AI Connect Pro — Notifications & Alerts]]></phrase>
   <phrase title="permission_interface.aiconnect_pkg_profile" version_id="1003100" version_string="1.0.31"><![CDATA[AI Connect Pro — Profile]]></phrase>
-  <phrase title="permission_interface.aiconnect_pkg_reports" version_id="1021100" version_string="1.2.11"><![CDATA[AI Connect Pro — Reports Queue]]></phrase>
   <phrase title="permission_interface.aiconnect_pkg_thread_content" version_id="1021100" version_string="1.2.11"><![CDATA[AI Connect Pro — Thread Content (posts/polls)]]></phrase>
   <phrase title="permission_interface.aiconnect_pkg_user_content" version_id="1021100" version_string="1.2.11"><![CDATA[AI Connect Pro — User Content (bookmarks/DMs)]]></phrase>
   <phrase title="permission_interface.aiconnect_pkg_users_groups" version_id="1021100" version_string="1.2.11"><![CDATA[AI Connect Pro — Users & Groups]]></phrase>
-  <phrase title="permission_interface.aiconnect_pkg_warnings" version_id="1021100" version_string="1.2.11"><![CDATA[AI Connect Pro — Warnings (issue/list/delete)]]></phrase>
   <phrase title="permission_interface.aiconnect_pkg_watched_bookmarks" version_id="1021100" version_string="1.2.11"><![CDATA[AI Connect Pro — Watched & Bookmarks]]></phrase>
   <phrase title="permission_interface.aiconnect_pkg_writing" version_id="1003100" version_string="1.0.31"><![CDATA[AI Connect Pro — Writing]]></phrase>
 </phrases>
