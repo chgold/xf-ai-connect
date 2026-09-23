@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <phrases>
-  <phrase title="option.aiconnect_moderation_license_checked" version_id="1000000" version_string="1.0.0"><![CDATA[License last checked (internal)]]></phrase>
-  <phrase title="option.aiconnect_moderation_license_key" version_id="1000000" version_string="1.0.0"><![CDATA[License key]]></phrase>
-  <phrase title="option.aiconnect_moderation_license_status" version_id="1000000" version_string="1.0.0"><![CDATA[License status (internal)]]></phrase>
-  <phrase title="option_explain.aiconnect_moderation_license_checked" version_id="1000000" version_string="1.0.0"><![CDATA[Unix timestamp of the last license check. Managed automatically — do not edit.]]></phrase>
-  <phrase title="option_explain.aiconnect_moderation_license_key" version_id="1000000" version_string="1.0.0"><![CDATA[Enter the license key you received in your goldnat.ai purchase confirmation email (format: XXX-XXXX-XXXX-XXXX-XXXX). Leave blank to disable the Moderation tools.]]></phrase>
-  <phrase title="option_explain.aiconnect_moderation_license_status" version_id="1000000" version_string="1.0.0"><![CDATA[Cached verdict from the last license check. Managed automatically — do not edit.]]></phrase>
-  <phrase title="option_group.aiconnect_moderation_license" version_id="1000000" version_string="1.0.0"><![CDATA[AI Connect Moderation License]]></phrase>
-  <phrase title="option_group_description.aiconnect_moderation_license" version_id="1000000" version_string="1.0.0"><![CDATA[Manage your AI Connect Moderation license key. When a valid license is entered the Moderation tools will be enabled automatically.]]></phrase>
+  <phrase title="option.aiconnect_moderation_license_checked" version_id="1000100" version_string="1.0.1"><![CDATA[License last checked (internal)]]></phrase>
+  <phrase title="option.aiconnect_moderation_license_key" version_id="1000100" version_string="1.0.1"><![CDATA[License key]]></phrase>
+  <phrase title="option.aiconnect_moderation_license_status" version_id="1000100" version_string="1.0.1"><![CDATA[License status (internal)]]></phrase>
+  <phrase title="option_explain.aiconnect_moderation_license_checked" version_id="1000100" version_string="1.0.1"><![CDATA[Unix timestamp of the last license check. Managed automatically — do not edit.]]></phrase>
+  <phrase title="option_explain.aiconnect_moderation_license_key" version_id="1000100" version_string="1.0.1"><![CDATA[Enter the license key you received in your goldnat.ai purchase confirmation email (format: XXX-XXXX-XXXX-XXXX-XXXX). Leave blank to disable the Moderation tools.]]></phrase>
+  <phrase title="option_explain.aiconnect_moderation_license_status" version_id="1000100" version_string="1.0.1"><![CDATA[Cached verdict from the last license check. Managed automatically — do not edit.]]></phrase>
+  <phrase title="option_group.aiconnect_moderation_license" version_id="1000100" version_string="1.0.1"><![CDATA[AI Connect Moderation License]]></phrase>
+  <phrase title="option_group_description.aiconnect_moderation_license" version_id="1000100" version_string="1.0.1"><![CDATA[Manage your AI Connect Moderation license key. When a valid license is entered the Moderation tools will be enabled automatically.]]></phrase>
   <phrase title="permission.aiconnect_t_020be3f963d0" version_id="1000000" version_string="1.0.0"><![CDATA[changeThreadType]]></phrase>
   <phrase title="permission.aiconnect_t_0c2df052f6bb" version_id="1000000" version_string="1.0.0"><![CDATA[unlockThread]]></phrase>
   <phrase title="permission.aiconnect_t_1a22827134fc" version_id="1000000" version_string="1.0.0"><![CDATA[unfeatureThread]]></phrase>

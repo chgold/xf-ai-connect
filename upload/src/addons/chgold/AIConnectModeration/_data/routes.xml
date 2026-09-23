@@ -1,2 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<routes/>
+<routes>
+  <route route_type="admin" route_prefix="aiconnect-moderation" sub_name="check" format="license/check/" controller="chgold\AIConnectModeration:License" context="aiConnectModerationLicense" action_prefix="check"/>
+  <route route_type="admin" route_prefix="aiconnect-moderation" sub_name="license" format="license/" controller="chgold\AIConnectModeration:License" context="aiConnectModerationLicense"/>
+</routes>

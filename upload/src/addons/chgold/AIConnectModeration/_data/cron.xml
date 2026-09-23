@@ -1,2 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<cron/>
+<cron>
+  <entry entry_id="aiconnectModLicCheck" cron_class="chgold\AIConnectModeration\Cron\LicenseCheck" cron_method="run" active="1"><![CDATA[{"day_type":"dom","dom":[-1],"hours":[3],"minutes":[0]}]]></entry>
+</cron>

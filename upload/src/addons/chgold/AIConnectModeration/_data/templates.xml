@@ -1,2 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
-<templates/>
+<templates>
+  <template type="admin" title="aiconnect_moderation_license_check" version_id="1000100" version_string="1.0.1"><![CDATA[<xf:title>Check AI Connect Moderation license</xf:title>
+
+<xf:form action="{{ link('aiconnect-moderation/license/check') }}" class="block" ajax="true">
+
+	<div class="block-container">
+		<div class="block-body">
+
+			<xf:if is="$licenseKey">
+				<xf:inforow rowtype="confirm">
+					This contacts the licensing server and refreshes the verdict for
+					<strong>{$xf.options.boardUrl}</strong>.
+					Moderation tools are enabled or disabled based on the result.
+					<br><br>
+					Key on file: <code>{$licenseKey}</code>
+					<xf:if is="$status.licensed_domain">
+						<br>Registered to: <code>{$status.licensed_domain}</code>
+					</xf:if>
+				</xf:inforow>
+			<xf:else />
+				<xf:inforow rowtype="confirm">
+					<strong>No license key is saved yet.</strong>
+					<br><br>
+					Close this window, paste your key into the <em>License key</em> field on
+					the options page, click <strong>Save</strong> at the bottom, then run this check.
+				</xf:inforow>
+			</xf:if>
+
+		</div>
+
+		<xf:if is="$licenseKey">
+			<xf:submitrow icon="refresh" submit="Check license now" />
+		</xf:if>
+	</div>
+
+</xf:form>
+]]></template>
+</templates>
