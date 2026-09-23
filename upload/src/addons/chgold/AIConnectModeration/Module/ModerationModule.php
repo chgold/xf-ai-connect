@@ -27,6 +27,7 @@ class ModerationModule extends ModuleBase
     use ProApprovalTrait;
     use ProWarningsTrait;
     use ProAdvancedModTrait;
+    use ProModQueueTrait;
 
     protected $moduleName = 'xenforo_mod';
 
@@ -43,6 +44,7 @@ class ModerationModule extends ModuleBase
         'approval'     => ['label' => 'Approval Queue',                'method' => 'registerApprovalTools'],
         'warnings'     => ['label' => 'Warnings (issue/list/delete)',  'method' => 'registerWarningsTools'],
         'advanced_mod' => ['label' => 'Advanced Mod (merge/split)',    'method' => 'registerAdvancedModTools'],
+        'mod_queue'    => ['label' => 'Moderation Queue & Intelligence','method' => 'registerModQueueTools'],
     ];
 
     /**
@@ -160,6 +162,9 @@ class ModerationModule extends ModuleBase
         }
         if ($has('advanced_mod')) {
             $this->registerAdvancedModTools();
+        }
+        if ($has('mod_queue')) {
+            $this->registerModQueueTools();
         }
     }
 }
