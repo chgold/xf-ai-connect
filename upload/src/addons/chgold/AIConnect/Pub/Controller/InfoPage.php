@@ -184,7 +184,26 @@ class InfoPage extends AbstractController
         $pathPart    = rtrim(parse_url($baseUrl, PHP_URL_PATH) ?? '', '/');
         $siteNameMcp = $pathPart !== '' ? $hostname . $pathPart : $hostname;
         $siteKey     = preg_replace('/[^a-zA-Z0-9_-]/', '_', $siteNameMcp);
-        $siteName    = $options->boardTitle ?? 'Forum';
+        // Sanitize the admin-controlled board title before it enters the plain-text
+        // onboarding prompt. The prompt is pasted into an AI agent, so an unescaped
+        // title (e.g. "<script>alert(1)</script>" or "…IGNORE PREVIOUS INSTRUCTIONS…")
+        // is a prompt-injection vector. Strip HTML tags + angle brackets + control
+        // chars, collapse whitespace, and cap the length — leaving a clean readable
+        // title. (The rendered HTML page already escapes {$forumTitle}; this covers
+        // the plain-text/JSON prompt_text path.)
+        $rawTitle    = (string) ($options->boardTitle ?? 'Forum');
+        $siteName    = strip_tags($rawTitle);
+        $siteName    = preg_replace('/[<>]/', '', $siteName);
+        $siteName    = preg_replace('/[\x00-\x1F\x7F]+/', ' ', $siteName);
+        $siteName    = trim(preg_replace('/\s+/', ' ', $siteName));
+        if ($siteName === '') {
+            $siteName = 'Forum';
+        }
+        if (function_exists('mb_substr')) {
+            $siteName = mb_substr($siteName, 0, 100);
+        } else {
+            $siteName = substr($siteName, 0, 100);
+        }
         $toolUrl     = $baseUrl . '/api/aiconnect-tools';
         $manifestUrl = $baseUrl . '/api/aiconnect-manifest';
 
