@@ -1343,6 +1343,113 @@ class Setup extends AbstractSetup
         }
     }
 
+    /**
+     * v1.2.59 — repair per-tool permission grants wiped by the Moderation split.
+     *
+     * WHAT BROKE: when the moderation bundle set was moved out of Pro into the
+     * dedicated xenforo-moderation-pro add-on (Pro v1.2.12 / Core v1.2.58,
+     * commit 167f1f43), purgeStalePackagePermissions() deleted BOTH the
+     * xf_permission rows AND their xf_permission_entry grant rows for every tool
+     * permission id no longer present in the then-current package defs. On the
+     * next sync those tools were re-registered — but the fail-closed rule
+     * (syncPackagePermissions deliberately inserts NO default 'allow' entry for a
+     * per-tool permission) treated them as brand-new, so ~141 previously-granted
+     * Pro/Admin tools ended up REGISTERED but UNGRANTED and every call returned
+     * 403 "You do not have permission to use this tool" even though the admin had
+     * enabled the bundle. See forum #814.
+     *
+     * THE REPAIR (narrow + safe): grant 'allow' to the Administrative user group
+     * (2) for a per-tool permission ONLY when its bundle master switch
+     * (use_package_*) is itself already 'allow' for that group AND the per-tool
+     * permission currently has NO entry row at all. That is the exact signature of
+     * a grant erased by the purge: the bundle is enabled (so the tools were meant
+     * to be usable) but the individual grant vanished. This does NOT auto-grant
+     * genuinely-new tools in a DISABLED bundle (fail-closed still holds there),
+     * and it never overwrites an explicit admin 'deny'/'never' (only absent
+     * entries are filled). Idempotent: re-running finds nothing to restore.
+     *
+     * Scoped to group 2 (the group syncPackagePermissions itself defaults the
+     * package switch to) so behaviour is symmetric with how bundles are enabled.
+     */
+    public function upgrade1025900Step1(): void
+    {
+        try {
+            $db = \XF::db();
+
+            // Map every per-tool permission -> its bundle master switch (via the
+            // dependency the per-tool perm was registered with: depend_permission_id
+            // points at the use_package_* switch). Only aiconnect per-tool perms.
+            $rows = $db->fetchAll(
+                "SELECT permission_id, depend_permission_id
+                   FROM xf_permission
+                  WHERE permission_group_id = 'aiconnect'
+                    AND permission_id LIKE 't\\_%'
+                    AND depend_permission_id LIKE 'use_package_%'"
+            );
+            if (!$rows) {
+                return;
+            }
+
+            // Which bundle switches are 'allow' for group 2?
+            $pkgAllowed = [];
+            $pkgRows = $db->fetchAll(
+                "SELECT permission_id
+                   FROM xf_permission_entry
+                  WHERE user_group_id = 2 AND user_id = 0
+                    AND permission_group_id = 'aiconnect'
+                    AND permission_id LIKE 'use_package_%'
+                    AND permission_value = 'allow'"
+            );
+            foreach ($pkgRows as $r) {
+                $pkgAllowed[$r['permission_id']] = true;
+            }
+
+            $restored = 0;
+            foreach ($rows as $row) {
+                $permId = $row['permission_id'];
+                $pkg    = $row['depend_permission_id'];
+
+                // Bundle must be enabled for group 2.
+                if (empty($pkgAllowed[$pkg])) {
+                    continue;
+                }
+
+                // Only fill an ABSENT entry — never touch an explicit deny/never/allow.
+                $hasEntry = $db->fetchOne(
+                    "SELECT permission_value
+                       FROM xf_permission_entry
+                      WHERE user_group_id = 2 AND user_id = 0
+                        AND permission_group_id = 'aiconnect' AND permission_id = ?",
+                    [$permId]
+                );
+                if ($hasEntry !== false && $hasEntry !== null) {
+                    continue;
+                }
+
+                $db->insert('xf_permission_entry', [
+                    'user_group_id'        => 2,
+                    'user_id'              => 0,
+                    'permission_group_id'  => 'aiconnect',
+                    'permission_id'        => $permId,
+                    'permission_value'     => 'allow',
+                    'permission_value_int' => 0,
+                ]);
+                $restored++;
+            }
+
+            if ($restored > 0) {
+                \XF::app()->jobManager()->enqueueUnique(
+                    'aiconnect_perm_rebuild',
+                    'XF:PermissionRebuild',
+                    [],
+                    false
+                );
+            }
+        } catch (\Throwable $e) {
+            \XF::logException($e, false, 'AIConnect 1.2.59 per-tool permission repair failed: ');
+        }
+    }
+
     public function uninstallStep1()
     {
         $schemaManager = $this->schemaManager();
