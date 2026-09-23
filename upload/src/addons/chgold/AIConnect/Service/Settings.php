@@ -46,6 +46,12 @@ class Settings
             'enabled' => '1',
             'rate_limit_per_minute' => '50',
             'rate_limit_per_hour' => '1000',
+            // SEC-07 (roadmap): when '1', the tools endpoint refuses the
+            // ?token= query-string fallback and requires the
+            // Authorization: Bearer header. Defaults to '0' so existing
+            // integrations that rely on the GET ?token= form keep working
+            // until an admin opts in to the stricter mode.
+            'require_bearer_header' => '0',
         ];
 
         foreach ($defaults as $key => $value) {

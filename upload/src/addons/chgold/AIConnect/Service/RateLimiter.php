@@ -11,8 +11,17 @@ class RateLimiter extends AbstractService
      */
     public function isRateLimited($identifier)
     {
-        $perMinute = (int) Settings::get('rate_limit_per_minute', 50);
-        $perHour = (int) Settings::get('rate_limit_per_hour', 1000);
+        // Roadmap (rate-limit ACP UI): read the admin-editable native XF options
+        // first; fall back to the legacy custom-settings-table values (and their
+        // hard defaults) so existing installs keep their configured limits until
+        // an admin touches the new ACP controls.
+        $opts = \XF::options();
+        $perMinute = isset($opts->aiconnect_rate_limit_per_minute) && $opts->aiconnect_rate_limit_per_minute !== ''
+            ? (int) $opts->aiconnect_rate_limit_per_minute
+            : (int) Settings::get('rate_limit_per_minute', 50);
+        $perHour = isset($opts->aiconnect_rate_limit_per_hour) && $opts->aiconnect_rate_limit_per_hour !== ''
+            ? (int) $opts->aiconnect_rate_limit_per_hour
+            : (int) Settings::get('rate_limit_per_hour', 1000);
 
         // Check per-minute limit
         $minuteCheck = $this->checkWindow($identifier, 'minute', 60, $perMinute);

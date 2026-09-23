@@ -36,11 +36,29 @@ class ApiAuth
         $authHeader = $request->getServer('HTTP_AUTHORIZATION');
         $queryToken = $request->filter('token', 'str');
 
+        // SEC-07 (roadmap): optional hardening. When enabled the ?token=
+        // query-string fallback is refused outright — a live token in a URL
+        // leaks into browser history, proxy logs and web-server access logs, so a
+        // security-conscious admin can require the Authorization: Bearer header
+        // only. Off by default for backward compat. Read from the native XF
+        // option (ACP-editable); Settings-table value kept as a legacy fallback.
+        $requireBearer = ((bool) (\XF::options()->aiconnect_require_bearer_header ?? false))
+            || (\chgold\AIConnect\Service\Settings::get('require_bearer_header', '0') === '1');
+
         $bearerToken = null;
         if ($authHeader && strpos($authHeader, 'Bearer ') === 0) {
             $bearerToken = substr($authHeader, 7);
-        } elseif ($queryToken) {
+        } elseif ($queryToken && !$requireBearer) {
             $bearerToken = $queryToken;
+        }
+
+        // Distinguish "no token at all" from "token supplied only via the
+        // now-refused query string" so the client gets an actionable error.
+        if ($isOurEndpoint && !$bearerToken && $queryToken && $requireBearer) {
+            $error = 'api_error.bearer_header_required';
+            $code = 401;
+            $result = false;
+            return;
         }
 
         if ($isOurEndpoint && !$bearerToken) {
