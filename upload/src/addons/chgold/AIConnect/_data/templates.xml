@@ -124,16 +124,17 @@
         <xf:submitrow icon="delete" sticky="true" />
     </div>
 </xf:form>]]></template>
-  <template type="admin" title="chgold_aiconnect_audit_list" version_id="1026300" version_string="1.2.63"><![CDATA[<xf:title>AI Connect — Action Log</xf:title>
+  <template type="admin" title="chgold_aiconnect_audit_list" version_id="1026400" version_string="1.2.64"><![CDATA[<xf:title>AI Connect — Action Log</xf:title>
 
 <div class="block">
 	<div class="block-container">
 		<div class="block-body">
 			<xf:form action="{{ link('ai-connect/audit-log') }}" class="block-row" method="get">
+				<input type="hidden" name="filtered" value="1" />
 				<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;">
 					<div><label>User<br>
 						<input type="text" class="input" name="username" value="{$filters.username}"
-							data-xf-init="auto-complete" data-acurl="{{ link('members/find') }}"
+							data-xf-init="auto-complete" data-acurl="{{ link('users/find') }}"
 							data-single="true" placeholder="username" autocomplete="off" /></label></div>
 					<div><label>Module<br>
 						<xf:select name="module" value="{$filters.module}" data-xf-init="audit-module-filter">
@@ -1025,7 +1026,7 @@ Documentation: {$infoUrl}</pre>
     </div>
 </body>
 </html>]]></template>
-  <template type="public" title="chgold_aiconnect_account_audit_link" version_id="1026300" version_string="1.2.63"><![CDATA[<xf:if is="$xf.visitor.user_id AND $xf.visitor.hasAdminPermission('option')">
+  <template type="public" title="chgold_aiconnect_account_audit_link" version_id="1026400" version_string="1.2.64"><![CDATA[<xf:if is="$xf.visitor.is_admin">
 	<a href="{{ link('canonical:admin.php') }}?ai-connect/audit-log/" class="menu-linkRow" target="_blank" rel="noopener">
 		<xf:fa icon="fa-clipboard-list" /> {{ phrase('aiconnect_account_audit_link') }}
 	</a>

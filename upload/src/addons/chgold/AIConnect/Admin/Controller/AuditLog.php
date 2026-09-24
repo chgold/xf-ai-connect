@@ -37,6 +37,14 @@ class AuditLog extends AbstractController
             'to'      => 'str',
         ]);
 
+        // Item ג: default the date window to the last 7 days so the page never
+        // dumps the whole (potentially huge) log on first load. A sentinel flag
+        // ('filtered') is set once the admin submits the form, so an explicit
+        // empty 'from' (clearing the date) is respected instead of re-defaulting.
+        if (!$this->filter('filtered', 'bool') && $filters['from'] === '') {
+            $filters['from'] = date('Y-m-d', \XF::$time - (7 * 86400));
+        }
+
         [$where, $params] = $this->buildWhere($filters);
         $whereSql = $where ? ('WHERE ' . implode(' AND ', $where)) : '';
 
