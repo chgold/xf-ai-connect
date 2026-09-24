@@ -185,6 +185,36 @@ class Setup extends AbstractSetup
         // Moderation + any future add-on. Narrow, index-friendly schema; args/
         // result stored only as masked, truncated summaries (never secrets).
         $this->createActionLogTable();
+
+        // Idempotency store (roadmap item 6). Optional per-request dedup: when a
+        // client supplies an Idempotency-Key, a pending->completed row (guarded by
+        // a UNIQUE (user_id, key)) prevents a retried write from executing twice.
+        $this->createIdempotencyTable();
+    }
+
+    /**
+     * Idempotency store (roadmap item 6). Shared by installStep1 (fresh) and
+     * upgrade1026700Step1 (existing installs). checkExists makes it idempotent.
+     */
+    protected function createIdempotencyTable(): void
+    {
+        $this->schemaManager()->createTable('xf_chgold_aiconnect_idempotency', function (Create $table) {
+            $table->checkExists(true);
+            $table->addColumn('idempotency_id', 'int')->autoIncrement();
+            $table->addColumn('user_id', 'int');
+            // varbinary = exact-byte match, no collation surprises on the key.
+            $table->addColumn('idempotency_key', 'varbinary', 255);
+            $table->addColumn('request_hash', 'varbinary', 32); // raw sha256(module|tool|canonical args)
+            $table->addColumn('tool', 'varchar', 100)->setDefault('');
+            $table->addColumn('status', 'enum')->values(['pending', 'completed'])->setDefault('pending');
+            $table->addColumn('response_json', 'mediumblob')->nullable();
+            $table->addColumn('created_date', 'int');
+            $table->addColumn('completed_date', 'int')->setDefault(0);
+            $table->addColumn('expires_date', 'int');
+            $table->addPrimaryKey('idempotency_id');
+            $table->addUniqueKey(['user_id', 'idempotency_key'], 'user_key'); // the concurrency guard
+            $table->addKey('expires_date');
+        });
     }
 
     /**
@@ -1593,6 +1623,19 @@ class Setup extends AbstractSetup
         }
     }
 
+    /**
+     * v1.2.67 — create the idempotency store on existing installs (roadmap
+     * item 6). Same table as installStep1; checkExists(true) makes it idempotent.
+     */
+    public function upgrade1026700Step1(): void
+    {
+        try {
+            $this->createIdempotencyTable();
+        } catch (\Throwable $e) {
+            \XF::logException($e, false, 'AIConnect 1.2.67 idempotency table create failed: ');
+        }
+    }
+
     public function uninstallStep1()
     {
         $schemaManager = $this->schemaManager();
@@ -1601,6 +1644,7 @@ class Setup extends AbstractSetup
         $tables = [
             'xf_ai_connect_api_keys',
             'xf_ai_connect_rate_limits',
+            'xf_chgold_aiconnect_idempotency',
             'xf_ai_connect_blocked_users',
             'xf_ai_connect_settings',
             'xf_chgold_aiconnect_action_log',

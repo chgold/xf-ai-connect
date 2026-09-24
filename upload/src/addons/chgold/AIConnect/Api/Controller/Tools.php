@@ -65,9 +65,55 @@ class Tools extends AbstractController
             return $this->error('You do not have permission to use this tool.', 403);
         }
 
+        // Roadmap item 6: idempotency. Only engages when the client supplies an
+        // Idempotency-Key (header or body) — no key = today's behaviour. Reserve
+        // AFTER auth/rate-limit/permission so we never reserve for an unauthorized
+        // or throttled request. Reserved BEFORE executeTool so a concurrent retry
+        // can't double-write.
+        $idem = \XF::service('chgold\AIConnect:IdempotencyStore');
+        $idemKey = $idem->extractKey($requestData);
+        $idemId = null;
+        if ($idemKey !== null) {
+            $reserve = $idem->reserve(
+                (int) $visitor->user_id,
+                $idemKey,
+                $idem->requestHash($moduleName, $tool, is_array($input) ? $input : []),
+                $tool
+            );
+            switch ($reserve['action']) {
+                case 'replay':
+                    return $this->apiSuccess($reserve['response']);
+                case 'conflict':
+                    return $this->error('A request with this Idempotency-Key is already in progress.', 409);
+                case 'mismatch':
+                    return $this->error('This Idempotency-Key was already used with a different request.', 422);
+                case 'proceed':
+                    $idemId = $reserve['id'];
+                    break;
+            }
+        }
+
         $auditStart = microtime(true);
-        $result = $this->modules[$moduleName]->executeTool($tool, $input);
+        try {
+            $result = $this->modules[$moduleName]->executeTool($tool, $input);
+        } catch (\Throwable $e) {
+            // Release the reserved key so a retry can re-attempt (don't strand it).
+            if ($idemId !== null) {
+                $idem->release($idemId);
+            }
+            throw $e;
+        }
         $this->auditLog($visitor, $moduleName, $tool, 'write', $input, $result, $auditStart);
+
+        // Finalize idempotency: cache ONLY a success; release on failure so a
+        // retry can re-attempt (a transient failure must not become permanent).
+        if ($idemId !== null) {
+            if (!(isset($result['success']) && $result['success'] === false)) {
+                $idem->complete($idemId, $result);
+            } else {
+                $idem->release($idemId);
+            }
+        }
 
         if (isset($result['success']) && $result['success'] === false) {
             return $this->error(
