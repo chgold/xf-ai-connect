@@ -34,10 +34,12 @@ class Tools extends AbstractController
         $visitor = \XF::visitor();
         $rateLimiter = \XF::service('chgold\AIConnect:RateLimiter');
         $identifier = 'user_' . $visitor->user_id;
-        if ($rateLimiter->isRateLimited($identifier)['limited']) {
+        // Roadmap item 5: POST is the write path -> 'write' category (optional
+        // per-category cap; no-op unless the admin configured a write limit).
+        if ($rateLimiter->isRateLimited($identifier, 'write')['limited']) {
             return $this->error('Rate limit exceeded. Please slow down your requests.', 429);
         }
-        $rateLimiter->recordRequest($identifier);
+        $rateLimiter->recordRequest($identifier, 'write');
 
         $rawInput = $this->request()->getInputRaw();
         $requestData = json_decode($rawInput, true);
@@ -85,10 +87,12 @@ class Tools extends AbstractController
         $visitor = \XF::visitor();
         $rateLimiter = \XF::service('chgold\AIConnect:RateLimiter');
         $getIdentifier = 'user_' . $visitor->user_id;
-        if ($rateLimiter->isRateLimited($getIdentifier)['limited']) {
+        // Roadmap item 5: GET serves read-only tools -> 'read' category (optional
+        // per-category cap; no-op unless the admin configured a read limit).
+        if ($rateLimiter->isRateLimited($getIdentifier, 'read')['limited']) {
             return $this->error('Rate limit exceeded. Please slow down your requests.', 429);
         }
-        $rateLimiter->recordRequest($getIdentifier);
+        $rateLimiter->recordRequest($getIdentifier, 'read');
 
         $toolName = $this->request()->filter('name', 'str') ?: $params->tool_name;
         $argsRaw  = $this->request()->filter('args', 'str');

@@ -7,9 +7,17 @@ use XF\Service\AbstractService;
 class RateLimiter extends AbstractService
 {
     /**
-     * Check if identifier is rate limited
+     * Check if identifier is rate limited.
+     *
+     * @param string      $identifier per-user key (e.g. "user_5")
+     * @param string|null $category   roadmap item 5 (finer-grained): 'read' or
+     *   'write'. When supplied AND the admin has set a positive category limit,
+     *   an ADDITIONAL window is enforced under "{identifier}:{category}", on top
+     *   of the global per-minute/per-hour caps. Omitted / category limit = 0 ->
+     *   behaves exactly as before (global flat limit only). This lets an admin
+     *   run generous reads + conservative writes.
      */
-    public function isRateLimited($identifier)
+    public function isRateLimited($identifier, $category = null)
     {
         // Roadmap (rate-limit ACP UI): read the admin-editable native XF options
         // first; fall back to the legacy custom-settings-table values (and their
@@ -23,28 +31,60 @@ class RateLimiter extends AbstractService
             ? (int) $opts->aiconnect_rate_limit_per_hour
             : (int) Settings::get('rate_limit_per_hour', 1000);
 
-        // Check per-minute limit
+        // Global per-minute / per-hour caps (unchanged behaviour).
         $minuteCheck = $this->checkWindow($identifier, 'minute', 60, $perMinute);
         if ($minuteCheck['limited']) {
             return $minuteCheck;
         }
-
-        // Check per-hour limit
         $hourCheck = $this->checkWindow($identifier, 'hour', 3600, $perHour);
         if ($hourCheck['limited']) {
             return $hourCheck;
+        }
+
+        // Roadmap item 5: optional per-category (read/write) per-minute cap.
+        // Only enforced when the admin set a positive limit for that category —
+        // otherwise this whole block is a no-op (backward compatible).
+        $catLimit = $this->categoryLimit($category);
+        if ($catLimit > 0) {
+            $catCheck = $this->checkWindow($identifier . ':' . $category, 'minute', 60, $catLimit);
+            if ($catCheck['limited']) {
+                $catCheck['reason'] = sprintf('%d %s requests per minute', $catLimit, $category);
+                return $catCheck;
+            }
         }
 
         return ['limited' => false];
     }
 
     /**
-     * Record a request
+     * Admin-configured per-minute limit for a request category, or 0 (disabled).
+     * Options: aiconnect_rate_limit_read_per_minute / _write_per_minute.
      */
-    public function recordRequest($identifier)
+    protected function categoryLimit($category): int
+    {
+        if ($category !== 'read' && $category !== 'write') {
+            return 0;
+        }
+        $opt = 'aiconnect_rate_limit_' . $category . '_per_minute';
+        $opts = \XF::options();
+        return isset($opts->$opt) && $opts->$opt !== '' ? (int) $opts->$opt : 0;
+    }
+
+    /**
+     * Record a request.
+     *
+     * @param string      $identifier per-user key
+     * @param string|null $category   'read'/'write' — increments the matching
+     *   category window too, so the category cap in isRateLimited() has data.
+     */
+    public function recordRequest($identifier, $category = null)
     {
         $this->incrementWindow($identifier, 'minute', 60);
         $this->incrementWindow($identifier, 'hour', 3600);
+
+        if (($category === 'read' || $category === 'write') && $this->categoryLimit($category) > 0) {
+            $this->incrementWindow($identifier . ':' . $category, 'minute', 60);
+        }
     }
 
     /**
