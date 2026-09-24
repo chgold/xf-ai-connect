@@ -124,7 +124,31 @@
         <xf:submitrow icon="delete" sticky="true" />
     </div>
 </xf:form>]]></template>
-  <template type="admin" title="chgold_aiconnect_audit_list" version_id="1026400" version_string="1.2.64"><![CDATA[<xf:title>AI Connect — Action Log</xf:title>
+  <template type="admin" title="chgold_aiconnect_audit_delete" version_id="1026500" version_string="1.2.65"><![CDATA[<xf:title>Delete AI action-log history</xf:title>
+
+<xf:form action="{{ link('ai-connect/audit-log/delete') }}" class="block" method="post">
+	<div class="block-container">
+		<div class="block-body">
+			<xf:inforow rowtype="confirm">
+				This permanently deletes audit-log rows dated <strong>on or before</strong> the date below.
+				The log currently holds <strong>{$totalRows}</strong> rows; about <strong>{$affected}</strong>
+				are on or before the suggested date. This cannot be undone.
+				<br><br>
+				(The automatic retention cron already prunes rows older than the retention setting — this is a
+				manual one-off purge.)
+			</xf:inforow>
+			<xf:formrow label="Delete rows on or before">
+				<xf:dateinput name="before" value="{$default}" />
+			</xf:formrow>
+		</div>
+		<xf:submitrow icon="delete" submit="Delete history" class="button--danger" />
+		<div class="block-row block-row--minor">
+			<xf:button href="{{ link('ai-connect/audit-log') }}">Cancel</xf:button>
+		</div>
+	</div>
+</xf:form>
+]]></template>
+  <template type="admin" title="chgold_aiconnect_audit_list" version_id="1026500" version_string="1.2.65"><![CDATA[<xf:title>AI Connect — Action Log</xf:title>
 
 <div class="block">
 	<div class="block-container">
@@ -166,6 +190,7 @@
 					<div><label>To<br><xf:dateinput name="to" value="{$filters.to}" /></label></div>
 					<div><xf:button type="submit" class="button--primary">Filter</xf:button></div>
 					<div><xf:button href="{{ link('ai-connect/audit-log/stats') }}" class="button">Statistics</xf:button></div>
+					<div><xf:button href="{{ link('ai-connect/audit-log/delete') }}" class="button button--alert" icon="delete" overlay="true">Delete history</xf:button></div>
 				</div>
 			</xf:form>
 			<script>
@@ -206,7 +231,7 @@
 				</xf:datarow>
 				<xf:foreach loop="$logs" value="$row">
 					<xf:datarow>
-						<xf:cell>{{ date($row.log_date, 'absolute') }}</xf:cell>
+						<xf:cell><span title="{{ date($row.log_date, 'absolute') }}">{$row.date_full}</span></xf:cell>
 						<xf:cell>{$row.username} <span class="u-muted">#{$row.user_id}</span></xf:cell>
 						<xf:cell>{$row.module}.{$row.tool}</xf:cell>
 						<xf:cell>{$row.http_method}</xf:cell>

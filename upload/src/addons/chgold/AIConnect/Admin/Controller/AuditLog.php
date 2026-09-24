@@ -41,8 +41,15 @@ class AuditLog extends AbstractController
         // dumps the whole (potentially huge) log on first load. A sentinel flag
         // ('filtered') is set once the admin submits the form, so an explicit
         // empty 'from' (clearing the date) is respected instead of re-defaulting.
-        if (!$this->filter('filtered', 'bool') && $filters['from'] === '') {
-            $filters['from'] = date('Y-m-d', \XF::$time - (7 * 86400));
+        // The 'to' end of the window defaults to today (item 1) so both date
+        // fields are pre-filled with a sensible last-week..today range.
+        if (!$this->filter('filtered', 'bool')) {
+            if ($filters['from'] === '') {
+                $filters['from'] = date('Y-m-d', \XF::$time - (7 * 86400));
+            }
+            if ($filters['to'] === '') {
+                $filters['to'] = date('Y-m-d', \XF::$time);
+            }
         }
 
         [$where, $params] = $this->buildWhere($filters);
@@ -60,6 +67,18 @@ class AuditLog extends AbstractController
              LIMIT " . (($page - 1) * $perPage) . ", $perPage",
             $params
         );
+
+        // Item 2: preformat the full timestamp WITH seconds in the board timezone.
+        // XF's date()/dateTime() helpers never emit seconds (and show "Today at
+        // 1:02 PM" relative form), so audit rows lost precision. We render an
+        // explicit YYYY-MM-DD HH:MM:SS here so every row shows the exact instant.
+        $tz = new \DateTimeZone(\XF::visitor()->timezone ?: (\XF::options()->guestTimeZone ?: 'UTC'));
+        foreach ($logs as &$logRow) {
+            $dt = new \DateTime('@' . $logRow['log_date']);
+            $dt->setTimezone($tz);
+            $logRow['date_full'] = $dt->format('Y-m-d H:i:s');
+        }
+        unset($logRow);
 
         // Hierarchical filter data (item ג): module -> its distinct tools, built
         // from what is actually in the log (cheap; small cardinality). The
@@ -86,6 +105,51 @@ class AuditLog extends AbstractController
             'toolsByModule' => $toolsByModule,
         ];
         return $this->view('chgold\AIConnect:AuditLog\List', 'chgold_aiconnect_audit_list', $viewParams);
+    }
+
+    /**
+     * Item 4: purge audit rows older than an admin-chosen date. GET renders a
+     * confirm form (with a preview count); POST performs the delete. This is on
+     * top of the automatic retention cron — a manual "clear everything before
+     * date X" control. Destructive, so POST-only + explicit confirmation.
+     */
+    public function actionDelete()
+    {
+        $db = \XF::db();
+
+        if ($this->isPost()) {
+            $before = $this->filter('before', 'str');
+            $ts = $before !== '' ? strtotime($before) : false;
+            if ($ts === false) {
+                return $this->error('Please enter a valid date.');
+            }
+            // A bare date means "delete everything up to the END of that day".
+            if (!preg_match('/\d:\d/', $before)) {
+                $ts = strtotime('+1 day -1 second', $ts);
+            }
+            $deleted = $db->delete('xf_chgold_aiconnect_action_log', 'log_date <= ?', $ts);
+
+            return $this->redirect(
+                $this->buildLink('ai-connect/audit-log'),
+                \XF::phrase('aiconnect_audit_deleted_x', ['count' => $deleted])
+            );
+        }
+
+        // GET: confirm form. Default the cutoff to 30 days ago + show how many
+        // rows would be removed so the admin sees the impact before confirming.
+        $default = date('Y-m-d', \XF::$time - (30 * 86400));
+        $cutoffTs = strtotime('+1 day -1 second', strtotime($default));
+        $affected = (int) $db->fetchOne(
+            'SELECT COUNT(*) FROM xf_chgold_aiconnect_action_log WHERE log_date <= ?',
+            [$cutoffTs]
+        );
+        $totalRows = (int) $db->fetchOne('SELECT COUNT(*) FROM xf_chgold_aiconnect_action_log');
+
+        return $this->view('chgold\AIConnect:AuditLog\Delete', 'chgold_aiconnect_audit_delete', [
+            'default'   => $default,
+            'affected'  => $affected,
+            'totalRows' => $totalRows,
+        ]);
     }
 
     public function actionStats()
@@ -189,6 +253,12 @@ class AuditLog extends AbstractController
             $params[] = $ts;
         }
         if ($filters['to'] !== '' && ($ts = strtotime($filters['to'])) !== false) {
+            // A bare date ("2026-09-24") parses to 00:00:00, which would exclude
+            // everything logged that same day. Extend a time-less 'to' to the end
+            // of that day so "to = today" includes today's events.
+            if (!preg_match('/\d:\d/', $filters['to'])) {
+                $ts = strtotime('+1 day -1 second', $ts);
+            }
             $where[] = 'log_date <= ?';
             $params[] = $ts;
         }

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <routes>
   <route route_type="admin" route_prefix="ai-connect" sub_name="audit-log" format="audit-log/" controller="chgold\AIConnect:AuditLog" context="aiConnectAuditLog"/>
+  <route route_type="admin" route_prefix="ai-connect" sub_name="delete" format="audit-log/delete/" controller="chgold\AIConnect:AuditLog" context="aiConnectAuditDelete" action_prefix="delete"/>
   <route route_type="admin" route_prefix="ai-connect" sub_name="revokeAll" format="revoke-all/" controller="chgold\AIConnect:Tokens" context="aiConnectRevokeAll"/>
   <route route_type="admin" route_prefix="ai-connect" sub_name="revokeInactive" format="revoke-inactive/" controller="chgold\AIConnect:Tokens" context="aiConnectRevokeInactive"/>
   <route route_type="admin" route_prefix="ai-connect" sub_name="revokeUnused" format="revoke-unused/" controller="chgold\AIConnect:Tokens" context="aiConnectRevokeUnused"/>
