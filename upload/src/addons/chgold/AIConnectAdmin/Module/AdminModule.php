@@ -38,6 +38,7 @@ class AdminModule extends ModuleBase
     use AdminSiteConfigTrait;
     use AdminPhrasesTrait;
     use AdminPermissionsSafetyTrait;
+    use AdminAnalyticsTrait;
 
     protected $moduleName = 'xenforo_admin';
 
@@ -71,6 +72,10 @@ class AdminModule extends ModuleBase
          'permissions_safety' => [
              'label' => 'Permission safety (simulate/lockout guard)',
              'method' => 'registerPermissionsSafetyTools',
+         ],
+         'analytics'        => [
+             'label' => 'Audit-log analytics (analyse AI usage for admins)',
+             'method' => 'registerAnalyticsTools',
          ],
     ];
 
@@ -278,6 +283,9 @@ class AdminModule extends ModuleBase
 
         // Bundle: permissions_safety (1 tool) — dry-run permission simulator
         $this->registerPermissionsSafetyTools();
+
+        // Bundle: analytics (4 tools) — analyse the AI Connect action log for admins
+        $this->registerAnalyticsTools();
     }
 
     /**
