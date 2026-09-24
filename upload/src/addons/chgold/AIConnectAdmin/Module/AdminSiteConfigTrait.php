@@ -423,13 +423,26 @@ trait AdminSiteConfigTrait
             $mail->setTo($to);
             $mail->setContent($subject, $body, $body);
             $mail->send();
+            // SECURITY: emailTransport is the FULL config ARRAY (host/port/username
+            // AND smtpLoginPassword). Returning it raw leaked the live SMTP password
+            // in plain text — inconsistent with getEmailTransportConfig, which masks
+            // it. Return ONLY the transport NAME (string), never the config object.
+            $et = \XF::options()->emailTransport ?? 'default';
+            $transportName = is_array($et)
+                ? (string) ($et['emailTransport'] ?? 'default')
+                : (string) $et;
             return $this->success([
                 'to' => $to,
                 'sent' => true,
-                'transport' => \XF::options()->emailTransport ?? 'default',
+                'transport' => $transportName,
             ]);
         } catch (\Throwable $e) {
-            return $this->error('send_failed', 'Test email failed: ' . $e->getMessage());
+            // SECURITY: never surface the raw exception message to the client — an
+            // SMTP transport exception can embed the connection config (including
+            // the password) in its message/trace. Log the detail server-side and
+            // return a generic, secret-free failure to the caller.
+            \XF::logException($e, false, 'AIConnect testEmailConfig send failed: ');
+            return $this->error('send_failed', 'Test email failed. See the server error log for details.');
         }
     }
 
