@@ -111,9 +111,16 @@ class OAuthServer extends AbstractService
         $expiresDate = $time + $this->defaultTokenLifetime;
         $refreshTokenExpiresDate = $time + $this->defaultRefreshTokenLifetime;
 
+        // SEC-08b (hash at rest): store SHA-256 hashes, NOT the raw tokens. The
+        // raw token is returned to the client ONCE below and never persisted. A
+        // 16-char prefix is kept for the registry cascade + prefix display. The
+        // legacy plaintext columns are left NULL for new tokens.
         $db->insert('xf_ai_connect_oauth_tokens', [
-            'access_token' => $accessToken,
-            'refresh_token' => $refreshToken,
+            'access_token' => null,
+            'refresh_token' => null,
+            'access_token_hash' => self::hashToken($accessToken),
+            'refresh_token_hash' => self::hashToken($refreshToken),
+            'access_token_prefix' => substr($accessToken, 0, 16),
             'client_id' => $clientId,
             'user_id' => $userId,
             'scopes' => json_encode($scopes),
@@ -175,10 +182,19 @@ class OAuthServer extends AbstractService
         $db = \XF::db();
         $time = \XF::$time;
 
+        // SEC-08b: hash-first lookup (all tokens issued from v1.2.61 on). Fall
+        // back to the legacy plaintext column so tokens issued before the
+        // migration keep validating until they expire.
         $tokenData = $db->fetchRow(
-            'SELECT * FROM xf_ai_connect_oauth_tokens WHERE access_token = ?',
-            $token
+            'SELECT * FROM xf_ai_connect_oauth_tokens WHERE access_token_hash = ?',
+            self::hashToken($token)
         );
+        if (!$tokenData) {
+            $tokenData = $db->fetchRow(
+                'SELECT * FROM xf_ai_connect_oauth_tokens WHERE access_token = ?',
+                $token
+            );
+        }
 
         if (!$tokenData) {
             return ['valid' => false, 'error' => 'Token not found'];
@@ -267,10 +283,17 @@ class OAuthServer extends AbstractService
         $db = \XF::db();
         $time = \XF::$time;
 
+        // SEC-08b: hash-first, plaintext-fallback (same dual-mode as validateToken).
         $tokenData = $db->fetchRow(
-            'SELECT * FROM xf_ai_connect_oauth_tokens WHERE refresh_token = ?',
-            $refreshToken
+            'SELECT * FROM xf_ai_connect_oauth_tokens WHERE refresh_token_hash = ?',
+            self::hashToken($refreshToken)
         );
+        if (!$tokenData) {
+            $tokenData = $db->fetchRow(
+                'SELECT * FROM xf_ai_connect_oauth_tokens WHERE refresh_token = ?',
+                $refreshToken
+            );
+        }
 
         if (!$tokenData) {
             return ['error' => 'invalid_grant', 'error_description' => 'Refresh token not found'];
@@ -318,12 +341,22 @@ class OAuthServer extends AbstractService
         $db = \XF::db();
         $time = \XF::$time;
 
-        $updated = $db->update(
-            'xf_ai_connect_oauth_tokens',
-            ['revoked_date' => $time],
-            'access_token = ?',
-            $token
+        // SEC-08b: resolve the row via hash-first / plaintext-fallback, then
+        // revoke by token_id (a single UPDATE can't express the OR-fallback
+        // cleanly across two columns).
+        $tokenId = $db->fetchOne(
+            'SELECT token_id FROM xf_ai_connect_oauth_tokens WHERE access_token_hash = ?',
+            self::hashToken($token)
         );
+        if (!$tokenId) {
+            $tokenId = $db->fetchOne(
+                'SELECT token_id FROM xf_ai_connect_oauth_tokens WHERE access_token = ?',
+                $token
+            );
+        }
+        $updated = $tokenId
+            ? $db->update('xf_ai_connect_oauth_tokens', ['revoked_date' => $time], 'token_id = ?', $tokenId)
+            : 0;
 
         try {
             $visitorId = \XF::visitor()->user_id ?: null;
@@ -502,6 +535,16 @@ class OAuthServer extends AbstractService
     protected function generateToken($length = 64)
     {
         return bin2hex(random_bytes($length / 2));
+    }
+
+    /**
+     * SEC-08b: raw 32-byte SHA-256 of a token, for hash-at-rest storage +
+     * indexed lookup. Static so both instance methods and callers share the
+     * one hashing definition. Raw binary (matches the varbinary(32) column).
+     */
+    public static function hashToken(string $token): string
+    {
+        return hash('sha256', $token, true);
     }
 
     /**

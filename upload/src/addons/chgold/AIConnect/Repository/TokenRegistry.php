@@ -122,11 +122,17 @@ class TokenRegistry extends Repository
 
             $db = $this->db();
             $quoted = $db->quote($prefixes);
+            // SEC-08b: match on the dedicated access_token_prefix column (populated
+            // for BOTH new hashed rows — where access_token is NULL — and legacy
+            // rows via the migration backfill). The SUBSTRING(access_token,...)
+            // branch is kept as a belt-and-suspenders fallback for any legacy row
+            // that predates the backfill (access_token_prefix still NULL).
             $db->query(
                 "UPDATE xf_ai_connect_oauth_tokens
                  SET revoked_date = ?
                  WHERE revoked_date = 0
-                   AND SUBSTRING(access_token, 1, 16) IN ($quoted)",
+                   AND (access_token_prefix IN ($quoted)
+                        OR SUBSTRING(access_token, 1, 16) IN ($quoted))",
                 [$time]
             );
         } catch (\Throwable $e) {

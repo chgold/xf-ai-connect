@@ -122,8 +122,14 @@ class Setup extends AbstractSetup
         $schemaManager->createTable('xf_ai_connect_oauth_tokens', function (Create $table) {
             $table->checkExists(true);
             $table->addColumn('token_id', 'int')->autoIncrement();
-            $table->addColumn('access_token', 'varchar', 255);
+            $table->addColumn('access_token', 'varchar', 255)->nullable();
             $table->addColumn('refresh_token', 'varchar', 255)->nullable();
+            // SEC-08b: SHA-256 hash-at-rest columns. Fresh installs store tokens
+            // hashed from day one; access_token/refresh_token stay NULL for new
+            // tokens (kept nullable for the legacy plaintext-fallback on upgrades).
+            $table->addColumn('access_token_hash', 'varbinary', 32)->nullable();
+            $table->addColumn('refresh_token_hash', 'varbinary', 32)->nullable();
+            $table->addColumn('access_token_prefix', 'varchar', 16)->nullable();
             $table->addColumn('client_id', 'varchar', 80);
             $table->addColumn('user_id', 'int');
             $table->addColumn('scopes', 'text')->nullable();
@@ -134,6 +140,9 @@ class Setup extends AbstractSetup
             $table->addPrimaryKey('token_id');
             $table->addUniqueKey('access_token');
             $table->addUniqueKey('refresh_token');
+            $table->addUniqueKey('access_token_hash');
+            $table->addUniqueKey('refresh_token_hash');
+            $table->addKey('access_token_prefix');
             $table->addKey(['client_id', 'user_id']);
             $table->addKey('expires_date');
         });
@@ -1447,6 +1456,87 @@ class Setup extends AbstractSetup
             }
         } catch (\Throwable $e) {
             \XF::logException($e, false, 'AIConnect 1.2.59 per-tool permission repair failed: ');
+        }
+    }
+
+    /**
+     * v1.2.61 — hash OAuth tokens at rest (SEC-08b, roadmap).
+     *
+     * WHY: xf_ai_connect_oauth_tokens stored access_token + refresh_token in
+     * PLAIN TEXT. A DB compromise (dump, stolen backup, SQLi) exposed every live
+     * token, letting an attacker impersonate any connected member. This step adds
+     * SHA-256 hash columns so the raw token is never stored for NEW tokens.
+     *
+     * BACKWARD COMPATIBILITY (must not break existing tokens): this migration is
+     * purely additive. It (1) adds nullable hash + prefix columns, (2) backfills
+     * access_token_prefix from the existing plaintext for EVERY current row so the
+     * registry cascade can switch to the prefix column, (3) leaves the plaintext
+     * access_token/refresh_token intact so already-issued tokens keep validating
+     * via the plaintext-fallback path in OAuthServer until they expire. NEW tokens
+     * (written by the v1.2.61 code) store hash + 16-char prefix and NULL the
+     * plaintext. Idempotent: every step is guarded so re-runs are safe.
+     *
+     * Design validated against the 4 token lookup points + the registry
+     * SUBSTRING(access_token,1,16) cascade linkage.
+     */
+    public function upgrade1026100Step1(): void
+    {
+        try {
+            $sm = $this->schemaManager();
+            $db = \XF::db();
+
+            // 1. Additive columns (guarded — alterTable only adds what's missing)
+            //    + make the legacy plaintext columns NULLABLE so new hashed tokens
+            //    can store NULL there (existing installs created them NOT NULL).
+            $sm->alterTable('xf_ai_connect_oauth_tokens', function (\XF\Db\Schema\Alter $table) {
+                if (!$table->getColumnDefinition('access_token_hash')) {
+                    $table->addColumn('access_token_hash', 'varbinary', 32)->nullable();
+                }
+                if (!$table->getColumnDefinition('refresh_token_hash')) {
+                    $table->addColumn('refresh_token_hash', 'varbinary', 32)->nullable();
+                }
+                if (!$table->getColumnDefinition('access_token_prefix')) {
+                    $table->addColumn('access_token_prefix', 'varchar', 16)->nullable();
+                }
+                // changeColumn is idempotent — re-running just re-asserts nullable.
+                $table->changeColumn('access_token', 'varchar', 255)->nullable();
+                $table->changeColumn('refresh_token', 'varchar', 255)->nullable();
+            });
+
+            // 2. Backfill prefix for existing rows (idempotent — only NULL prefixes
+            //    with a plaintext token). Keeps the registry cascade working for
+            //    both legacy + new rows via a single indexed column.
+            $db->query(
+                "UPDATE xf_ai_connect_oauth_tokens
+                    SET access_token_prefix = SUBSTRING(access_token, 1, 16)
+                  WHERE access_token_prefix IS NULL
+                    AND access_token IS NOT NULL"
+            );
+
+            // 3. Indexes: unique on the hash columns (new-token uniqueness), plain
+            //    index on the prefix (registry cascade lookups). Guarded by name.
+            $sm->alterTable('xf_ai_connect_oauth_tokens', function (\XF\Db\Schema\Alter $table) {
+                $existing = [];
+                foreach ($table->getIndexes() as $idx) {
+                    $existing[$idx->getName()] = true;
+                }
+                if (empty($existing['access_token_hash'])) {
+                    $table->addUniqueKey('access_token_hash', 'access_token_hash');
+                }
+                if (empty($existing['refresh_token_hash'])) {
+                    $table->addUniqueKey('refresh_token_hash', 'refresh_token_hash');
+                }
+                if (empty($existing['access_token_prefix'])) {
+                    $table->addKey('access_token_prefix', 'access_token_prefix');
+                }
+            });
+
+            // NOTE: the legacy UNIQUE keys on access_token / refresh_token are LEFT
+            // IN PLACE. New rows write NULL there, and MySQL/MariaDB permit multiple
+            // NULLs in a UNIQUE index, so no collision. Dropping them is deferred to
+            // a future cleanup migration (once all legacy plaintext tokens expire).
+        } catch (\Throwable $e) {
+            \XF::logException($e, false, 'AIConnect 1.2.61 token-hash migration failed: ');
         }
     }
 
