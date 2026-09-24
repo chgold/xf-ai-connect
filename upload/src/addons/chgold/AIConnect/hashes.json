@@ -38,7 +38,7 @@
     "src/addons/chgold/AIConnect/Service/Auth.php": "0e56349d8b3079bbc8b8af003ae35def002b9bc9661d43961b902530ea566394",
     "src/addons/chgold/AIConnect/Service/BearerAuth.php": "96e7979863c8117e0a50caae48aaa63e72cf772a6ffab5ec153902e933bfe2ac",
     "src/addons/chgold/AIConnect/Service/IdempotencyStore.php": "08437bd180c1ce2f68b5f82c64274b7660fe15efb0969fa2622cca4c58c7564c",
-    "src/addons/chgold/AIConnect/Service/Manifest.php": "fd840311285535277a81c22879fbe3e3f85db2d2d7c934d5d700cca4970eabb7",
+    "src/addons/chgold/AIConnect/Service/Manifest.php": "28b97ddbd13ccb34b9f67cee3391c7ade38cf255261541e7754d8c8e5124fcd1",
     "src/addons/chgold/AIConnect/Service/OAuthServer.php": "e12dce05c8ce08d762fa905ad945f88904e24f07f6cc3aebc569ef47ae66aaa3",
     "src/addons/chgold/AIConnect/Service/RateLimiter.php": "0c0e90d40226ec85d69a93c47c8e00b3a4a97f7239cd748f2c26c15eee788aee",
     "src/addons/chgold/AIConnect/Service/Settings.php": "382ba738d4d73a6e6f32356b951a962897a2e52d905e7df6512f293cd8f6a2ac",
