@@ -53,18 +53,29 @@ class AuditLog extends AbstractController
             $params
         );
 
-        // Distinct modules/tools for the filter dropdowns (cheap; small cardinality).
-        $modules = $db->fetchAllColumn(
-            "SELECT DISTINCT module FROM xf_chgold_aiconnect_action_log ORDER BY module"
+        // Hierarchical filter data (item ג): module -> its distinct tools, built
+        // from what is actually in the log (cheap; small cardinality). The
+        // template renders module + tool dropdowns; the tool list is filtered
+        // client-side by the selected module via a data-module attribute.
+        $pairs = $db->fetchAll(
+            "SELECT DISTINCT module, tool FROM xf_chgold_aiconnect_action_log ORDER BY module, tool"
         );
+        $modules = [];
+        $toolsByModule = [];
+        foreach ($pairs as $p) {
+            $modules[$p['module']] = true;
+            $toolsByModule[$p['module']][] = $p['tool'];
+        }
+        $modules = array_keys($modules);
 
         $viewParams = [
-            'logs'    => $logs,
-            'total'   => $total,
-            'page'    => $page,
-            'perPage' => $perPage,
-            'filters' => $filters,
-            'modules' => $modules,
+            'logs'          => $logs,
+            'total'         => $total,
+            'page'          => $page,
+            'perPage'       => $perPage,
+            'filters'       => $filters,
+            'modules'       => $modules,
+            'toolsByModule' => $toolsByModule,
         ];
         return $this->view('chgold\AIConnect:AuditLog\List', 'chgold_aiconnect_audit_list', $viewParams);
     }

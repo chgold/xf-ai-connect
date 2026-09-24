@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <templates>
-  <template type="admin" title="aiconnect_tokens_list" version_id="1023400" version_string="1.2.34"><![CDATA[<xf:title>{{ phrase('aiconnect_tokens_title') }}</xf:title>
+  <template type="admin" title="aiconnect_tokens_list" version_id="1026300" version_string="1.2.63"><![CDATA[<xf:title>{{ phrase('aiconnect_tokens_title') }}</xf:title>
 
 <div class="block">
     <div class="block-container">
@@ -84,7 +84,7 @@
                                     </xf:if>
                                 </td>
                                 <td class="dataList-cell">{{ $token.last_used_ip ?: '—' }}</td>
-                                <td class="dataList-cell" title="{$token.last_used_ua}">{{ $token.last_used_ua ? substr($token.last_used_ua, 0, 40) : '—' }}</td>
+                                <td class="dataList-cell" title="{$token.last_used_ua}">{{ $token.last_used_ua ? ($token.last_used_ua|substr(0, 40)) : '—' }}</td>
                                 <td class="dataList-cell">
                                     <xf:if is="$token.revoked_at">
                                         <span class="label label--red">{{ phrase('aiconnect_tokens_status_revoked') }}</span>
@@ -131,13 +131,24 @@
 		<div class="block-body">
 			<xf:form action="{{ link('ai-connect/audit-log') }}" class="block-row" method="get">
 				<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;">
-					<div><label>User<br><xf:textbox name="username" value="{$filters.username}" placeholder="username" /></label></div>
+					<div><label>User<br>
+						<input type="text" class="input" name="username" value="{$filters.username}"
+							data-xf-init="auto-complete" data-acurl="{{ link('members/find') }}"
+							data-single="true" placeholder="username" autocomplete="off" /></label></div>
 					<div><label>Module<br>
-						<xf:select name="module" value="{$filters.module}">
+						<xf:select name="module" value="{$filters.module}" data-xf-init="audit-module-filter">
 							<xf:option value="">(any)</xf:option>
 							<xf:foreach loop="$modules" value="$m"><xf:option value="{$m}">{$m}</xf:option></xf:foreach>
 						</xf:select></label></div>
-					<div><label>Tool<br><xf:textbox name="tool" value="{$filters.tool}" placeholder="tool" /></label></div>
+					<div><label>Tool<br>
+						<xf:select name="tool" value="{$filters.tool}" class="js-auditToolSelect">
+							<xf:option value="">(any)</xf:option>
+							<xf:foreach loop="$toolsByModule" key="$mod" value="$tools">
+								<xf:foreach loop="$tools" value="$t">
+									<xf:option value="{$t}" selected="{{ $filters.tool == $t }}" data-module="{$mod}">{$mod}.{$t}</xf:option>
+								</xf:foreach>
+							</xf:foreach>
+						</xf:select></label></div>
 					<div><label>Type<br>
 						<xf:select name="method" value="{$filters.method}">
 							<xf:option value="">(any)</xf:option>
@@ -150,12 +161,27 @@
 							<xf:option value="success">success</xf:option>
 							<xf:option value="fail">fail</xf:option>
 						</xf:select></label></div>
-					<div><label>From<br><xf:textbox name="from" value="{$filters.from}" placeholder="YYYY-MM-DD" /></label></div>
-					<div><label>To<br><xf:textbox name="to" value="{$filters.to}" placeholder="YYYY-MM-DD" /></label></div>
+					<div><label>From<br><xf:dateinput name="from" value="{$filters.from}" /></label></div>
+					<div><label>To<br><xf:dateinput name="to" value="{$filters.to}" /></label></div>
 					<div><xf:button type="submit" class="button--primary">Filter</xf:button></div>
 					<div><xf:button href="{{ link('ai-connect/audit-log/stats') }}" class="button">Statistics</xf:button></div>
 				</div>
 			</xf:form>
+			<script>
+			(function(){
+				var modSel = document.querySelector('[data-xf-init=audit-module-filter]'),
+				    toolSel = document.querySelector('.js-auditToolSelect');
+				if (!modSel || !toolSel) return;
+				function sync(){
+					var m = modSel.value, opts = toolSel.options;
+					for (var i=0;i<opts.length;i++){
+						var o=opts[i], dm=o.getAttribute('data-module');
+						o.hidden = (o.value!=='' && m!=='' && dm!==m);
+					}
+				}
+				modSel.addEventListener('change', sync); sync();
+			})();
+			</script>
 		</div>
 	</div>
 </div>
@@ -999,4 +1025,10 @@ Documentation: {$infoUrl}</pre>
     </div>
 </body>
 </html>]]></template>
+  <template type="public" title="chgold_aiconnect_account_audit_link" version_id="1026300" version_string="1.2.63"><![CDATA[<xf:if is="$xf.visitor.user_id AND $xf.visitor.hasAdminPermission('option')">
+	<a href="{{ link('canonical:admin.php') }}?ai-connect/audit-log/" class="menu-linkRow" target="_blank" rel="noopener">
+		<xf:fa icon="fa-clipboard-list" /> {{ phrase('aiconnect_account_audit_link') }}
+	</a>
+</xf:if>
+]]></template>
 </templates>

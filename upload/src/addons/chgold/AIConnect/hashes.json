@@ -1,6 +1,6 @@
 {
-    "src/addons/chgold/AIConnect/addon.json": "98bad484b36a197efca3c2da39e1eeab98d13c520a8ce26fb919f2b1c739d1b0",
-    "src/addons/chgold/AIConnect/Admin/Controller/AuditLog.php": "e5e95c0c926f04e78734352ac0b78c3b6d06b544f3a428bb61b681853a24dffc",
+    "src/addons/chgold/AIConnect/addon.json": "cd67b001fe2b7f72df3f03cfc759dcd78030e0d29ec740d0ec1fc4d9267734b3",
+    "src/addons/chgold/AIConnect/Admin/Controller/AuditLog.php": "4751f8edf3775dea49cba34681f84b087fc31a20cce6e8020a695d713c0df6da",
     "src/addons/chgold/AIConnect/Admin/Controller/Tokens.php": "a8115434e140d5294164f73146b309665b5c16f1476151a79feeb62b83a8d1ce",
     "src/addons/chgold/AIConnect/Api/Controller/Auth.php": "87501d407e6933d2f0c0ccd7727e9af9d1a53559de49eda071f7592ff08c0cd3",
     "src/addons/chgold/AIConnect/Api/Controller/Authorize.php": "d9be5e5d4aeee551eb941e17d6cb43274b0cc710942e1a35821db9d0c242f1e0",
@@ -26,7 +26,7 @@
     "src/addons/chgold/AIConnect/Module/TranslationModule.php": "bbf06f1b85d682b5f68d24ea31cc05741105ea87e8e2bd1ce25e293b6e746ca3",
     "src/addons/chgold/AIConnect/oauth.php": "709eef212389439c33249009ea1618f5199fc9ff840365f0159cd83f9256dc3c",
     "src/addons/chgold/AIConnect/phpcs.xml": "a6d4bf4758e00be79e2790eeee5753037dabc1850d671963c1f4d9d4815eac5c",
-    "src/addons/chgold/AIConnect/Pub/Controller/InfoPage.php": "47505120e4f40efcd51b1d0ed66c32dc0cf149a8045f38260ae1de3b7894697d",
+    "src/addons/chgold/AIConnect/Pub/Controller/InfoPage.php": "c14dbba76101496bc8d58310033e88426fe9e8b8a06634fbecd76289992ef414",
     "src/addons/chgold/AIConnect/Pub/Controller/OAuth.php": "da1dc2ac69f8ea7ae8d444d9504dd624931623d76b7c870f7e9c0007c38c3fac",
     "src/addons/chgold/AIConnect/Pub/Controller/TokenManager.php": "ab5b8998646df60787b86dc4004d7e8ce11d6a03564e10582582564bdafa1607",
     "src/addons/chgold/AIConnect/Pub/View/InfoPage/GenerateToken.php": "a59999193ca729253cd7c1c80edd0bc6fc3f1cb3aaa97377c5a761c976cb11ab",
@@ -143,7 +143,7 @@
     "src/addons/chgold/AIConnect/_data/option_groups.xml": "134a9969bdacfe617fa94ac105b867bf6d45e705feb39ad5474fb1cbe836b6d6",
     "src/addons/chgold/AIConnect/_data/permissions.xml": "3235e933332d2a69c81bb32c36fd303abe875a46adda1e76c7ee0a61dcc4c036",
     "src/addons/chgold/AIConnect/_data/permission_interface_groups.xml": "bf341390fea0bd4fc5c9c1bfddd61eeb79bfe3dfc2b541f9d242d01b25dfc36f",
-    "src/addons/chgold/AIConnect/_data/phrases.xml": "e29e95b99d992132731deba976b8fbb7dfc81ce7890a2b28324fb1bf5a36e395",
+    "src/addons/chgold/AIConnect/_data/phrases.xml": "8476e7e4db9faf09e538fed031b568fdf8fed5ada4d329ecc35429c10c196a7f",
     "src/addons/chgold/AIConnect/_data/phrases_ar.xml": "6c4fe5ed4a73590e81daf56d0f3228f757c3193c8b527cd27557b7978e26fca3",
     "src/addons/chgold/AIConnect/_data/phrases_de_DE.xml": "43a12c97379d0a4fe821446958f0cb18fcf74fd3491407c1a242cf2ee9e5f558",
     "src/addons/chgold/AIConnect/_data/phrases_es_ES.xml": "e36bf37a2b359db92b3ebc164751f7972d897186dffc54fec823278c864b0e0c",
@@ -158,8 +158,8 @@
     "src/addons/chgold/AIConnect/_data/routes.xml": "73670931baf977b92cb029e378134f0461c2fe8858a60b7f6fd39e1b1cd6ea4a",
     "src/addons/chgold/AIConnect/_data/style_properties.xml": "8b8690a8512f01f219dd2da76e3d0c5f62afc1f317b87794a7331c859c36a7a8",
     "src/addons/chgold/AIConnect/_data/style_property_groups.xml": "68e1879cb3846c42d978487aa8d5145ff3335fc39e58016878824d5cf3fd684c",
-    "src/addons/chgold/AIConnect/_data/templates.xml": "327c7b5be26996bffbbbcadcac243be92b6c878e45c9308ae9eec89106aae562",
-    "src/addons/chgold/AIConnect/_data/template_modifications.xml": "1c3fd9783037ddf8b7211ff01c0e7729b34c06b4eac2ab1c18d0816832d769b0",
+    "src/addons/chgold/AIConnect/_data/templates.xml": "662e14981800ca134630249729be697d4f9b29c3e8f723a8e0a38ebfa0c3d412",
+    "src/addons/chgold/AIConnect/_data/template_modifications.xml": "891ffc43f46ea1555cc2d97832824a03e5e3a4892627b6cd655e58bca1fa864e",
     "src/addons/chgold/AIConnect/_data/widget_definitions.xml": "37e46965256430f24004c2e7f08ba08f9b0d1cbcc4d70e84b3f4e3ffb713e64b",
     "src/addons/chgold/AIConnect/_data/widget_positions.xml": "a29cee66134f6bc5d75ed9df1eef21096c24401915c5b5c774389c3d7bb2d5b3"
 }

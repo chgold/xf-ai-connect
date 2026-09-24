@@ -207,6 +207,14 @@ class InfoPage extends AbstractController
         $toolUrl     = $baseUrl . '/api/aiconnect-tools';
         $manifestUrl = $baseUrl . '/api/aiconnect-manifest';
 
+        // SEC-07 consistency (item ה): when the admin requires the Bearer header,
+        // the endpoint refuses ?token= at runtime — so the onboarding prompt must
+        // NOT hand the agent ?token= GET URLs it will then be 401'd on. When the
+        // toggle is on we emit header-style GET examples (token in Authorization,
+        // not the query string) so the prompt matches the enforced policy.
+        $requireBearer = ((bool) (\XF::options()->aiconnect_require_bearer_header ?? false))
+            || (\chgold\AIConnect\Service\Settings::get('require_bearer_header', '0') === '1');
+
         // Collect prompt metadata from every module (generic — works for any future module).
         // Each module declares its own hints and URL param examples via getToolPromptMeta().
         $toolMeta = [];
@@ -229,13 +237,23 @@ class InfoPage extends AbstractController
                 // Build full URLs from the param strings the module provided
                 $urls = [];
                 foreach ($meta['url_params'] as $paramStr) {
-                    // SECURITY TODO: a live token in a query string is worse than in
-                    // a header — it lands in browser history, proxy logs and server
-                    // access logs. Use a YOUR_TOKEN placeholder and document the
-                    // Authorization: Bearer header instead, which GET already accepts.
-                    $url = $toolUrl . '?token=' . $accessToken . '&name=' . $fullName;
-                    if ($paramStr !== '') {
-                        $url .= '&' . $paramStr;
+                    if ($requireBearer) {
+                        // Bearer-header policy is enforced: show a header-auth GET
+                        // (no token in the URL — the endpoint would refuse it).
+                        $url = 'GET ' . $toolUrl . '?name=' . $fullName;
+                        if ($paramStr !== '') {
+                            $url .= '&' . $paramStr;
+                        }
+                        $url .= '   (header: Authorization: Bearer <access_token>)';
+                    } else {
+                        // SECURITY TODO: a live token in a query string is worse than in
+                        // a header — it lands in browser history, proxy logs and server
+                        // access logs. Use a YOUR_TOKEN placeholder and document the
+                        // Authorization: Bearer header instead, which GET already accepts.
+                        $url = $toolUrl . '?token=' . $accessToken . '&name=' . $fullName;
+                        if ($paramStr !== '') {
+                            $url .= '&' . $paramStr;
+                        }
                     }
                     $urls[] = $url;
                 }
