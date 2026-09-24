@@ -93,13 +93,29 @@ trait ProAdvancedModTrait
             return $this->error('not_found', 'Target forum not found');
         }
 
+        // MoverService's second constructor arg is the TARGET Thread (posts move INTO
+        // it), not the posts. To split into a NEW thread we create an unsaved target
+        // Thread in the forum, then setExistingTarget(false) + move($posts) — the exact
+        // pattern XF core uses in XF\InlineMod\Post\Move. The previous code passed the
+        // post ArrayCollection as the target (TypeError) and called a non-existent
+        // moveToNewThread(), so the tool always 500'd.
+        $targetThread = \XF::em()->create('XF:Thread');
+        $targetThread->title = (string) $params['new_thread_title'];
+        $targetThread->node_id = $forum->node_id;
+
         /** @var \XF\Service\Post\MoverService $svc */
-        $svc = \XF::service('XF:Post\Mover', $posts);
-        $svc->moveToNewThread($forum, (string) $params['new_thread_title']);
+        $svc = \XF::service('XF:Post\Mover', $targetThread);
+        $svc->setExistingTarget(false);
+        if (!$svc->move($posts)) {
+            return $this->error('move_failed', 'It is not possible to move any of the selected posts to a new thread.');
+        }
+
+        $newThread = $svc->getTarget();
 
         return $this->success([
             'post_ids' => $postIds,
-            'new_thread_title' => (string) $params['new_thread_title'],
+            'new_thread_id' => (int) $newThread->thread_id,
+            'new_thread_title' => (string) $newThread->title,
             'target_forum_id' => (int) $forum->node_id,
         ]);
     }
