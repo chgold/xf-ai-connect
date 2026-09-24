@@ -1,5 +1,5 @@
 {
-    "src/addons/chgold/AIConnect/addon.json": "aede70a6ef8e36c2b390c9b63ce949378981da1bc2cfc3a779556760aac5fa94",
+    "src/addons/chgold/AIConnect/addon.json": "47e1998ec03fea336b14e7ea9affb4dd244bce5bbaea8b53388869b95e41e94f",
     "src/addons/chgold/AIConnect/Admin/Controller/AuditLog.php": "2a3a2aa8f3a5d8d0e4772bc532b549e590677bef677204bcd4b895045a0c0d73",
     "src/addons/chgold/AIConnect/Admin/Controller/Tokens.php": "a8115434e140d5294164f73146b309665b5c16f1476151a79feeb62b83a8d1ce",
     "src/addons/chgold/AIConnect/Api/Controller/Auth.php": "87501d407e6933d2f0c0ccd7727e9af9d1a53559de49eda071f7592ff08c0cd3",
@@ -144,7 +144,7 @@
     "src/addons/chgold/AIConnect/_data/option_groups.xml": "134a9969bdacfe617fa94ac105b867bf6d45e705feb39ad5474fb1cbe836b6d6",
     "src/addons/chgold/AIConnect/_data/permissions.xml": "3235e933332d2a69c81bb32c36fd303abe875a46adda1e76c7ee0a61dcc4c036",
     "src/addons/chgold/AIConnect/_data/permission_interface_groups.xml": "bf341390fea0bd4fc5c9c1bfddd61eeb79bfe3dfc2b541f9d242d01b25dfc36f",
-    "src/addons/chgold/AIConnect/_data/phrases.xml": "5d05b981851836a3e73d2d676b916b5e1c68294b5cb13f927755fff1af9c463d",
+    "src/addons/chgold/AIConnect/_data/phrases.xml": "29d0d3890c26bb2e9d4bc9d7f56d048fb1b5a8e1f5e920535aec50b72ec02767",
     "src/addons/chgold/AIConnect/_data/phrases_ar.xml": "6c4fe5ed4a73590e81daf56d0f3228f757c3193c8b527cd27557b7978e26fca3",
     "src/addons/chgold/AIConnect/_data/phrases_de_DE.xml": "43a12c97379d0a4fe821446958f0cb18fcf74fd3491407c1a242cf2ee9e5f558",
     "src/addons/chgold/AIConnect/_data/phrases_es_ES.xml": "e36bf37a2b359db92b3ebc164751f7972d897186dffc54fec823278c864b0e0c",
@@ -159,7 +159,7 @@
     "src/addons/chgold/AIConnect/_data/routes.xml": "c0c239a1ba457bbeb5f5bbc1dddebbba159f12f8faeedea0f1a4e1d487a17959",
     "src/addons/chgold/AIConnect/_data/style_properties.xml": "8b8690a8512f01f219dd2da76e3d0c5f62afc1f317b87794a7331c859c36a7a8",
     "src/addons/chgold/AIConnect/_data/style_property_groups.xml": "68e1879cb3846c42d978487aa8d5145ff3335fc39e58016878824d5cf3fd684c",
-    "src/addons/chgold/AIConnect/_data/templates.xml": "e037a54275c0bb1a78cb80583167955056de1343e4b80b9b5b86a9a08b1f2c36",
+    "src/addons/chgold/AIConnect/_data/templates.xml": "616b051d2613decc9631a55f42e7c8e730fcd1964be25546a3b3140924b4d716",
     "src/addons/chgold/AIConnect/_data/template_modifications.xml": "891ffc43f46ea1555cc2d97832824a03e5e3a4892627b6cd655e58bca1fa864e",
     "src/addons/chgold/AIConnect/_data/widget_definitions.xml": "37e46965256430f24004c2e7f08ba08f9b0d1cbcc4d70e84b3f4e3ffb713e64b",
     "src/addons/chgold/AIConnect/_data/widget_positions.xml": "a29cee66134f6bc5d75ed9df1eef21096c24401915c5b5c774389c3d7bb2d5b3"

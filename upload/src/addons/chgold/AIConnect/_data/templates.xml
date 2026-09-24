@@ -148,7 +148,7 @@
 	</div>
 </xf:form>
 ]]></template>
-  <template type="admin" title="chgold_aiconnect_audit_list" version_id="1026500" version_string="1.2.65"><![CDATA[<xf:title>AI Connect — Action Log</xf:title>
+  <template type="admin" title="chgold_aiconnect_audit_list" version_id="1026700" version_string="1.2.67"><![CDATA[<xf:title>AI Connect — Action Log</xf:title>
 
 <div class="block">
 	<div class="block-container">
@@ -218,30 +218,36 @@
 			<span class="hScroller-scroll"><span class="tabs-tab is-active">Actions ({$total})</span></span>
 		</h2>
 		<div class="block-body">
-			<xf:datalist>
-				<xf:datarow rowtype="header">
-					<xf:cell>Date</xf:cell>
-					<xf:cell>User</xf:cell>
-					<xf:cell>Tool</xf:cell>
-					<xf:cell>Type</xf:cell>
-					<xf:cell>Result</xf:cell>
-					<xf:cell>Content</xf:cell>
-					<xf:cell>ms</xf:cell>
-					<xf:cell>Args (masked)</xf:cell>
-				</xf:datarow>
-				<xf:foreach loop="$logs" value="$row">
-					<xf:datarow>
-						<xf:cell><span title="{{ date($row.log_date, 'absolute') }}">{$row.date_full}</span></xf:cell>
-						<xf:cell>{$row.username} <span class="u-muted">#{$row.user_id}</span></xf:cell>
-						<xf:cell>{$row.module}.{$row.tool}</xf:cell>
-						<xf:cell>{$row.http_method}</xf:cell>
-						<xf:cell><xf:if is="{$row.success}"><span class="u-successText">ok</span><xf:else /><span class="u-errorText">{$row.error_code}</span></xf:if></xf:cell>
-						<xf:cell><xf:if is="{$row.content_id}">{$row.content_type}#{$row.content_id}</xf:if></xf:cell>
-						<xf:cell>{$row.duration_ms}</xf:cell>
-						<xf:cell><code style="font-size:11px;">{$row.request_summary}</code></xf:cell>
-					</xf:datarow>
-				</xf:foreach>
-			</xf:datalist>
+			<div class="js-auditTableWrap" style="overflow-x:auto;">
+				<table class="dataList-table" style="width:100%; table-layout:auto; border-collapse:collapse;">
+					<thead>
+						<tr class="dataList-row dataList-row--header">
+							<th class="dataList-cell dataList-cell--main" style="text-align:left; white-space:nowrap;">Date</th>
+							<th class="dataList-cell" style="text-align:left; white-space:nowrap;">User</th>
+							<th class="dataList-cell" style="text-align:left; white-space:nowrap;">Tool</th>
+							<th class="dataList-cell" style="text-align:center; white-space:nowrap;">Type</th>
+							<th class="dataList-cell" style="text-align:center; white-space:nowrap;">Result</th>
+							<th class="dataList-cell" style="text-align:left; white-space:nowrap;">Content</th>
+							<th class="dataList-cell" style="text-align:right; white-space:nowrap;">ms</th>
+							<th class="dataList-cell" style="text-align:left;">Args (masked)</th>
+						</tr>
+					</thead>
+					<tbody>
+						<xf:foreach loop="$logs" value="$row">
+							<tr class="dataList-row">
+								<td class="dataList-cell" style="white-space:nowrap; font-size:12px; font-variant-numeric:tabular-nums;" title="{{ date($row.log_date, 'absolute') }}">{$row.date_full}</td>
+								<td class="dataList-cell" style="white-space:nowrap;">{$row.username} <span class="u-muted">#{$row.user_id}</span></td>
+								<td class="dataList-cell" style="white-space:nowrap;">{$row.module}.{$row.tool}</td>
+								<td class="dataList-cell" style="text-align:center;">{$row.http_method}</td>
+								<td class="dataList-cell" style="text-align:center; white-space:nowrap;"><xf:if is="{$row.success}"><span class="u-successText">ok</span><xf:else /><span class="u-errorText">{$row.error_code}</span></xf:if></td>
+								<td class="dataList-cell" style="white-space:nowrap;"><xf:if is="{$row.content_id}">{$row.content_type}#{$row.content_id}</xf:if></td>
+								<td class="dataList-cell" style="text-align:right; font-variant-numeric:tabular-nums;">{$row.duration_ms}</td>
+								<td class="dataList-cell" style="max-width:340px;"><code style="font-size:11px; word-break:break-all; white-space:normal;">{$row.request_summary}</code></td>
+							</tr>
+						</xf:foreach>
+					</tbody>
+				</table>
+			</div>
 			<xf:pagenav page="{$page}" perpage="{$perPage}" total="{$total}" link="ai-connect/audit-log" params="{$filters}" wrapperclass="block-outer" />
 		</div>
 	</div>
