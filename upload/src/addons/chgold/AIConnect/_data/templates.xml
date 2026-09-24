@@ -124,6 +124,137 @@
         <xf:submitrow icon="delete" sticky="true" />
     </div>
 </xf:form>]]></template>
+  <template type="admin" title="chgold_aiconnect_audit_list" version_id="1026300" version_string="1.2.63"><![CDATA[<xf:title>AI Connect — Action Log</xf:title>
+
+<div class="block">
+	<div class="block-container">
+		<div class="block-body">
+			<xf:form action="{{ link('ai-connect/audit-log') }}" class="block-row" method="get">
+				<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;">
+					<div><label>User<br><xf:textbox name="username" value="{$filters.username}" placeholder="username" /></label></div>
+					<div><label>Module<br>
+						<xf:select name="module" value="{$filters.module}">
+							<xf:option value="">(any)</xf:option>
+							<xf:foreach loop="$modules" value="$m"><xf:option value="{$m}">{$m}</xf:option></xf:foreach>
+						</xf:select></label></div>
+					<div><label>Tool<br><xf:textbox name="tool" value="{$filters.tool}" placeholder="tool" /></label></div>
+					<div><label>Type<br>
+						<xf:select name="method" value="{$filters.method}">
+							<xf:option value="">(any)</xf:option>
+							<xf:option value="read">read</xf:option>
+							<xf:option value="write">write</xf:option>
+						</xf:select></label></div>
+					<div><label>Result<br>
+						<xf:select name="result" value="{$filters.result}">
+							<xf:option value="">(any)</xf:option>
+							<xf:option value="success">success</xf:option>
+							<xf:option value="fail">fail</xf:option>
+						</xf:select></label></div>
+					<div><label>From<br><xf:textbox name="from" value="{$filters.from}" placeholder="YYYY-MM-DD" /></label></div>
+					<div><label>To<br><xf:textbox name="to" value="{$filters.to}" placeholder="YYYY-MM-DD" /></label></div>
+					<div><xf:button type="submit" class="button--primary">Filter</xf:button></div>
+					<div><xf:button href="{{ link('ai-connect/audit-log/stats') }}" class="button">Statistics</xf:button></div>
+				</div>
+			</xf:form>
+		</div>
+	</div>
+</div>
+
+<div class="block">
+	<div class="block-container">
+		<h2 class="block-tabHeader tabs">
+			<span class="hScroller-scroll"><span class="tabs-tab is-active">Actions ({$total})</span></span>
+		</h2>
+		<div class="block-body">
+			<xf:datalist>
+				<xf:datarow rowtype="header">
+					<xf:cell>Date</xf:cell>
+					<xf:cell>User</xf:cell>
+					<xf:cell>Tool</xf:cell>
+					<xf:cell>Type</xf:cell>
+					<xf:cell>Result</xf:cell>
+					<xf:cell>Content</xf:cell>
+					<xf:cell>ms</xf:cell>
+					<xf:cell>Args (masked)</xf:cell>
+				</xf:datarow>
+				<xf:foreach loop="$logs" value="$row">
+					<xf:datarow>
+						<xf:cell>{{ date($row.log_date, 'absolute') }}</xf:cell>
+						<xf:cell>{$row.username} <span class="u-muted">#{$row.user_id}</span></xf:cell>
+						<xf:cell>{$row.module}.{$row.tool}</xf:cell>
+						<xf:cell>{$row.http_method}</xf:cell>
+						<xf:cell><xf:if is="{$row.success}"><span class="u-successText">ok</span><xf:else /><span class="u-errorText">{$row.error_code}</span></xf:if></xf:cell>
+						<xf:cell><xf:if is="{$row.content_id}">{$row.content_type}#{$row.content_id}</xf:if></xf:cell>
+						<xf:cell>{$row.duration_ms}</xf:cell>
+						<xf:cell><code style="font-size:11px;">{$row.request_summary}</code></xf:cell>
+					</xf:datarow>
+				</xf:foreach>
+			</xf:datalist>
+			<xf:pagenav page="{$page}" perpage="{$perPage}" total="{$total}" link="ai-connect/audit-log" params="{$filters}" wrapperclass="block-outer" />
+		</div>
+	</div>
+</div>
+]]></template>
+  <template type="admin" title="chgold_aiconnect_audit_stats" version_id="1026300" version_string="1.2.63"><![CDATA[<xf:title>AI Connect — Action Log Statistics (last {$days} days)</xf:title>
+
+<div class="block">
+	<div class="block-container"><div class="block-body">
+		<div style="display:flex;gap:16px;flex-wrap:wrap;">
+			<div class="block-row"><strong style="font-size:24px;">{$total}</strong><br>total actions</div>
+			<div class="block-row"><strong style="font-size:24px;">{$reads}</strong><br>reads</div>
+			<div class="block-row"><strong style="font-size:24px;">{$writes}</strong><br>writes</div>
+			<div class="block-row"><strong style="font-size:24px;">{$failures}</strong><br>failures ({$failureRate}%)</div>
+		</div>
+		<div style="margin-top:8px;"><xf:button href="{{ link('ai-connect/audit-log') }}" class="button">&laquo; Back to log</xf:button></div>
+	</div></div>
+</div>
+
+<div class="block">
+	<div class="block-container">
+		<h2 class="block-tabHeader tabs"><span class="hScroller-scroll"><span class="tabs-tab is-active">Top tools</span></span></h2>
+		<div class="block-body">
+			<xf:datalist>
+				<xf:datarow rowtype="header"><xf:cell>Tool</xf:cell><xf:cell>Calls</xf:cell><xf:cell>Failures</xf:cell></xf:datarow>
+				<xf:foreach loop="$topTools" value="$t">
+					<xf:datarow><xf:cell>{$t.module}.{$t.tool}</xf:cell><xf:cell>{$t.c}</xf:cell><xf:cell>{$t.fails}</xf:cell></xf:datarow>
+				</xf:foreach>
+			</xf:datalist>
+		</div>
+	</div>
+</div>
+
+<div class="block">
+	<div class="block-container">
+		<h2 class="block-tabHeader tabs"><span class="hScroller-scroll"><span class="tabs-tab is-active">Top users</span></span></h2>
+		<div class="block-body">
+			<xf:datalist>
+				<xf:datarow rowtype="header"><xf:cell>User</xf:cell><xf:cell>Actions</xf:cell></xf:datarow>
+				<xf:foreach loop="$topUsers" value="$u">
+					<xf:datarow><xf:cell>{$u.username} <span class="u-muted">#{$u.user_id}</span></xf:cell><xf:cell>{$u.c}</xf:cell></xf:datarow>
+				</xf:foreach>
+			</xf:datalist>
+		</div>
+	</div>
+</div>
+
+<div class="block">
+	<div class="block-container">
+		<h2 class="block-tabHeader tabs"><span class="hScroller-scroll"><span class="tabs-tab is-active">Daily volume</span></span></h2>
+		<div class="block-body">
+			<xf:datalist>
+				<xf:datarow rowtype="header"><xf:cell>Day</xf:cell><xf:cell>Actions</xf:cell><xf:cell></xf:cell></xf:datarow>
+				<xf:foreach loop="$daily" value="$d">
+					<xf:datarow>
+						<xf:cell>{{ date($d.day, 'absolute') }}</xf:cell>
+						<xf:cell>{$d.c}</xf:cell>
+						<xf:cell><div style="background:#4c8bf5;height:12px;width:{{ $maxDaily ? (($d.c / $maxDaily) * 200)|number(0) : 0 }}px;"></div></xf:cell>
+					</xf:datarow>
+				</xf:foreach>
+			</xf:datalist>
+		</div>
+	</div>
+</div>
+]]></template>
   <template type="public" title="aiconnect_info_page" version_id="1023400" version_string="1.2.34"><![CDATA[<!DOCTYPE html>
 <html lang="en">
 <head>

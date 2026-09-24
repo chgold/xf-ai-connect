@@ -123,6 +123,7 @@ For documentation: {infoUrl}]]></phrase>
   <phrase title="invalid_scope" version_id="1011400" version_string="1.1.14"><![CDATA[Error: Invalid scope requested.]]></phrase>
   <phrase title="nav.ai_connect" version_id="1023400" version_string="1.2.34"><![CDATA[AI Connect]]></phrase>
   <phrase title="nav.ai_connect_my_tokens" version_id="1023400" version_string="1.2.34"><![CDATA[My AI Tokens]]></phrase>
+  <phrase title="option.aiconnect_audit_retention_days" version_id="1026300" version_string="1.2.63"><![CDATA[Audit log retention (days, 0 = keep forever)]]></phrase>
   <phrase title="option.aiconnect_nav_bottom" version_id="1011600" version_string="1.1.16"><![CDATA[Show next to RSS button (footer)]]></phrase>
   <phrase title="option.aiconnect_nav_top" version_id="1012100" version_string="1.2.1"><![CDATA[Show AI Connect link to guests and visitors without tool access]]></phrase>
   <phrase title="option.aiconnect_rate_limit_per_hour" version_id="1025900" version_string="1.2.59"><![CDATA[Rate limit — requests per hour]]></phrase>
@@ -131,6 +132,7 @@ For documentation: {infoUrl}]]></phrase>
   <phrase title="option.aiconnect_rate_limit_write_per_minute" version_id="1026100" version_string="1.2.61"><![CDATA[Rate limit — WRITE requests per minute (0 = off)]]></phrase>
   <phrase title="option.aiconnect_require_bearer_header" version_id="1025900" version_string="1.2.59"><![CDATA[Require Authorization: Bearer header (disable ?token= in URL)]]></phrase>
   <phrase title="option.aiconnect_translation_provider" version_id="1012900" version_string="1.1.29"><![CDATA[Translation provider]]></phrase>
+  <phrase title="option_explain.aiconnect_audit_retention_days" version_id="1026300" version_string="1.2.63"><![CDATA[How many days of AI action-log entries to keep. A daily cron prunes older rows. 0 = never prune (keep everything).]]></phrase>
   <phrase title="option_explain.aiconnect_nav_bottom" version_id="1011600" version_string="1.1.16"><![CDATA[Adds an AI Connect icon button next to the RSS feed link in the page footer.]]></phrase>
   <phrase title="option_explain.aiconnect_nav_top" version_id="1022500" version_string="1.2.25"><![CDATA[<strong>Master switch</strong> for guest visibility. When disabled, guests cannot see the AI Connect navigation link or access the info page — regardless of the <em>viewAiConnect</em> permission.<br><br>When enabled, guest access is controlled by the <em>viewAiConnect</em> permission (Admin CP → User Groups → Permissions → AI Connect).<br><br>Logged-in users with <em>useTools</em> permission always see the link and can access the page, regardless of this setting.]]></phrase>
   <phrase title="option_explain.aiconnect_rate_limit_per_hour" version_id="1025900" version_string="1.2.59"><![CDATA[Maximum tool calls allowed per hour per token/identifier. Default 1000.]]></phrase>
@@ -143,74 +145,74 @@ For documentation: {infoUrl}]]></phrase>
   <phrase title="option_group.aiconnect_settings" version_id="1012900" version_string="1.1.29" global_cache="1"><![CDATA[AI Connect — Settings]]></phrase>
   <phrase title="option_group_description.aiconnect_navigation" version_id="1011600" version_string="1.1.16"><![CDATA[Control where the AI Connect link appears on your forum.]]></phrase>
   <phrase title="option_group_description.aiconnect_settings" version_id="1012900" version_string="1.1.29"><![CDATA[Configure how AI agents interact with your forum.]]></phrase>
-  <phrase title="permission.aiconnect_t_015c3f4266bf" version_id="1026100" version_string="1.2.61"><![CDATA[getModerationQueue]]></phrase>
-  <phrase title="permission.aiconnect_t_01844469fa6c" version_id="1026100" version_string="1.2.61"><![CDATA[createWidget]]></phrase>
-  <phrase title="permission.aiconnect_t_0228f6863e89" version_id="1026100" version_string="1.2.61"><![CDATA[testEmailConfig]]></phrase>
-  <phrase title="permission.aiconnect_t_0ce62cd2c61b" version_id="1026100" version_string="1.2.61"><![CDATA[getOptionBlocklist]]></phrase>
-  <phrase title="permission.aiconnect_t_0cef5aeda3a0" version_id="1026100" version_string="1.2.61"><![CDATA[removeSecondaryGroup]]></phrase>
-  <phrase title="permission.aiconnect_t_0f253744eea9" version_id="1026100" version_string="1.2.61"><![CDATA[editPhrase]]></phrase>
-  <phrase title="permission.aiconnect_t_107f4e300f3b" version_id="1026100" version_string="1.2.61"><![CDATA[deleteStyleAsset]]></phrase>
-  <phrase title="permission.aiconnect_t_108912d8b242" version_id="1026100" version_string="1.2.61"><![CDATA[getWidget]]></phrase>
-  <phrase title="permission.aiconnect_t_12e806968694" version_id="1026100" version_string="1.2.61"><![CDATA[getNodePermissions]]></phrase>
-  <phrase title="permission.aiconnect_t_15ab7aca0012" version_id="1026100" version_string="1.2.61"><![CDATA[assignModerator]]></phrase>
-  <phrase title="permission.aiconnect_t_19e99f8e1910" version_id="1026100" version_string="1.2.61"><![CDATA[deleteUsergroup]]></phrase>
-  <phrase title="permission.aiconnect_t_216dd00d9bf0" version_id="1026100" version_string="1.2.61"><![CDATA[enableAddon]]></phrase>
-  <phrase title="permission.aiconnect_t_2ca2c3ae613c" version_id="1026100" version_string="1.2.61"><![CDATA[getOption]]></phrase>
-  <phrase title="permission.aiconnect_t_31476a8c0320" version_id="1026100" version_string="1.2.61"><![CDATA[getAddonOptions]]></phrase>
-  <phrase title="permission.aiconnect_t_332ff11b484d" version_id="1026100" version_string="1.2.61"><![CDATA[searchModerationQueue]]></phrase>
+  <phrase title="permission.aiconnect_t_015c3f4266bf" version_id="1026200" version_string="1.2.62"><![CDATA[getModerationQueue]]></phrase>
+  <phrase title="permission.aiconnect_t_01844469fa6c" version_id="1026200" version_string="1.2.62"><![CDATA[createWidget]]></phrase>
+  <phrase title="permission.aiconnect_t_0228f6863e89" version_id="1026200" version_string="1.2.62"><![CDATA[testEmailConfig]]></phrase>
+  <phrase title="permission.aiconnect_t_0ce62cd2c61b" version_id="1026200" version_string="1.2.62"><![CDATA[getOptionBlocklist]]></phrase>
+  <phrase title="permission.aiconnect_t_0cef5aeda3a0" version_id="1026200" version_string="1.2.62"><![CDATA[removeSecondaryGroup]]></phrase>
+  <phrase title="permission.aiconnect_t_0f253744eea9" version_id="1026200" version_string="1.2.62"><![CDATA[editPhrase]]></phrase>
+  <phrase title="permission.aiconnect_t_107f4e300f3b" version_id="1026200" version_string="1.2.62"><![CDATA[deleteStyleAsset]]></phrase>
+  <phrase title="permission.aiconnect_t_108912d8b242" version_id="1026200" version_string="1.2.62"><![CDATA[getWidget]]></phrase>
+  <phrase title="permission.aiconnect_t_12e806968694" version_id="1026200" version_string="1.2.62"><![CDATA[getNodePermissions]]></phrase>
+  <phrase title="permission.aiconnect_t_15ab7aca0012" version_id="1026200" version_string="1.2.62"><![CDATA[assignModerator]]></phrase>
+  <phrase title="permission.aiconnect_t_19e99f8e1910" version_id="1026200" version_string="1.2.62"><![CDATA[deleteUsergroup]]></phrase>
+  <phrase title="permission.aiconnect_t_216dd00d9bf0" version_id="1026200" version_string="1.2.62"><![CDATA[enableAddon]]></phrase>
+  <phrase title="permission.aiconnect_t_2ca2c3ae613c" version_id="1026200" version_string="1.2.62"><![CDATA[getOption]]></phrase>
+  <phrase title="permission.aiconnect_t_31476a8c0320" version_id="1026200" version_string="1.2.62"><![CDATA[getAddonOptions]]></phrase>
+  <phrase title="permission.aiconnect_t_332ff11b484d" version_id="1026200" version_string="1.2.62"><![CDATA[searchModerationQueue]]></phrase>
   <phrase title="permission.aiconnect_t_336e0ca6a815" version_id="1025500" version_string="1.2.55"><![CDATA[Test tool]]></phrase>
-  <phrase title="permission.aiconnect_t_369ab7fab0c3" version_id="1026100" version_string="1.2.61"><![CDATA[Tool: Get current user info]]></phrase>
-  <phrase title="permission.aiconnect_t_36a952043959" version_id="1026100" version_string="1.2.61"><![CDATA[getModerationHistory]]></phrase>
-  <phrase title="permission.aiconnect_t_3d45f9d90685" version_id="1026100" version_string="1.2.61"><![CDATA[setNodePrivate]]></phrase>
-  <phrase title="permission.aiconnect_t_533cdbc12408" version_id="1026100" version_string="1.2.61"><![CDATA[listOptionsByGroup]]></phrase>
-  <phrase title="permission.aiconnect_t_54a4fa4ffbef" version_id="1026100" version_string="1.2.61"><![CDATA[createUsergroup]]></phrase>
+  <phrase title="permission.aiconnect_t_369ab7fab0c3" version_id="1026200" version_string="1.2.62"><![CDATA[Tool: Get current user info]]></phrase>
+  <phrase title="permission.aiconnect_t_36a952043959" version_id="1026200" version_string="1.2.62"><![CDATA[getModerationHistory]]></phrase>
+  <phrase title="permission.aiconnect_t_3d45f9d90685" version_id="1026200" version_string="1.2.62"><![CDATA[setNodePrivate]]></phrase>
+  <phrase title="permission.aiconnect_t_533cdbc12408" version_id="1026200" version_string="1.2.62"><![CDATA[listOptionsByGroup]]></phrase>
+  <phrase title="permission.aiconnect_t_54a4fa4ffbef" version_id="1026200" version_string="1.2.62"><![CDATA[createUsergroup]]></phrase>
   <phrase title="permission.aiconnect_t_565997a27503" version_id="1025600" version_string="1.2.56"><![CDATA[New destructive tool]]></phrase>
-  <phrase title="permission.aiconnect_t_5d9f0ecc1a93" version_id="1026100" version_string="1.2.61"><![CDATA[setAddonOption]]></phrase>
-  <phrase title="permission.aiconnect_t_5fc11505dc2c" version_id="1026100" version_string="1.2.61"><![CDATA[simulatePermissionChange]]></phrase>
-  <phrase title="permission.aiconnect_t_67d4b30dfbe4" version_id="1026100" version_string="1.2.61"><![CDATA[listOptionGroups]]></phrase>
-  <phrase title="permission.aiconnect_t_6a8219a32cbe" version_id="1026100" version_string="1.2.61"><![CDATA[getReportComments]]></phrase>
-  <phrase title="permission.aiconnect_t_6f649c1fd7b8" version_id="1026100" version_string="1.2.61"><![CDATA[changeUserPassword]]></phrase>
-  <phrase title="permission.aiconnect_t_732fd18fffd7" version_id="1026100" version_string="1.2.61"><![CDATA[updateUsergroup]]></phrase>
-  <phrase title="permission.aiconnect_t_735d82a6d7ab" version_id="1026100" version_string="1.2.61"><![CDATA[setStyleProperty]]></phrase>
-  <phrase title="permission.aiconnect_t_76c51dd5efa2" version_id="1026100" version_string="1.2.61"><![CDATA[addSecondaryGroup]]></phrase>
-  <phrase title="permission.aiconnect_t_77db8598d67a" version_id="1026100" version_string="1.2.61"><![CDATA[getSpamPatterns]]></phrase>
-  <phrase title="permission.aiconnect_t_79c240fd40eb" version_id="1026100" version_string="1.2.61"><![CDATA[Tool: Translate text]]></phrase>
-  <phrase title="permission.aiconnect_t_7ad124db9c1d" version_id="1026100" version_string="1.2.61"><![CDATA[editWidget]]></phrase>
-  <phrase title="permission.aiconnect_t_7daafc5d6c3e" version_id="1026100" version_string="1.2.61"><![CDATA[changeUserEmail]]></phrase>
-  <phrase title="permission.aiconnect_t_7ea2231fd159" version_id="1026100" version_string="1.2.61"><![CDATA[unbanUser]]></phrase>
-  <phrase title="permission.aiconnect_t_953578a71b18" version_id="1026100" version_string="1.2.61"><![CDATA[Tool: Get thread by ID]]></phrase>
-  <phrase title="permission.aiconnect_t_9cbdf8d5fabe" version_id="1026100" version_string="1.2.61"><![CDATA[getModerationItem]]></phrase>
-  <phrase title="permission.aiconnect_t_a42581e37e9e" version_id="1026100" version_string="1.2.61"><![CDATA[setDefaultStyle]]></phrase>
-  <phrase title="permission.aiconnect_t_a776145e4509" version_id="1026100" version_string="1.2.61"><![CDATA[listStyleProperties]]></phrase>
-  <phrase title="permission.aiconnect_t_a9e0c2c1790e" version_id="1026100" version_string="1.2.61"><![CDATA[disableAddon]]></phrase>
-  <phrase title="permission.aiconnect_t_af48b8df7c2d" version_id="1026100" version_string="1.2.61"><![CDATA[reorderNodes]]></phrase>
-  <phrase title="permission.aiconnect_t_aff4768fd9cb" version_id="1026100" version_string="1.2.61"><![CDATA[banUser]]></phrase>
-  <phrase title="permission.aiconnect_t_b3ba5fdd33f4" version_id="1026100" version_string="1.2.61"><![CDATA[setOption]]></phrase>
-  <phrase title="permission.aiconnect_t_b6617d554a05" version_id="1026100" version_string="1.2.61"><![CDATA[uploadStyleAsset]]></phrase>
-  <phrase title="permission.aiconnect_t_bf0197c0ad2c" version_id="1026100" version_string="1.2.61"><![CDATA[uploadSiteLogo]]></phrase>
-  <phrase title="permission.aiconnect_t_c2943236b718" version_id="1026100" version_string="1.2.61"><![CDATA[listStyles]]></phrase>
-  <phrase title="permission.aiconnect_t_c4378b554f89" version_id="1026100" version_string="1.2.61"><![CDATA[listStyleAssets]]></phrase>
-  <phrase title="permission.aiconnect_t_c57fd967134f" version_id="1026100" version_string="1.2.61"><![CDATA[listCronTasks]]></phrase>
-  <phrase title="permission.aiconnect_t_cd8ffa7a7a8a" version_id="1026100" version_string="1.2.61"><![CDATA[deleteSpam]]></phrase>
-  <phrase title="permission.aiconnect_t_cd9e3071dd7f" version_id="1026100" version_string="1.2.61"><![CDATA[Tool: Get supported languages]]></phrase>
-  <phrase title="permission.aiconnect_t_d1f2bbdb107a" version_id="1026100" version_string="1.2.61"><![CDATA[triggerCronTask]]></phrase>
-  <phrase title="permission.aiconnect_t_d896789fadb6" version_id="1026100" version_string="1.2.61"><![CDATA[listWidgets]]></phrase>
-  <phrase title="permission.aiconnect_t_d967dc7583c6" version_id="1026100" version_string="1.2.61"><![CDATA[getEmailTransportConfig]]></phrase>
-  <phrase title="permission.aiconnect_t_d97815cae55b" version_id="1026100" version_string="1.2.61"><![CDATA[getReportedContent]]></phrase>
-  <phrase title="permission.aiconnect_t_d9cb8e936e7b" version_id="1026100" version_string="1.2.61"><![CDATA[Tool: Search posts]]></phrase>
-  <phrase title="permission.aiconnect_t_dabcbc75b143" version_id="1026100" version_string="1.2.61"><![CDATA[Tool: Search threads]]></phrase>
-  <phrase title="permission.aiconnect_t_dada89d62d50" version_id="1026100" version_string="1.2.61"><![CDATA[unsetStyleProperty]]></phrase>
-  <phrase title="permission.aiconnect_t_db0f1b57d8f5" version_id="1026100" version_string="1.2.61"><![CDATA[listWidgetPositions]]></phrase>
-  <phrase title="permission.aiconnect_t_df2103e64f78" version_id="1026100" version_string="1.2.61"><![CDATA[searchPhrases]]></phrase>
-  <phrase title="permission.aiconnect_t_e184108f45c5" version_id="1026100" version_string="1.2.61"><![CDATA[deleteWidget]]></phrase>
-  <phrase title="permission.aiconnect_t_e1d0e1456210" version_id="1026100" version_string="1.2.61"><![CDATA[listAddons]]></phrase>
-  <phrase title="permission.aiconnect_t_e27112200849" version_id="1026100" version_string="1.2.61"><![CDATA[deleteSiteLogo]]></phrase>
-  <phrase title="permission.aiconnect_t_e273dcd1b097" version_id="1026100" version_string="1.2.61"><![CDATA[getModerationStats]]></phrase>
-  <phrase title="permission.aiconnect_t_e365bf664317" version_id="1026100" version_string="1.2.61"><![CDATA[getStyleProperty]]></phrase>
-  <phrase title="permission.aiconnect_t_ea7c355f31f4" version_id="1026100" version_string="1.2.61"><![CDATA[setNodePermission]]></phrase>
-  <phrase title="permission.aiconnect_t_ee67b3484ea2" version_id="1026100" version_string="1.2.61"><![CDATA[getPhrase]]></phrase>
-  <phrase title="permission.aiconnect_t_f8a2e49e6c22" version_id="1026100" version_string="1.2.61"><![CDATA[Tool: Get post by ID]]></phrase>
-  <phrase title="permission.aiconnect_t_fa4a9020401d" version_id="1026100" version_string="1.2.61"><![CDATA[setEmailTransportConfig]]></phrase>
+  <phrase title="permission.aiconnect_t_5d9f0ecc1a93" version_id="1026200" version_string="1.2.62"><![CDATA[setAddonOption]]></phrase>
+  <phrase title="permission.aiconnect_t_5fc11505dc2c" version_id="1026200" version_string="1.2.62"><![CDATA[simulatePermissionChange]]></phrase>
+  <phrase title="permission.aiconnect_t_67d4b30dfbe4" version_id="1026200" version_string="1.2.62"><![CDATA[listOptionGroups]]></phrase>
+  <phrase title="permission.aiconnect_t_6a8219a32cbe" version_id="1026200" version_string="1.2.62"><![CDATA[getReportComments]]></phrase>
+  <phrase title="permission.aiconnect_t_6f649c1fd7b8" version_id="1026200" version_string="1.2.62"><![CDATA[changeUserPassword]]></phrase>
+  <phrase title="permission.aiconnect_t_732fd18fffd7" version_id="1026200" version_string="1.2.62"><![CDATA[updateUsergroup]]></phrase>
+  <phrase title="permission.aiconnect_t_735d82a6d7ab" version_id="1026200" version_string="1.2.62"><![CDATA[setStyleProperty]]></phrase>
+  <phrase title="permission.aiconnect_t_76c51dd5efa2" version_id="1026200" version_string="1.2.62"><![CDATA[addSecondaryGroup]]></phrase>
+  <phrase title="permission.aiconnect_t_77db8598d67a" version_id="1026200" version_string="1.2.62"><![CDATA[getSpamPatterns]]></phrase>
+  <phrase title="permission.aiconnect_t_79c240fd40eb" version_id="1026200" version_string="1.2.62"><![CDATA[Tool: Translate text]]></phrase>
+  <phrase title="permission.aiconnect_t_7ad124db9c1d" version_id="1026200" version_string="1.2.62"><![CDATA[editWidget]]></phrase>
+  <phrase title="permission.aiconnect_t_7daafc5d6c3e" version_id="1026200" version_string="1.2.62"><![CDATA[changeUserEmail]]></phrase>
+  <phrase title="permission.aiconnect_t_7ea2231fd159" version_id="1026200" version_string="1.2.62"><![CDATA[unbanUser]]></phrase>
+  <phrase title="permission.aiconnect_t_953578a71b18" version_id="1026200" version_string="1.2.62"><![CDATA[Tool: Get thread by ID]]></phrase>
+  <phrase title="permission.aiconnect_t_9cbdf8d5fabe" version_id="1026200" version_string="1.2.62"><![CDATA[getModerationItem]]></phrase>
+  <phrase title="permission.aiconnect_t_a42581e37e9e" version_id="1026200" version_string="1.2.62"><![CDATA[setDefaultStyle]]></phrase>
+  <phrase title="permission.aiconnect_t_a776145e4509" version_id="1026200" version_string="1.2.62"><![CDATA[listStyleProperties]]></phrase>
+  <phrase title="permission.aiconnect_t_a9e0c2c1790e" version_id="1026200" version_string="1.2.62"><![CDATA[disableAddon]]></phrase>
+  <phrase title="permission.aiconnect_t_af48b8df7c2d" version_id="1026200" version_string="1.2.62"><![CDATA[reorderNodes]]></phrase>
+  <phrase title="permission.aiconnect_t_aff4768fd9cb" version_id="1026200" version_string="1.2.62"><![CDATA[banUser]]></phrase>
+  <phrase title="permission.aiconnect_t_b3ba5fdd33f4" version_id="1026200" version_string="1.2.62"><![CDATA[setOption]]></phrase>
+  <phrase title="permission.aiconnect_t_b6617d554a05" version_id="1026200" version_string="1.2.62"><![CDATA[uploadStyleAsset]]></phrase>
+  <phrase title="permission.aiconnect_t_bf0197c0ad2c" version_id="1026200" version_string="1.2.62"><![CDATA[uploadSiteLogo]]></phrase>
+  <phrase title="permission.aiconnect_t_c2943236b718" version_id="1026200" version_string="1.2.62"><![CDATA[listStyles]]></phrase>
+  <phrase title="permission.aiconnect_t_c4378b554f89" version_id="1026200" version_string="1.2.62"><![CDATA[listStyleAssets]]></phrase>
+  <phrase title="permission.aiconnect_t_c57fd967134f" version_id="1026200" version_string="1.2.62"><![CDATA[listCronTasks]]></phrase>
+  <phrase title="permission.aiconnect_t_cd8ffa7a7a8a" version_id="1026200" version_string="1.2.62"><![CDATA[deleteSpam]]></phrase>
+  <phrase title="permission.aiconnect_t_cd9e3071dd7f" version_id="1026200" version_string="1.2.62"><![CDATA[Tool: Get supported languages]]></phrase>
+  <phrase title="permission.aiconnect_t_d1f2bbdb107a" version_id="1026200" version_string="1.2.62"><![CDATA[triggerCronTask]]></phrase>
+  <phrase title="permission.aiconnect_t_d896789fadb6" version_id="1026200" version_string="1.2.62"><![CDATA[listWidgets]]></phrase>
+  <phrase title="permission.aiconnect_t_d967dc7583c6" version_id="1026200" version_string="1.2.62"><![CDATA[getEmailTransportConfig]]></phrase>
+  <phrase title="permission.aiconnect_t_d97815cae55b" version_id="1026200" version_string="1.2.62"><![CDATA[getReportedContent]]></phrase>
+  <phrase title="permission.aiconnect_t_d9cb8e936e7b" version_id="1026200" version_string="1.2.62"><![CDATA[Tool: Search posts]]></phrase>
+  <phrase title="permission.aiconnect_t_dabcbc75b143" version_id="1026200" version_string="1.2.62"><![CDATA[Tool: Search threads]]></phrase>
+  <phrase title="permission.aiconnect_t_dada89d62d50" version_id="1026200" version_string="1.2.62"><![CDATA[unsetStyleProperty]]></phrase>
+  <phrase title="permission.aiconnect_t_db0f1b57d8f5" version_id="1026200" version_string="1.2.62"><![CDATA[listWidgetPositions]]></phrase>
+  <phrase title="permission.aiconnect_t_df2103e64f78" version_id="1026200" version_string="1.2.62"><![CDATA[searchPhrases]]></phrase>
+  <phrase title="permission.aiconnect_t_e184108f45c5" version_id="1026200" version_string="1.2.62"><![CDATA[deleteWidget]]></phrase>
+  <phrase title="permission.aiconnect_t_e1d0e1456210" version_id="1026200" version_string="1.2.62"><![CDATA[listAddons]]></phrase>
+  <phrase title="permission.aiconnect_t_e27112200849" version_id="1026200" version_string="1.2.62"><![CDATA[deleteSiteLogo]]></phrase>
+  <phrase title="permission.aiconnect_t_e273dcd1b097" version_id="1026200" version_string="1.2.62"><![CDATA[getModerationStats]]></phrase>
+  <phrase title="permission.aiconnect_t_e365bf664317" version_id="1026200" version_string="1.2.62"><![CDATA[getStyleProperty]]></phrase>
+  <phrase title="permission.aiconnect_t_ea7c355f31f4" version_id="1026200" version_string="1.2.62"><![CDATA[setNodePermission]]></phrase>
+  <phrase title="permission.aiconnect_t_ee67b3484ea2" version_id="1026200" version_string="1.2.62"><![CDATA[getPhrase]]></phrase>
+  <phrase title="permission.aiconnect_t_f8a2e49e6c22" version_id="1026200" version_string="1.2.62"><![CDATA[Tool: Get post by ID]]></phrase>
+  <phrase title="permission.aiconnect_t_fa4a9020401d" version_id="1026200" version_string="1.2.62"><![CDATA[setEmailTransportConfig]]></phrase>
   <phrase title="permission.aiconnect_tool_translation_getSuppo" version_id="1021100" version_string="1.2.11"><![CDATA[Tool: Get supported languages]]></phrase>
   <phrase title="permission.aiconnect_tool_translation_translat" version_id="1021100" version_string="1.2.11"><![CDATA[Tool: Translate text]]></phrase>
   <phrase title="permission.aiconnect_tool_xenforo_getCurrentUs" version_id="1021100" version_string="1.2.11"><![CDATA[Tool: Get current user info]]></phrase>
@@ -219,12 +221,12 @@ For documentation: {infoUrl}]]></phrase>
   <phrase title="permission.aiconnect_tool_xenforo_searchPosts" version_id="1021100" version_string="1.2.11"><![CDATA[Tool: Search posts]]></phrase>
   <phrase title="permission.aiconnect_tool_xenforo_searchThread" version_id="1021100" version_string="1.2.11"><![CDATA[Tool: Search threads]]></phrase>
   <phrase title="permission.aiconnect_useTools" version_id="1023600" version_string="1.2.36"><![CDATA[Use AI Connect tools (master switch for all tools)]]></phrase>
-  <phrase title="permission.aiconnect_use_package_mod_queue" version_id="1026100" version_string="1.2.61"><![CDATA[Use Moderation Queue & Intelligence (package switch)]]></phrase>
+  <phrase title="permission.aiconnect_use_package_mod_queue" version_id="1026200" version_string="1.2.62"><![CDATA[Use Moderation Queue & Intelligence (package switch)]]></phrase>
   <phrase title="permission.aiconnect_viewAiConnect" version_id="1022500" version_string="1.2.25"><![CDATA[View AI Connect (navigation links and info page)]]></phrase>
   <phrase title="permission.aiconnect_viewNavLink" version_id="1021000" version_string="1.2.10"><![CDATA[View AI Connect navigation links]]></phrase>
   <phrase title="permission_desc.aiconnect_viewAiConnect" version_id="1022500" version_string="1.2.25"><![CDATA[Controls visibility for guests only. Requires the "Show AI Connect link" option to be enabled in Admin CP → Options → AI Connect — Navigation. Has no effect when that option is disabled.]]></phrase>
   <phrase title="permission_interface.aiconnect_general" version_id="1021000" version_string="1.2.10"><![CDATA[AI Connect]]></phrase>
-  <phrase title="permission_interface.aiconnect_pkg_mod_queue" version_id="1026100" version_string="1.2.61"><![CDATA[Moderation Queue & Intelligence]]></phrase>
+  <phrase title="permission_interface.aiconnect_pkg_mod_queue" version_id="1026200" version_string="1.2.62"><![CDATA[Moderation Queue & Intelligence]]></phrase>
   <phrase title="permission_interface.aiconnect_tools" version_id="1021200" version_string="1.2.12"><![CDATA[AI Connect — Tools]]></phrase>
   <phrase title="pkce_required" version_id="1011400" version_string="1.1.14"><![CDATA[Error: PKCE with S256 challenge method is required.]]></phrase>
   <phrase title="unsupported_response_type" version_id="1011400" version_string="1.1.14"><![CDATA[Error: Only the authorization code flow is supported.]]></phrase>

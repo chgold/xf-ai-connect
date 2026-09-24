@@ -65,7 +65,9 @@ class Tools extends AbstractController
             return $this->error('You do not have permission to use this tool.', 403);
         }
 
+        $auditStart = microtime(true);
         $result = $this->modules[$moduleName]->executeTool($tool, $input);
+        $this->auditLog($visitor, $moduleName, $tool, 'write', $input, $result, $auditStart);
 
         if (isset($result['success']) && $result['success'] === false) {
             return $this->error(
@@ -75,6 +77,29 @@ class Tools extends AbstractController
         }
 
         return $this->apiSuccess($result);
+    }
+
+    /**
+     * Roadmap item 7: write one action-log row for a tool call. Best-effort —
+     * the logger swallows its own errors so auditing can never break a call.
+     */
+    protected function auditLog($visitor, string $moduleName, string $tool, string $httpMethod, array $input, $result, float $startedAt): void
+    {
+        try {
+            \XF::service('chgold\AIConnect:AuditLogger')->log([
+                'user_id'     => $visitor->user_id,
+                'username'    => $visitor->username,
+                'module'      => $moduleName,
+                'tool'        => $tool,
+                'http_method' => $httpMethod,
+                'input'       => is_array($input) ? $input : [],
+                'result'      => is_array($result) ? $result : [],
+                'duration_ms' => (int) ((microtime(true) - $startedAt) * 1000),
+                'ip'          => \XF::app()->request()->getIp(),
+            ]);
+        } catch (\Throwable $e) {
+            \XF::logException($e, false, 'AIConnect auditLog hook failed: ');
+        }
     }
 
     protected static $readOnlyTools = [
@@ -137,7 +162,9 @@ class Tools extends AbstractController
             return $this->error('You do not have permission to use this tool.', 403);
         }
 
+        $auditStart = microtime(true);
         $result = $this->modules[$moduleName]->executeTool($tool, $input);
+        $this->auditLog($visitor, $moduleName, $tool, 'read', $input, $result, $auditStart);
 
         if (isset($result['success']) && $result['success'] === false) {
             return $this->error(

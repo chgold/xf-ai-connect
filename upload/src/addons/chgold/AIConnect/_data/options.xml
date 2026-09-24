@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <options>
+  <option option_id="aiconnect_audit_retention_days" edit_format="spinbox" data_type="unsigned_integer" advanced="0">
+    <default_value>90</default_value>
+    <relation group_id="aiconnect_settings" display_order="70"/>
+  </option>
   <option option_id="aiconnect_nav_bottom" edit_format="onoff" data_type="boolean" advanced="0">
     <default_value>1</default_value>
     <relation group_id="aiconnect_navigation" display_order="20"/>

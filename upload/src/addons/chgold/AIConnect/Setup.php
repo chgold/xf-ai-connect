@@ -179,6 +179,45 @@ class Setup extends AbstractSetup
             $table->addKey('user_id');
             $table->addKey('revoked_at');
         });
+
+        // Action-level audit log (roadmap item 7). One row per tool call, logged
+        // at the single Tools.php choke-point so it covers Core + Pro + Admin +
+        // Moderation + any future add-on. Narrow, index-friendly schema; args/
+        // result stored only as masked, truncated summaries (never secrets).
+        $this->createActionLogTable();
+    }
+
+    /**
+     * Shared so both installStep1 (fresh) and upgrade1026300Step1 (existing
+     * installs) create the identical table. checkExists makes it idempotent.
+     */
+    protected function createActionLogTable(): void
+    {
+        $this->schemaManager()->createTable('xf_chgold_aiconnect_action_log', function (Create $table) {
+            $table->checkExists(true);
+            $table->addColumn('log_id', 'int')->autoIncrement();
+            $table->addColumn('log_date', 'int');
+            $table->addColumn('user_id', 'int')->setDefault(0);
+            $table->addColumn('username', 'varchar', 50)->setDefault('');
+            $table->addColumn('client_id', 'varchar', 80)->setDefault('');
+            $table->addColumn('module', 'varchar', 50);
+            $table->addColumn('tool', 'varchar', 75);
+            $table->addColumn('http_method', 'enum')->values(['read', 'write'])->setDefault('read');
+            $table->addColumn('success', 'tinyint')->setDefault(0);
+            $table->addColumn('error_code', 'varchar', 50)->setDefault('');
+            $table->addColumn('duration_ms', 'int')->setDefault(0);
+            $table->addColumn('ip_address', 'varchar', 45)->setDefault('');
+            $table->addColumn('content_type', 'varchar', 25)->setDefault('');
+            $table->addColumn('content_id', 'int')->setDefault(0);
+            $table->addColumn('request_summary', 'varchar', 500)->setDefault('');
+            $table->addColumn('response_summary', 'varchar', 500)->setDefault('');
+            $table->addPrimaryKey('log_id');
+            $table->addKey('log_date');
+            $table->addKey(['user_id', 'log_date']);
+            $table->addKey(['module', 'tool', 'log_date']);
+            $table->addKey(['success', 'log_date']);
+            $table->addKey(['content_type', 'content_id']);
+        });
     }
 
     public function installStep2()
@@ -1540,6 +1579,20 @@ class Setup extends AbstractSetup
         }
     }
 
+    /**
+     * v1.2.63 — create the action-level audit-log table on existing installs
+     * (roadmap item 7). Same table as installStep1 creates for fresh installs;
+     * checkExists(true) makes it idempotent.
+     */
+    public function upgrade1026300Step1(): void
+    {
+        try {
+            $this->createActionLogTable();
+        } catch (\Throwable $e) {
+            \XF::logException($e, false, 'AIConnect 1.2.63 action-log table create failed: ');
+        }
+    }
+
     public function uninstallStep1()
     {
         $schemaManager = $this->schemaManager();
@@ -1550,6 +1603,7 @@ class Setup extends AbstractSetup
             'xf_ai_connect_rate_limits',
             'xf_ai_connect_blocked_users',
             'xf_ai_connect_settings',
+            'xf_chgold_aiconnect_action_log',
             'xf_ai_connect_oauth_tokens',
             'xf_ai_connect_oauth_codes',
             'xf_ai_connect_oauth_clients',

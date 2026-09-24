@@ -1,2 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<cron/>
+<cron>
+  <entry entry_id="aiconnectAuditPrune" cron_class="chgold\AIConnect\Cron\AuditPrune" cron_method="run" active="1"><![CDATA[{"day_type":"dow","dow":[0,1,2,3,4,5,6],"hours":[4],"minutes":[15]}]]></entry>
+</cron>
