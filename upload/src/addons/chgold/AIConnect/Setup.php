@@ -394,6 +394,7 @@ class Setup extends AbstractSetup
         $this->setupDefaultPermissions();
         $this->syncToolPermissions();
         $this->rebuildAddOnData();
+        $this->deployPublicIcon();
     }
 
     public function postUpgrade($previousVersion, array &$stateChanges)
@@ -403,6 +404,7 @@ class Setup extends AbstractSetup
         $this->setupDefaultPermissions();
         $this->syncToolPermissions();
         $this->rebuildAddOnData();
+        $this->deployPublicIcon();
     }
 
     /**
@@ -1633,6 +1635,68 @@ class Setup extends AbstractSetup
             $this->createIdempotencyTable();
         } catch (\Throwable $e) {
             \XF::logException($e, false, 'AIConnect 1.2.67 idempotency table create failed: ');
+        }
+    }
+
+    /**
+     * v1.2.69 — deploy the public icon asset to the XF root js/ path.
+     *
+     * WHAT BROKE: templates (aiconnect_nav_bottom_link injected into
+     * PAGE_CONTAINER, and aiconnect_info_page) reference /js/aiconnect/icon.png
+     * — a ROOT-relative public path. The icon ships inside the add-on tree at
+     * js/aiconnect/icon.png, but build.json's additional_files did NOT include
+     * js/aiconnect, so the release ZIP never placed it at the public
+     * upload/js/aiconnect/icon.png. On a clean install the asset was absent and
+     * every page request for it returned a XenForo 404.
+     *
+     * WHY THAT MATTERS (beyond a broken image): a 404 routed through the full XF
+     * app issues a fresh CSRF cookie when the request carries none, replacing the
+     * cookie the page's token was signed against. The next AJAX call
+     * (/account/visitor-menu etc.) then fails CSRF validation with HTTP 400
+     * "Security error". Because the icon is in PAGE_CONTAINER it is requested on
+     * every page, so the breakage was site-wide. See forum #814 (client: Phil).
+     *
+     * THE FIX is two-pronged: (1) build.json now lists js/aiconnect in
+     * additional_files so clean installs receive upload/js/aiconnect/icon.png
+     * directly; (2) this step copies the packaged icon to the XF root public path
+     * so already-installed / drifted sites self-heal on upgrade — mirroring the
+     * oauth.php root-sync (upgrade1024800Step1). Only copies when the target is
+     * missing or differs (sha1), and never fatal. Idempotent.
+     */
+    public function upgrade1026900Step1(): void
+    {
+        $this->deployPublicIcon();
+    }
+
+    /**
+     * Copy the add-on's packaged public icon to the XF root js/ path so the
+     * /js/aiconnect/icon.png the templates reference resolves to a real file.
+     * Safe + idempotent: only writes when missing or changed; failures logged.
+     */
+    protected function deployPublicIcon(): void
+    {
+        try {
+            $src = \XF::getAddOnDirectory() . '/chgold/AIConnect/js/aiconnect/icon.png';
+            if (!is_file($src)) {
+                return;
+            }
+            // The PUBLIC web root is one level ABOVE the code root: XF::start()
+            // in index.php is called with __DIR__ = the install dir (which holds
+            // index.php + the public js/ dir), while \XF::getRootDirectory()
+            // returns that dir's /src subtree. Public assets referenced as
+            // /js/... are served from {publicRoot}/js, so target dirname(root).
+            $publicRoot = dirname(\XF::getRootDirectory());
+            $destDir  = $publicRoot . '/' . $this->app->config('javaScriptUrl') . '/aiconnect';
+            $destFile = $destDir . '/icon.png';
+            if (!is_dir($destDir)) {
+                @mkdir($destDir, 0755, true);
+            }
+            if (!is_file($destFile) || sha1_file($src) !== sha1_file($destFile)) {
+                @copy($src, $destFile);
+                @chmod($destFile, 0644);
+            }
+        } catch (\Throwable $e) {
+            \XF::logException($e, false, 'AIConnect 1.2.69 public icon deploy failed: ');
         }
     }
 

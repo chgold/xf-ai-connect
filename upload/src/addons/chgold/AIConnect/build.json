@@ -1,5 +1,6 @@
 {
     "additional_files": [
-        "js/chgold/aiconnect"
+        "js/chgold/aiconnect",
+        "js/aiconnect"
     ]
 }
