@@ -588,19 +588,24 @@ trait AdminAppearanceTrait
         }
 
         $styleId = (int) ($params['style_id'] ?? 0);
-        $dir = \XF::app()->config('externalDataPath') . '/assets/' . ($styleId ?: 'default');
+        // Read via XenForo's abstract filesystem (\XF::fs()), NOT a direct disk
+        // path. Public style assets live under the canonical data://styles/{id}/
+        // scheme (see XF\Entity\Style / XF\Service\Style\*), which \XF::fs()
+        // resolves to the configured backend — local OR a remote adapter
+        // (Cloudflare R2 / S3). The previous externalDataPath/assets/* disk walk
+        // both used a non-standard path AND broke on remote-backed storage.
+        $dir = 'data://styles/' . ($styleId ?: 'default') . '/';
 
         $out = [];
-        if (is_dir($dir)) {
-            foreach (glob($dir . '/*') ?: [] as $path) {
-                if (is_file($path)) {
-                    $out[] = [
-                        'filename' => basename($path),
-                        'size'     => filesize($path),
-                        'modified' => filemtime($path),
-                    ];
-                }
+        foreach (\XF::fs()->listContents($dir, false) as $item) {
+            if (($item['type'] ?? '') !== 'file') {
+                continue;
             }
+            $out[] = [
+                'filename' => basename($item['path']),
+                'size'     => (int) ($item['size'] ?? \XF::fs()->getSize($item['path'])),
+                'modified' => (int) ($item['timestamp'] ?? 0),
+            ];
         }
         return $this->success(['style_id' => $styleId, 'count' => count($out), 'assets' => $out]);
     }
@@ -624,19 +629,20 @@ trait AdminAppearanceTrait
         }
 
         $styleId = (int) ($params['style_id'] ?? 0);
-        $dir = \XF::app()->config('externalDataPath') . '/assets/' . ($styleId ?: 'default');
-        if (!is_dir($dir)) {
-            @mkdir($dir, 0755, true);
-        }
-
-        $target = $dir . '/' . $filename;
-        if (!copy($upload->getTempFile(), $target)) {
-            return $this->error('write_failed', 'Could not write asset to disk');
+        // Write via XenForo's abstract filesystem (data://styles/{id}/ scheme +
+        // XF\Util\File helper), NOT copy() to a disk path. This stores to whatever
+        // backend is configured (local OR remote R2/S3) and auto-creates the
+        // directory on the backend. No manual mkdir / copy to externalDataPath.
+        $abstractedPath = 'data://styles/' . ($styleId ?: 'default') . '/' . $filename;
+        try {
+            \XF\Util\File::copyFileToAbstractedPath($upload->getTempFile(), $abstractedPath);
+        } catch (\Throwable $e) {
+            return $this->error('write_failed', 'Could not write asset to storage');
         }
         return $this->success([
             'style_id' => $styleId,
             'filename' => $filename,
-            'size'     => filesize($target),
+            'size'     => (int) $upload->getFileSize(),
         ]);
     }
 
@@ -651,13 +657,19 @@ trait AdminAppearanceTrait
 
         $filename = basename((string) $params['filename']);
         $styleId = (int) ($params['style_id'] ?? 0);
-        $target = \XF::app()->config('externalDataPath')
-            . '/assets/' . ($styleId ?: 'default') . '/' . $filename;
+        // Delete via XenForo's abstract filesystem (data://styles/{id}/ scheme +
+        // XF\Util\File helpers), NOT unlink() on a disk path — so it works against
+        // a remote-backed (R2/S3) data store, not only local disk.
+        $abstractedPath = 'data://styles/' . ($styleId ?: 'default') . '/' . $filename;
 
-        if (!file_exists($target)) {
+        if (!\XF\Util\File::abstractedPathExists($abstractedPath)) {
             return $this->error('not_found', "Asset '$filename' not found");
         }
-        if (!unlink($target)) {
+        // deleteFromAbstractedPath() returns void and swallows FileNotFound; any
+        // real backend failure surfaces as a thrown exception, so guard with try.
+        try {
+            \XF\Util\File::deleteFromAbstractedPath($abstractedPath);
+        } catch (\Throwable $e) {
             return $this->error('delete_failed', 'Could not delete asset');
         }
         return $this->success(['style_id' => $styleId, 'filename' => $filename, 'deleted' => true]);

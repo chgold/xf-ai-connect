@@ -158,7 +158,13 @@ trait ProUserContentTrait
         $repo   = \XF::em()->getRepository('XF:Conversation');
         $finder = $repo->findUserConversations($visitor);
         if ($unreadOnly) {
-            $finder->where('Recipient.is_unread', 1);
+            // findUserConversations() returns ConversationUser entities keyed on
+            // the CURRENT user; is_unread is a direct field on that row and holds
+            // THIS user's unread state. Recipient.is_unread belongs to the
+            // ConversationRecipient relation (a different entity) and does NOT
+            // reflect the current user's state. XF core filters the same way
+            // (ConversationRepository::findUserConversationsForPopupList).
+            $finder->where('is_unread', 1);
         }
         $finder->limitByPage($page, $limit);
 
@@ -171,7 +177,7 @@ trait ProUserContentTrait
                 'username'         => (string) $c->last_message_username,
                 'reply_count'      => (int)    $c->reply_count,
                 'last_message_date' => (int)    $c->last_message_date,
-                'is_unread'        => (bool)   ($c->Recipient->is_unread ?? false),
+                'is_unread'        => (bool)   $c->is_unread,
             ];
         }
 
@@ -257,7 +263,7 @@ trait ProUserContentTrait
 
         $placeholders = implode(',', array_fill(0, count($postIds), '?'));
         $rows = \XF::db()->fetchAll(
-            "SELECT a.attachment_id, a.filename, a.file_size, a.attach_date,
+            "SELECT a.attachment_id, ad.filename, ad.file_size, a.attach_date,
                     a.view_count, a.content_id AS post_id,
                     ad.width, ad.height
              FROM xf_attachment a
@@ -303,17 +309,21 @@ trait ProUserContentTrait
             }
         }
 
-        $path = \XF::app()->config('internalDataPath')
-            . '/attachments/'
-            . floor($attachment->data_id / 1000)
-            . '/' . $attachment->data_id . '.data';
-
-        if (!file_exists($path)) {
-            return $this->error('not_found', 'Attachment file not found on disk');
+        // Read via XenForo's abstract filesystem (\XF::fs()), NOT a direct disk
+        // path. Attachment storage may be backed by a remote adapter (Cloudflare
+        // R2 / S3 / any Flysystem adapter), where internalDataPath/*.data does
+        // not exist on local disk. getAbstractedDataPath() returns the scheme
+        // path (internal-data://...) that \XF::fs() resolves to the configured
+        // backend — identical to how readAttachmentText and XF core itself
+        // (XF\Pub\View\Attachment\View) serve attachments.
+        $data = $attachment->Data;
+        if (!$data) {
+            return $this->error('not_found', 'Attachment data is missing');
         }
 
         $maxBytes = 5 * 1024 * 1024; // 5 MB cap
-        $size = filesize($path);
+        // Use the stored file_size for the cap check — no local disk stat needed.
+        $size = (int) $attachment->file_size;
         if ($size > $maxBytes) {
             return $this->error(
                 'too_large',
@@ -321,7 +331,12 @@ trait ProUserContentTrait
             );
         }
 
-        $contents = file_get_contents($path);
+        $path = $data->getAbstractedDataPath();
+        if (!\XF::fs()->has($path)) {
+            return $this->error('not_found', 'Attachment file is missing from storage');
+        }
+
+        $contents = \XF::fs()->read($path);
         if ($contents === false) {
             return $this->error('read_error', 'Could not read attachment file');
         }
