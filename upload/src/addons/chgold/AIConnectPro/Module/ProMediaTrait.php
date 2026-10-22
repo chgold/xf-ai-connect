@@ -367,7 +367,31 @@ trait ProMediaTrait
             $error = 'Could not buffer downloaded file';
             return null;
         }
-        $name = $filename ?: (basename(parse_url($url, PHP_URL_PATH)) ?: 'upload.dat');
+        $rawName = $filename ?: (basename(parse_url($url, PHP_URL_PATH)) ?: 'upload.dat');
+        // SECURITY (2026-10-22, Pro 1.2.14): sanitize filename before handing to
+        // XF Upload. The agent-provided $filename reaches the DB and the rendered
+        // attachment UI; an unsanitized value like "<script>alert(1)</script>.jpg"
+        // would be stored verbatim and could execute if any surface renders the
+        // filename without escaping. We:
+        //   1. Strip path separators (basename) so '../etc/passwd' cannot escape.
+        //   2. Remove any character that is not a letter, digit, dot, dash, underscore,
+        //      space, parenthesis, or square bracket — this is the superset of what
+        //      a sane filename needs and discards <, >, ", ', &, ;, \, /, nulls, etc.
+        //   3. Collapse whitespace and trim.
+        //   4. Enforce a 128-byte cap so no DB column overflow or filesystem path abuse.
+        //   5. Fall back to 'upload.dat' if everything got stripped.
+        $name = basename($rawName);
+        $name = preg_replace('/[^\p{L}\p{N}\.\-_ ()\[\]]+/u', '', $name) ?? '';
+        $name = trim(preg_replace('/\s+/', ' ', $name) ?? '');
+        if ($name === '' || $name === '.' || $name === '..') {
+            $name = 'upload.dat';
+        }
+        if (strlen($name) > 128) {
+            $ext = pathinfo($name, PATHINFO_EXTENSION);
+            $base = pathinfo($name, PATHINFO_FILENAME);
+            $maxBase = 128 - ($ext !== '' ? strlen($ext) + 1 : 0);
+            $name = substr($base, 0, max(1, $maxBase)) . ($ext !== '' ? '.' . $ext : '');
+        }
         return new Upload($temp, $name);
     }
 
