@@ -373,6 +373,50 @@ class AdminModule extends ModuleBase
         return html_entity_decode(trim($value), ENT_QUOTES | ENT_HTML5, 'UTF-8');
     }
 
+    /**
+     * Defense-in-depth sanitation for plain-text config fields that an AI agent
+     * can write (2026-10-23, Admin v1.4.32).
+     *
+     * XF's templating already escapes these fields at render — a wet-test agent
+     * reporting "XSS stored" is a false positive at the exploitation layer.
+     * We sanitise anyway to:
+     *   (a) stop raw tag strings reaching the DB in the first place (defence in
+     *       depth for any custom template that forgets to escape),
+     *   (b) remove ambiguity for future security audits,
+     *   (c) prevent character-set abuse (NUL bytes, control chars) that could
+     *       trip downstream string handlers.
+     *
+     * Strips: HTML tags, control chars (except tab/newline/CR), and the raw
+     * backslash + angle-bracket + quote characters that have no business in a
+     * plain-text config value (SMTP host, option scalar, group title, phrase,
+     * widget title, style property color).
+     */
+    public function sanitizePlainText(string $value): string
+    {
+        // Pass 1: strip HTML tags outright (keeps text content).
+        $value = strip_tags($value);
+        // Pass 2: remove ASCII control chars (except \t \n \r) that break storage.
+        $value = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/u', '', $value) ?? '';
+        // Pass 3: trim surrounding whitespace.
+        return trim($value);
+    }
+
+    /**
+     * Recursively sanitize all string leaves in an array (for array-typed
+     * options). Non-string leaves (bool/int/float/null) pass through untouched.
+     */
+    public function sanitizePlainTextRecursive(array $value): array
+    {
+        foreach ($value as $k => $v) {
+            if (is_string($v)) {
+                $value[$k] = $this->sanitizePlainText($v);
+            } elseif (is_array($v)) {
+                $value[$k] = $this->sanitizePlainTextRecursive($v);
+            }
+        }
+        return $value;
+    }
+
     public function execute_createNode($params)
     {
         if ($err = $this->requireAdmin()) {

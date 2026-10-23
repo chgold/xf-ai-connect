@@ -146,7 +146,12 @@ trait AdminPhrasesTrait
             return $this->error('not_found', "Phrase '$title' not found");
         }
 
-        $phrase->phrase_text = (string) $params['phrase_text'];
+        // Sanitize phrase_text (defense-in-depth, 2026-10-23 Admin v1.4.32).
+        // XF compiles phrases to PHP strings and escape()s them at HTML render
+        // paths (verified empirically). But the ACP phrase_edit template renders
+        // the Master value via nl2br WITHOUT escape — so raw <script> would
+        // show in that single admin-only preview panel. strip_tags removes it.
+        $phrase->phrase_text = $this->sanitizePlainText((string) $params['phrase_text']);
         if (!$phrase->save()) {
             return $this->error('validation_failed', implode(' ', $phrase->getErrors()));
         }

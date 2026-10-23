@@ -373,6 +373,17 @@ trait AdminAppearanceTrait
             }
         }
 
+        // Defense-in-depth (v1.4.32, 2026-10-23): sanitize string leaves in
+        // style property values. XF ORM parameterizes queries (no SQL inj) and
+        // StyleFormatter escapes quotes in CSS output — this is defense in
+        // depth against raw <script>/injection text ever reaching storage.
+        // Numeric/boolean property types untouched. Nested arrays (color
+        // variants like {default:'#fff', alternate:'#eee'}) recursed into.
+        if (is_string($value)) {
+            $value = $this->sanitizePlainText($value);
+        } elseif (is_array($value)) {
+            $value = $this->sanitizePlainTextRecursive($value);
+        }
         $prop->property_value = $value;
         if (!$prop->save()) {
             return $this->error('validation_failed', implode(' ', $prop->getErrors()));

@@ -157,6 +157,18 @@ trait AdminOptionsTrait
             );
         }
 
+        // Defense-in-depth (v1.4.32, 2026-10-23): sanitize string scalar options.
+        // XF escape()s options at template render — this is primary defense. But
+        // raw <script> text in options storage is confusing in audits + risky
+        // if any custom template renders raw. Only applies to top-level string
+        // values; arrays/booleans/numerics untouched. Recursively sanitizes
+        // string leaves inside array-typed options.
+        if (is_string($value)) {
+            $value = $this->sanitizePlainText($value);
+        } elseif (is_array($value)) {
+            $value = $this->sanitizePlainTextRecursive($value);
+        }
+
         /** @var \XF\Repository\OptionRepository $repo */
         $repo = \XF::em()->getRepository('XF:Option');
         $success = $repo->updateOptions([$key => $value]);

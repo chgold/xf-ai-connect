@@ -492,6 +492,11 @@ trait AdminWidgetsTrait
     {
         // SECURITY (v1.4.14): only called from execute_createWidget / execute_editWidget
         // which invoke requireAdmin() + assertPermission('style'). See CHECK_XF_002.
+        // Defense-in-depth (v1.4.32, 2026-10-23): sanitize title before storage.
+        // Widget title is rendered as a phrase (title='widget.{widget_key}') and XF
+        // escapes it at render — but strip_tags here prevents raw <script> ever
+        // reaching the DB, protecting any custom template that might render raw.
+        $title = $this->sanitizePlainText($title);
         $phraseTitle = 'widget.' . $widgetKey;
         $existing = \XF::em()->findOne('XF:Phrase', [
             'title' => $phraseTitle, 'language_id' => 0,

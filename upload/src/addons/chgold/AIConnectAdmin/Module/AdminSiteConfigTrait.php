@@ -295,18 +295,20 @@ trait AdminSiteConfigTrait
         // Overwrite ONLY explicitly-provided SMTP fields (isset means the caller
         // sent the key; passing empty string is intentional clear).
         if (isset($params['smtp_host'])) {
-            $current['smtpHost']          = (string) $params['smtp_host'];
+            // Defense-in-depth: strip tags/control chars from agent-supplied hostname.
+            $current['smtpHost']          = $this->sanitizePlainText((string) $params['smtp_host']);
         }
         if (isset($params['smtp_port'])) {
             $current['smtpPort']          = (int)    $params['smtp_port'];
         }
         if (isset($params['smtp_auth'])) {
-            $current['smtpAuth']          = (string) $params['smtp_auth'];
+            $current['smtpAuth']          = $this->sanitizePlainText((string) $params['smtp_auth']);
         }
         if (isset($params['smtp_username'])) {
-            $current['smtpLoginUsername'] = (string) $params['smtp_username'];
+            $current['smtpLoginUsername'] = $this->sanitizePlainText((string) $params['smtp_username']);
         }
         if (isset($params['smtp_password']) && $params['smtp_password'] !== '') {
+            // Password NOT sanitized — users may legitimately have special chars (incl angle brackets)
             $current['smtpLoginPassword'] = (string) $params['smtp_password'];
         }
         if ($encryption !== '') {

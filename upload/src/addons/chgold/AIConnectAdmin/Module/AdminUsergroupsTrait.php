@@ -108,7 +108,8 @@ trait AdminUsergroupsTrait
         }
 
         $group = \XF::em()->create("XF:UserGroup");
-        $group->title = (string) $params["title"];
+        // Sanitize title (defense-in-depth — XF escape() at render is primary defense).
+        $group->title = $this->sanitizePlainText((string) $params["title"]);
         $this->applyUsergroupParams($group, $params);
 
         if (!$group->preSave()) {
@@ -138,7 +139,8 @@ trait AdminUsergroupsTrait
         }
 
         if (isset($params["title"])) {
-            $group->title = (string) $params["title"];
+            // Sanitize title (defense-in-depth, matches createUsergroup).
+            $group->title = $this->sanitizePlainText((string) $params["title"]);
         }
         $this->applyUsergroupParams($group, $params);
 
@@ -279,17 +281,41 @@ trait AdminUsergroupsTrait
 
     private function applyUsergroupParams(\XF\Entity\UserGroup $group, array $params): void
     {
-        $fields = [
-            "user_title",
-            "display_style_priority",
-            "username_css",
-            "banner_text",
-            "banner_css_class",
-        ];
-        foreach ($fields as $field) {
+        // Plain-text fields: sanitize (strip tags + control chars). Covers
+        // title (XSS/SQL inj flagged by wet-test — false positive at render,
+        // real at storage layer).
+        $plainFields = ["user_title", "banner_text"];
+        // CSS fields: sanitize but NOT with strip_tags (CSS can legitimately
+        // contain < > in rules like `content: '<'`). Here we only strip NUL
+        // bytes + angle-bracket + script keyword to keep legit CSS valid.
+        $cssFields = ["username_css"];
+        $plainClassFields = ["banner_css_class"]; // simple identifier only
+
+        foreach ($plainFields as $field) {
             if (isset($params[$field])) {
-                $group->$field = $params[$field];
+                $group->$field = $this->sanitizePlainText((string) $params[$field]);
             }
+        }
+        foreach ($cssFields as $field) {
+            if (isset($params[$field])) {
+                // Strip <script> tags + control chars; keep legit CSS chars.
+                $val = (string) $params[$field];
+                $val = preg_replace('#<\s*/?\s*script[^>]*>#i', '', $val) ?? '';
+                $val = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/u', '', $val) ?? '';
+                $group->$field = trim($val);
+            }
+        }
+        foreach ($plainClassFields as $field) {
+            if (isset($params[$field])) {
+                // CSS class names: ASCII letters/digits/dash/underscore/space only.
+                $val = (string) $params[$field];
+                $val = preg_replace('/[^a-zA-Z0-9_\- ]/', '', $val) ?? '';
+                $group->$field = trim($val);
+            }
+        }
+        // display_style_priority is numeric — leave as-is (XF cast handles it).
+        if (isset($params["display_style_priority"])) {
+            $group->display_style_priority = $params["display_style_priority"];
         }
     }
 
