@@ -110,7 +110,11 @@ trait AdminUsergroupsTrait
         $group = \XF::em()->create("XF:UserGroup");
         // Sanitize title (defense-in-depth — XF escape() at render is primary defense).
         $group->title = $this->sanitizePlainText((string) $params["title"]);
-        $this->applyUsergroupParams($group, $params);
+        try {
+            $this->applyUsergroupParams($group, $params);
+        } catch (\InvalidArgumentException $e) {
+            return $this->error("validation_failed", $e->getMessage());
+        }
 
         if (!$group->preSave()) {
             return $this->error("validation_failed", implode(" ", $group->getErrors()));
@@ -142,7 +146,11 @@ trait AdminUsergroupsTrait
             // Sanitize title (defense-in-depth, matches createUsergroup).
             $group->title = $this->sanitizePlainText((string) $params["title"]);
         }
-        $this->applyUsergroupParams($group, $params);
+        try {
+            $this->applyUsergroupParams($group, $params);
+        } catch (\InvalidArgumentException $e) {
+            return $this->error("validation_failed", $e->getMessage());
+        }
 
         if (!$group->preSave()) {
             return $this->error("validation_failed", implode(" ", $group->getErrors()));
@@ -307,10 +315,38 @@ trait AdminUsergroupsTrait
         }
         foreach ($plainClassFields as $field) {
             if (isset($params[$field])) {
-                // CSS class names: ASCII letters/digits/dash/underscore/space only.
-                $val = (string) $params[$field];
-                $val = preg_replace('/[^a-zA-Z0-9_\- ]/', '', $val) ?? '';
-                $group->$field = trim($val);
+                // CSS class name(s). The field accepts ONE or MORE class names
+                // separated by whitespace. Each class name must match the W3C
+                // CSS identifier rule: starts with letter/underscore (or dash
+                // followed by letter), continues with letters/digits/dash/
+                // underscore. Reject the WHOLE input if ANY token fails —
+                // stripping chars individually leaves garbage like "scriptbad"
+                // behind when the input was "<script>bad</script>my-class"
+                // (fixed 2026-10-25 — tester reported "scriptbadscriptmy-class 123"
+                // slipped through the previous [^a-zA-Z0-9_\- ] strip).
+                $val = trim((string) $params[$field]);
+                if ($val === '') {
+                    $group->$field = '';
+                } else {
+                    $tokens = preg_split('/\s+/', $val) ?: [];
+                    $validToken = '/\A-?[a-zA-Z_][a-zA-Z0-9_-]*\z/';
+                    $invalid = [];
+                    foreach ($tokens as $tok) {
+                        if (!preg_match($validToken, $tok)) {
+                            $invalid[] = $tok;
+                        }
+                    }
+                    if ($invalid) {
+                        throw new \InvalidArgumentException(
+                            "banner_css_class: invalid CSS class name(s): "
+                            . implode(', ', array_map(fn($t) => "'$t'", $invalid))
+                            . ". Each class must match /^-?[a-zA-Z_][a-zA-Z0-9_-]*\$/ "
+                            . "(e.g. 'userBanner', 'primary-badge', '_hidden'). "
+                            . "Multiple classes separated by spaces."
+                        );
+                    }
+                    $group->$field = implode(' ', $tokens);
+                }
             }
         }
         // display_style_priority is numeric — leave as-is (XF cast handles it).
