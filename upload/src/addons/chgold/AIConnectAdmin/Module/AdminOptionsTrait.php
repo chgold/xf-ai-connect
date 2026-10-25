@@ -180,6 +180,41 @@ trait AdminOptionsTrait
         // reload
         $option = \XF::em()->find('XF:Option', $key, ['forceRefresh' => true]);
 
+        // Silent-drop detection (v1.4.34, 2026-10-25 — QA Round 3 finding #2):
+        // Some array-typed options have an XF-side verifyOption callback that
+        // discards items which don't match the expected schema (keys/types).
+        // The classic example is censorWords: it expects [{word, replace}, ...]
+        // but if the agent sends [{word, replacement, exact}, ...] (plausible
+        // but wrong), XF's CensorWords::verifyOption silently drops every item
+        // → the save succeeds but stored value is []. The agent gets success:true
+        // + an empty option_value and has no idea what went wrong.
+        //
+        // Fix: if the input was a non-empty array but the stored value is empty
+        // (or shrunk), surface it as validation_failed with the stored shape
+        // from the master data (so the agent sees the canonical keys).
+        $storedValue = $option->option_value;
+        $inputWasNonEmptyArray = is_array($value) && !empty($value);
+        $storedIsEmpty = is_array($storedValue) && empty($storedValue);
+        if ($inputWasNonEmptyArray && $storedIsEmpty) {
+            // Try to extract the expected sub-item shape from the Option class
+            // (e.g. CensorWords: {word, replace}). If no master value is
+            // available, give the agent the raw input back so they can debug.
+            $hint = "XF's verifyOption callback for '$key' discarded every item in your input. "
+                  . "This usually means the sub-item keys don't match what XF expects. ";
+            $inputFirst = reset($value);
+            if (is_array($inputFirst)) {
+                $hint .= "Your sub-item keys: [" . implode(', ', array_keys($inputFirst)) . "]. ";
+            }
+            if ($key === 'censorWords') {
+                $hint .= "Expected shape for censorWords: [{\"word\": \"badword\", \"replace\": \"***\"}, ...] "
+                       . "(key is 'replace' NOT 'replacement'; 'exact'/'regex' are output-only, "
+                       . "XF computes the regex itself).";
+            } else {
+                $hint .= "Review the ACP form for '$key' to see the exact key names it expects.";
+            }
+            return $this->error('validation_failed', $hint);
+        }
+
         return $this->success([
             'option_id' => $key,
             'option_value' => $option->option_value,

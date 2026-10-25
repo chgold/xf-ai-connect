@@ -299,7 +299,20 @@ trait AdminSiteConfigTrait
             $current['smtpHost']          = $this->sanitizePlainText((string) $params['smtp_host']);
         }
         if (isset($params['smtp_port'])) {
-            $current['smtpPort']          = (int)    $params['smtp_port'];
+            // Range validation (v1.4.34, 2026-10-25): SMTP port must be a
+            // valid TCP port (1..65535). The agent accepted -1 before fix
+            // (QA Round 3 finding #1). Reject-not-coerce matches banner_css_class
+            // approach — invalid input returns 400 with actionable error.
+            $port = (int) $params['smtp_port'];
+            if ($port < 1 || $port > 65535) {
+                return $this->error(
+                    'validation_failed',
+                    "smtp_port must be an integer in the range 1..65535. Got: "
+                    . var_export($params['smtp_port'], true) . ". "
+                    . "Standard SMTP ports: 25 (unencrypted), 465 (SSL), 587 (TLS/STARTTLS)."
+                );
+            }
+            $current['smtpPort'] = $port;
         }
         if (isset($params['smtp_auth'])) {
             $current['smtpAuth']          = $this->sanitizePlainText((string) $params['smtp_auth']);
