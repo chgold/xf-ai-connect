@@ -24,8 +24,14 @@ trait AdminAnalyticsTrait
             'input_schema' => [
                 'type' => 'object',
                 'properties' => [
-                    'days'  => ['type' => 'integer', 'description' => 'Look-back window in days (default 30, max 365).'],
-                    'limit' => ['type' => 'integer', 'description' => 'Top-N for tools/users lists (default 10, max 50).'],
+                    'days' => [
+                        'type' => 'integer',
+                        'description' => 'Look-back window in days (default 30, max 365).',
+                    ],
+                    'limit' => [
+                        'type' => 'integer',
+                        'description' => 'Top-N for tools/users lists (default 10, max 50).',
+                    ],
                 ],
                 'additionalProperties' => false,
             ],
@@ -39,7 +45,10 @@ trait AdminAnalyticsTrait
                 'properties' => [
                     'days'  => ['type' => 'integer', 'description' => 'Look-back window in days (default 7).'],
                     'limit' => ['type' => 'integer', 'description' => 'Max rows (default 25, max 100).'],
-                    'tool'  => ['type' => 'string', 'description' => 'Optional: only this tool (short or module.tool).'],
+                    'tool'  => [
+                        'type' => 'string',
+                        'description' => 'Optional: only this tool (short or module.tool).',
+                    ],
                 ],
                 'additionalProperties' => false,
             ],

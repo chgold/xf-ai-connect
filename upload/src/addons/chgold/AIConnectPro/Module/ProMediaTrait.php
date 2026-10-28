@@ -71,7 +71,9 @@ trait ProMediaTrait
             'input_schema' => [
                 'type' => 'object',
                 'required' => ['post_id'],
-                'properties' => ['post_id' => ['type' => 'integer', 'description' => 'Post id to read attachments from']],
+                'properties' => [
+                    'post_id' => ['type' => 'integer', 'description' => 'Post id to read attachments from'],
+                ],
             ],
         ]);
         $this->registerTool('readAttachmentText', [
