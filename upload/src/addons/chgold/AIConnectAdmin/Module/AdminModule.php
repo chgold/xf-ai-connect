@@ -899,15 +899,16 @@ class AdminModule extends ModuleBase
     private function fetchUpload(string $url, ?string $filename, &$error): ?Upload
     {
         $error = null;
-        $contents = @file_get_contents($url);
-        if ($contents === false || $contents === '') {
-            $error = 'Could not download the file from the supplied URL';
+        $tempFile = \XF\Util\File::getTempFile();
+        if (!$tempFile) {
+            $error = 'Could not create temporary file';
             return null;
         }
-
-        $tempFile = \XF\Util\File::getTempFile();
-        if (!$tempFile || file_put_contents($tempFile, $contents) === false) {
-            $error = 'Could not buffer the downloaded file';
+        $limits = ['time' => 30, 'bytes' => 52428800];
+        $response = \XF::app()->http()->reader()->getUntrusted($url, $limits, $tempFile, [], $readerError);
+        if (!$response) {
+            $error = 'Could not download the file from the supplied URL: ' . ($readerError ?: 'unknown HTTP error');
+            @unlink($tempFile);
             return null;
         }
 

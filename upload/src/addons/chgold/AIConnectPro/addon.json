@@ -1,9 +1,9 @@
 {
     "legacy_addon_id": "",
     "title": "AI Connect Pro for XenForo",
-    "description": "Pro extension for AI Connect - 81 tools across 11 bundles for AI agents (moderation, writing, engagement, profile, conversation, media, discovery, users-groups, watched-bookmarks, activity-analytics)",
-    "version_id": 1021400,
-    "version_string": "1.2.14",
+    "description": "Pro extension for AI Connect - 84 tools across 14 bundles for AI agents (writing, engagement, profile, conversation, media, discovery, users-groups, watched-bookmarks, forum-watch, activity-analytics, notifications, thread-content, user-content, core)",
+    "version_id": 1021500,
+    "version_string": "1.2.15",
     "dev": "chgold",
     "dev_url": "https://plugins.goldnat.ai/xenforo",
     "faq_url": "",

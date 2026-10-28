@@ -795,19 +795,19 @@ trait AdminAppearanceTrait
 
     private function fetchUrlToUpload(string $url, string $suggestedName)
     {
-        // Guard scheme
         if (!preg_match('#^https?://#i', $url)) {
             return $this->error('validation_failed', 'file_url must be http(s)');
         }
-        $tmp = tempnam(sys_get_temp_dir(), 'aicadm_');
-        $data = @file_get_contents($url);
-        if ($data === false) {
-            return $this->error('fetch_failed', "Could not fetch $url");
+        $tmp = \XF\Util\File::getTempFile();
+        if (!$tmp) {
+            return $this->error('fetch_failed', 'Could not create temporary file');
         }
-        if (strlen($data) > 5 * 1024 * 1024) {
-            return $this->error('too_large', 'File exceeds 5 MB');
+        $limits = ['time' => 30, 'bytes' => 5 * 1024 * 1024];
+        $response = \XF::app()->http()->reader()->getUntrusted($url, $limits, $tmp, [], $readerError);
+        if (!$response) {
+            @unlink($tmp);
+            return $this->error('fetch_failed', "Could not fetch $url: " . ($readerError ?: 'unknown HTTP error'));
         }
-        file_put_contents($tmp, $data);
 
         // If the suggested name has no extension, sniff MIME from the actual
         // file content and append the matching extension. Otherwise

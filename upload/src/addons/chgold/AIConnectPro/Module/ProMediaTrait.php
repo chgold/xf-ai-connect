@@ -357,14 +357,16 @@ trait ProMediaTrait
     private function fetchUpload(string $url, ?string $filename, &$error): ?Upload
     {
         $error = null;
-        $contents = @file_get_contents($url);
-        if ($contents === false) {
-            $error = 'Could not fetch file from URL';
+        $temp = File::getTempFile();
+        if (!$temp) {
+            $error = 'Could not create temporary file';
             return null;
         }
-        $temp = File::getTempFile();
-        if (!$temp || file_put_contents($temp, $contents) === false) {
-            $error = 'Could not buffer downloaded file';
+        $limits = ['time' => 30, 'bytes' => 52428800];
+        $response = \XF::app()->http()->reader()->getUntrusted($url, $limits, $temp, [], $readerError);
+        if (!$response) {
+            $error = 'Could not fetch URL: ' . ($readerError ?: 'unknown HTTP error');
+            @unlink($temp);
             return null;
         }
         $rawName = $filename ?: (basename(parse_url($url, PHP_URL_PATH)) ?: 'upload.dat');
